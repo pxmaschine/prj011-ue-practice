@@ -4,3 +4,5 @@
 #include "Modules/ModuleManager.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FDefaultGameModuleImpl, UEPractice, "UEPractice" );
+
+DEFINE_LOG_CATEGORY(LogGame);
