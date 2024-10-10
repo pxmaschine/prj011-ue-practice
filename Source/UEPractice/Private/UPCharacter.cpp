@@ -8,6 +8,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "UPInteractionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -23,6 +24,8 @@ AUPCharacter::AUPCharacter()
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
 	CameraComp->SetupAttachment(SpringArmComp);
+
+	InteractionComp = CreateDefaultSubobject<UUPInteractionComponent>("InteractionComp");
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
@@ -65,14 +68,29 @@ void AUPCharacter::Look(const FInputActionValue& Value)
 
 void AUPCharacter::PrimaryAttack()
 {
+	PlayAnimMontage(AttackAnim);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &AUPCharacter::PrimaryAttack_TimeElapsed, 0.2f);
+
+	//GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack);
+}
+
+void AUPCharacter::PrimaryAttack_TimeElapsed()
+{
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
 	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	SpawnParams.Instigator = this;
 
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+}
+
+void AUPCharacter::PrimaryInteract()
+{
+	InteractionComp->PrimaryInteract();
 }
 
 // Called every frame
@@ -107,6 +125,8 @@ void AUPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPCharacter::Look);
 		EnhancedInputComponent->BindAction(CombatAction	, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryAttack);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryInteract);
+
 	}
 }
 
