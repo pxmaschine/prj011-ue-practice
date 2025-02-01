@@ -3,37 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UPProjectileBase.h"
 #include "GameFramework/Actor.h"
 #include "UPMagicProjectile.generated.h"
 
-class USphereComponent;
-class UProjectileMovementComponent;
-class UParticleSystemComponent;
 
 UCLASS()
-class UEPRACTICE_API AUPMagicProjectile : public AActor
+class UEPRACTICE_API AUPMagicProjectile : public AUPProjectileBase
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	AUPMagicProjectile();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USphereComponent* SphereComp{ nullptr };
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UProjectileMovementComponent* MovementComp{ nullptr };
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UParticleSystemComponent* EffectComp{ nullptr };
 };

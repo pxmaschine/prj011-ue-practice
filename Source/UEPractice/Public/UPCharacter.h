@@ -13,6 +13,7 @@ class UInputMappingContext;
 class UInputAction;
 class UUPInteractionComponent;
 class UAnimMontage;
+class AUPProjectileBase;
 struct FInputActionValue;
 struct FTimerHandle;
 
@@ -23,12 +24,23 @@ class UEPRACTICE_API AUPCharacter : public ACharacter
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AActor> ProjectileClass;
+	TSubclassOf<AUPProjectileBase> MagicProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AUPProjectileBase> BlackholeProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TSubclassOf<AUPProjectileBase> DashProjectileClass;
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	UAnimMontage* AttackAnim{ nullptr };
 
 	FTimerHandle TimerHandle_PrimaryAttack;
+	FTimerHandle TimerHandle_BlackholeAttack;
+	FTimerHandle TimerHandle_Dash;
+
+	float AttackAnimDelay;
+
 
 public:
 	// Sets default values for this character's properties
@@ -42,6 +54,13 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void PrimaryAttack();
 	void PrimaryAttack_TimeElapsed();
+	void BlackholeAttack();
+	void BlackholeAttack_TimeElapsed();
+	void Dash();
+	void Dash_TimeElapsed();
+
+	void SpawnProjectile(TSubclassOf<AUPProjectileBase> ProjectileClass);
+
 	void PrimaryInteract();
 
 public:	
@@ -50,6 +69,8 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -71,7 +92,13 @@ protected:
 	UInputAction* LookAction{ nullptr };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* CombatAction{ nullptr };
+	UInputAction* PrimaryAttackAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* UltimateAttackAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* DashAction{ nullptr };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction{ nullptr };

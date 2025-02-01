@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "UPInteractionComponent.h"
+#include "UPProjectileBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -28,8 +29,9 @@ AUPCharacter::AUPCharacter()
 	InteractionComp = CreateDefaultSubobject<UUPInteractionComponent>("InteractionComp");
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
-
 	bUseControllerRotationYaw = false;
+
+	AttackAnimDelay = 0.2f;
 }
 
 // Called when the game starts or when spawned
@@ -70,16 +72,66 @@ void AUPCharacter::PrimaryAttack()
 {
 	PlayAnimMontage(AttackAnim);
 
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &AUPCharacter::PrimaryAttack_TimeElapsed, 0.2f);
-
-	//GetWorldTimerManager().ClearTimer(TimerHandle_PrimaryAttack);
+	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &AUPCharacter::PrimaryAttack_TimeElapsed, AttackAnimDelay);
 }
 
 void AUPCharacter::PrimaryAttack_TimeElapsed()
 {
+	SpawnProjectile(MagicProjectileClass);
+}
+
+void AUPCharacter::BlackholeAttack()
+{
+	PlayAnimMontage(AttackAnim);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &AUPCharacter::BlackholeAttack_TimeElapsed, AttackAnimDelay);
+}
+
+void AUPCharacter::BlackholeAttack_TimeElapsed()
+{
+	SpawnProjectile(BlackholeProjectileClass);
+}
+
+void AUPCharacter::Dash()
+{
+	PlayAnimMontage(AttackAnim);
+
+	GetWorldTimerManager().SetTimer(TimerHandle_Dash, this, &AUPCharacter::Dash_TimeElapsed, AttackAnimDelay);
+}
+
+void AUPCharacter::Dash_TimeElapsed()
+{
+	SpawnProjectile(DashProjectileClass);
+}
+
+void AUPCharacter::SpawnProjectile(TSubclassOf<AUPProjectileBase> ProjectileClass)
+{
+	if (!ensure(ProjectileClass))
+	{
+		return;
+	}
+
+	FVector EyeLocation = CameraComp->GetComponentLocation();
+	FRotator EyeRotation = CameraComp->GetComponentRotation();
+	const FVector End = EyeLocation + (EyeRotation.Vector() * 10000.0);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	FCollisionObjectQueryParams ObjectQueryParams;
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
+	ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+
+	FHitResult Hit;
+	bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams, Params);
+
+	FVector ImpactLocation = bBlockingHit ? Hit.ImpactPoint : Hit.TraceEnd;
 	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
 
-	FTransform SpawnTM = FTransform(GetControlRotation(), HandLocation);
+	FRotator ProjectileRotation = FRotationMatrix::MakeFromX(ImpactLocation - HandLocation).Rotator();
+
+	FTransform SpawnTM = FTransform(ProjectileRotation, HandLocation);
 
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -98,20 +150,20 @@ void AUPCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	const float DrawScale = 100.0f;
-	const float Thickness = 5.0f;
+	//const float DrawScale = 100.0f;
+	//const float Thickness = 5.0f;
 
-	FVector LineStart = GetActorLocation();
-	// Offset to the right of pawn
-	LineStart += GetActorRightVector() * 100.0f;
-	// Set line end in direction of the actor's forward
-	FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
-	// Draw Actor's Direction
-	DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
+	//FVector LineStart = GetActorLocation();
+	//// Offset to the right of pawn
+	//LineStart += GetActorRightVector() * 100.0f;
+	//// Set line end in direction of the actor's forward
+	//FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
+	//// Draw Actor's Direction
+	//DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
 
-	FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
-	// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character
-	DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
+	//FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
+	//// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character
+	//DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
 }
 
 // Called to bind functionality to input
@@ -123,10 +175,25 @@ void AUPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPCharacter::Look);
-		EnhancedInputComponent->BindAction(CombatAction	, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryAttack);
+		EnhancedInputComponent->BindAction(PrimaryAttackAction, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryAttack);
+		EnhancedInputComponent->BindAction(UltimateAttackAction, ETriggerEvent::Triggered, this, &AUPCharacter::BlackholeAttack);
+		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AUPCharacter::Dash);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryInteract);
 
+	}
+}
+
+void AUPCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
+{
+	if (CameraComp)
+	{
+		OutLocation = CameraComp->GetComponentLocation();
+		OutRotation = CameraComp->GetComponentRotation();
+	}
+	else
+	{
+		Super::GetActorEyesViewPoint(OutLocation, OutRotation);
 	}
 }
 

@@ -46,6 +46,8 @@ void AUPExplosiveBarrel::PostInitializeComponents()
 	 */
 	//StaticMesh->OnComponentHit.AddDynamic(this, &AUPExplosiveBarrel::OnHitCallback);
 
+	// AddUniqueDynamic is used here, because we previously had it in the constructor and it was built into the blueprint asset as such
+	// That's why it throws an error on startup
 	StaticMesh->OnComponentHit.AddUniqueDynamic(this, &AUPExplosiveBarrel::OnHitCallback);
 }
 
@@ -53,8 +55,10 @@ void AUPExplosiveBarrel::OnHitCallback(UPrimitiveComponent* HitComponent, AActor
 {
 	RadialForce->FireImpulse();
 
+	//UE_LOG(LogGame, Log, TEXT("OnActorHit in Explosive Barrel"));
 	UE_LOGFMT(LogGame, Log, "OnActorHit in Explosive Barrel");
 
+	//UE_LOG(LogGame, Warning, TEXT("OtherActor: %s, at game time: %f"), *GetNameSafe(OtherActor), GetWorld()->TimeSeconds);
 	UE_LOGFMT(LogGame, Warning, "OnActorHit, OtherActor: {name}, at game time: {timeseconds}", GetNameSafe(OtherActor), GetWorld()->TimeSeconds);
 
 	FString CombinedString = FString::Printf(TEXT("Hit at location: %s"), *Hit.ImpactPoint.ToString());
