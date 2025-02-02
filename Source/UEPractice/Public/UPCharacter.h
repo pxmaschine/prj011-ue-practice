@@ -14,6 +14,7 @@ class UInputAction;
 class UUPInteractionComponent;
 class UAnimMontage;
 class AUPProjectileBase;
+class UUPAttributeComponent;
 struct FInputActionValue;
 struct FTimerHandle;
 
@@ -81,6 +82,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UUPInteractionComponent* InteractionComp{ nullptr };
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UUPAttributeComponent* AttributeComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext{ nullptr };

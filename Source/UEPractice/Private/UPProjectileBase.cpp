@@ -20,7 +20,6 @@ AUPProjectileBase::AUPProjectileBase()
 	//SphereComp->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 	SphereComp->SetCollisionProfileName("Projectile");
 	SphereComp->SetCanEverAffectNavigation(false);
-	SphereComp->OnComponentHit.AddDynamic(this, &AUPProjectileBase::OnActorHit);
 	RootComponent = SphereComp;
 
 	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
@@ -52,5 +51,7 @@ void AUPProjectileBase::Explode_Implementation()
 void AUPProjectileBase::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
+
+	SphereComp->OnComponentHit.AddDynamic(this, &AUPProjectileBase::OnActorHit);
 }
 

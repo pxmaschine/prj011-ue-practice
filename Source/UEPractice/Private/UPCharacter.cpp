@@ -8,6 +8,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "UPAttributeComponent.h"
 #include "UPInteractionComponent.h"
 #include "UPProjectileBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -27,6 +28,8 @@ AUPCharacter::AUPCharacter()
 	CameraComp->SetupAttachment(SpringArmComp);
 
 	InteractionComp = CreateDefaultSubobject<UUPInteractionComponent>("InteractionComp");
+
+	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>("AttributeComp");
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;

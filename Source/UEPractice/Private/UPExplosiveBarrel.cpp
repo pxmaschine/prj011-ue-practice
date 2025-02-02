@@ -3,6 +3,7 @@
 
 #include "UPExplosiveBarrel.h"
 
+#include "UPAttributeComponent.h"
 #include "UEPractice/UEPractice.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 
@@ -63,6 +64,15 @@ void AUPExplosiveBarrel::OnHitCallback(UPrimitiveComponent* HitComponent, AActor
 
 	FString CombinedString = FString::Printf(TEXT("Hit at location: %s"), *Hit.ImpactPoint.ToString());
 	DrawDebugString(GetWorld(), Hit.ImpactPoint, CombinedString, nullptr, FColor::Green, 2.0f, true);
+
+	if (OtherActor)
+	{
+		UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(OtherActor->GetComponentByClass(UUPAttributeComponent::StaticClass()));
+		if (AttributeComp)
+		{
+			AttributeComp->ApplyHealthChange(-50.0f);
+		}
+	}
 }
 
 // Called every frame
