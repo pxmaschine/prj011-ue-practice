@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UPExplosiveBarrel.h"
+#include "Course/UPExplosiveBarrel.h"
+#include "Course/UPAttributeComponent.h"
 
-#include "UPAttributeComponent.h"
 #include "UEPractice/UEPractice.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 

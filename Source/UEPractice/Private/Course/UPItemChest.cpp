@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UPItemChest.h"
+#include "Course/UPItemChest.h"
 
 // Sets default values
 AUPItemChest::AUPItemChest()

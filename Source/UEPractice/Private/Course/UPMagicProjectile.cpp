@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UPMagicProjectile.h"
+#include "Course/UPMagicProjectile.h"
+#include "Course/UPAttributeComponent.h"
 
-#include "UPAttributeComponent.h"
 #include "Components/SphereComponent.h"
 
 

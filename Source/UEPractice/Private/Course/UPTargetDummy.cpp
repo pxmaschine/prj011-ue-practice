@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "UPTargetDummy.h"
-#include "UPAttributeComponent.h"
+#include "Course/UPTargetDummy.h"
+#include "Course/UPAttributeComponent.h"
 
 // Sets default values
 AUPTargetDummy::AUPTargetDummy()

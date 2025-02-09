@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UPHealthPotionActor.h"
-#include "UPAttributeComponent.h"
+#include "Course/UPHealthPotionActor.h"
+#include "Course/UPAttributeComponent.h"
 
 AUPHealthPotionActor::AUPHealthPotionActor()
 {

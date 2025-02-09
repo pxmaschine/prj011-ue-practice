@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UPInteractionComponent.h"
-
-#include "UPGameplayInterface.h"
+#include "Course/UPInteractionComponent.h"
+#include "Course/UPGameplayInterface.h"
 
 // Sets default values for this component's properties
 UUPInteractionComponent::UUPInteractionComponent()

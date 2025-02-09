@@ -1,16 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UPCharacter.h"
+#include "Course/UPCharacter.h"
+#include "Course/UPAttributeComponent.h"
+#include "Course/UPInteractionComponent.h"
+#include "Course/UPProjectileBase.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "UPAttributeComponent.h"
-#include "UPInteractionComponent.h"
-#include "UPProjectileBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
