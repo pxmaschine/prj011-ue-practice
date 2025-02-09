@@ -12,6 +12,8 @@
 #include "UPInteractionComponent.h"
 #include "UPProjectileBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
 
 
 // Sets default values
@@ -35,6 +37,15 @@ AUPCharacter::AUPCharacter()
 	bUseControllerRotationYaw = false;
 
 	AttackAnimDelay = 0.2f;
+	TimeToHitParamName = "TimeToHit";
+	HandSocketName = "Muzzle_01";
+}
+
+void AUPCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	AttributeComponent->OnHealthChanged.AddDynamic(this, &AUPCharacter::OnHealthChanged);
 }
 
 // Called when the game starts or when spawned
@@ -73,7 +84,7 @@ void AUPCharacter::Look(const FInputActionValue& Value)
 
 void AUPCharacter::PrimaryAttack()
 {
-	PlayAnimMontage(AttackAnim);
+	StartAttackEffects();
 
 	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &AUPCharacter::PrimaryAttack_TimeElapsed, AttackAnimDelay);
 }
@@ -85,7 +96,7 @@ void AUPCharacter::PrimaryAttack_TimeElapsed()
 
 void AUPCharacter::BlackholeAttack()
 {
-	PlayAnimMontage(AttackAnim);
+	StartAttackEffects();
 
 	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &AUPCharacter::BlackholeAttack_TimeElapsed, AttackAnimDelay);
 }
@@ -97,7 +108,7 @@ void AUPCharacter::BlackholeAttack_TimeElapsed()
 
 void AUPCharacter::Dash()
 {
-	PlayAnimMontage(AttackAnim);
+	StartAttackEffects();
 
 	GetWorldTimerManager().SetTimer(TimerHandle_Dash, this, &AUPCharacter::Dash_TimeElapsed, AttackAnimDelay);
 }
@@ -107,9 +118,16 @@ void AUPCharacter::Dash_TimeElapsed()
 	SpawnProjectile(DashProjectileClass);
 }
 
+void AUPCharacter::StartAttackEffects()
+{
+	PlayAnimMontage(AttackAnim);
+
+	UGameplayStatics::SpawnEmitterAttached(CastVFX, GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
+}
+
 void AUPCharacter::SpawnProjectile(TSubclassOf<AUPProjectileBase> ProjectileClass)
 {
-	if (!ensure(ProjectileClass))
+	if (!ensureAlways(ProjectileClass))
 	{
 		return;
 	}
@@ -130,7 +148,9 @@ void AUPCharacter::SpawnProjectile(TSubclassOf<AUPProjectileBase> ProjectileClas
 	bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams, Params);
 
 	FVector ImpactLocation = bBlockingHit ? Hit.ImpactPoint : Hit.TraceEnd;
-	FVector HandLocation = GetMesh()->GetSocketLocation("Muzzle_01");
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	const FTransform Hand = MeshComp->GetSocketTransform("Muzzle_01");
+	const FVector HandLocation = Hand.GetLocation();
 
 	FRotator ProjectileRotation = FRotationMatrix::MakeFromX(ImpactLocation - HandLocation).Rotator();
 
@@ -146,6 +166,21 @@ void AUPCharacter::SpawnProjectile(TSubclassOf<AUPProjectileBase> ProjectileClas
 void AUPCharacter::PrimaryInteract()
 {
 	InteractionComp->PrimaryInteract();
+}
+
+void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth,
+	float Delta)
+{
+	if (Delta < 0.0f)
+	{
+		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+
+		if (NewHealth <= 0.0f)
+		{
+			APlayerController* PC = Cast<APlayerController>(GetController());
+			DisableInput(PC);
+		}
+	}
 }
 
 // Called every frame

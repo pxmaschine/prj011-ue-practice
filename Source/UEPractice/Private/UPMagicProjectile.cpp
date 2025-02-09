@@ -6,6 +6,14 @@
 #include "UPAttributeComponent.h"
 #include "Components/SphereComponent.h"
 
+
+AUPMagicProjectile::AUPMagicProjectile()
+{
+	SphereComp->SetSphereRadius(20.0f);
+
+	DamageAmount = 20.0f;
+}
+
 void AUPMagicProjectile::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -18,12 +26,11 @@ void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent
 {
 	if (OtherActor && OtherActor != GetInstigator())
 	{
-		UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(OtherActor->GetComponentByClass(UUPAttributeComponent::StaticClass()));
-		if (AttributeComp)
+		if (UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(OtherActor->GetComponentByClass(UUPAttributeComponent::StaticClass())))
 		{
-			AttributeComp->ApplyHealthChange(-20.0f);
-
-			Destroy();
+			AttributeComp->ApplyHealthChange(-DamageAmount);
 		}
+
+		Explode_Implementation();
 	}
 }
