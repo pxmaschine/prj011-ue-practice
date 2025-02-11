@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "UPAICharacter.generated.h"
 
+class UPawnSensingComponent;
+
 UCLASS()
 class UEPRACTICE_API AUPAICharacter : public ACharacter
 {
@@ -16,10 +18,15 @@ public:
 	AUPAICharacter();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION()
+	void OnPawnSeen(APawn* Pawn);
+
+protected:
+	// UPawnSensingComponent is an older implementation of AI perception.
+	// It has less features, but is also easier to use.
+	// AI Perception is the modern API. It allows more customization.
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPawnSensingComponent* PawnSensingComp;
 };
