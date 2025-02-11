@@ -47,9 +47,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetMaxHealth() const { return MaxHealth; }
 
-	UPROPERTY(BlueprintAssignable)
-	FOnHealthChanged OnHealthChanged;
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentHealth() const { return Health; }
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool ApplyHealthChange(float Delta);
+
+	UPROPERTY(BlueprintAssignable)
+	FOnHealthChanged OnHealthChanged;
 };

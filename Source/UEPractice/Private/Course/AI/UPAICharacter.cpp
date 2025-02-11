@@ -5,12 +5,17 @@
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Course/UPAttributeComponent.h"
 #include "Perception/PawnSensingComponent.h"
 
 
 AUPAICharacter::AUPAICharacter()
 {
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComp");
+	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>("AttributeComp");
+
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	LowHealthThreshold = 30.0f;
 }
 
 void AUPAICharacter::PostInitializeComponents()
