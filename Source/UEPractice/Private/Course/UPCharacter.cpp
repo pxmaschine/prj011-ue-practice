@@ -234,3 +234,8 @@ void AUPCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRota
 	}
 }
 
+void AUPCharacter::HealSelf(float Amount /* = 100.0f */)
+{
+	AttributeComponent->ApplyHealthChange(this, Amount);
+}
+

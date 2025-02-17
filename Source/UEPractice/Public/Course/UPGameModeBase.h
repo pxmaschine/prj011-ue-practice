@@ -24,6 +24,10 @@ public:
 public:
 	virtual void StartPlay() override;
 
+public:
+	UFUNCTION(Exec)
+	void KillAll();
+
 protected:
 	UFUNCTION()
 	void SpawnBotTimerElapsed();

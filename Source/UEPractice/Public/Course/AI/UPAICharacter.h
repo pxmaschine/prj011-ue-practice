@@ -3,11 +3,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Course/UPAttributeComponent.h"
 #include "GameFramework/Character.h"
 #include "UPAICharacter.generated.h"
 
+class UUPWorldUserWidget;
 class UPawnSensingComponent;
+class UPAttributeComponent;
+class UUserWidget;
 
 UCLASS()
 class UEPRACTICE_API AUPAICharacter : public ACharacter
@@ -19,7 +21,7 @@ public:
 	AUPAICharacter();
 
 public:
-	bool HasLowHealth() const { return AttributeComponent->GetCurrentHealth() < LowHealthThreshold; }
+	bool HasLowHealth() const;
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -33,6 +35,11 @@ protected:
 	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
 
 protected:
+	UUPWorldUserWidget* ActiveHealthBar;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+
 	// UPawnSensingComponent is an older implementation of AI perception.
 	// It has less features, but is also easier to use.
 	// AI Perception is the modern API. It allows more customization.

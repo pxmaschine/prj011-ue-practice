@@ -108,6 +108,12 @@ public:
 
 	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
+public:
+	// Exec works for certain classes - PlayerController, GameMode, CheatManager
+	// Adds function automatic to console commands
+	UFUNCTION(Exec)
+	void HealSelf(float Amount = 100.0f);
+
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);

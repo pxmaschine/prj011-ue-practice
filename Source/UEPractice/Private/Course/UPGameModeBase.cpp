@@ -4,6 +4,7 @@
 #include "Course/UPGameModeBase.h"
 
 #include "EngineUtils.h"
+#include "Course/UPAttributeComponent.h"
 #include "Course/AI/UPAICharacter.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
@@ -20,6 +21,20 @@ void AUPGameModeBase::StartPlay()
 	// Continuous timer to spawn in more bots
 	// Actual amount of bots and whether its allowed to spawn determined by spawn logic later in the chain
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &AUPGameModeBase::SpawnBotTimerElapsed, SpawnTimerInterval, true);
+}
+
+void AUPGameModeBase::KillAll()
+{
+	for (TActorIterator<AUPAICharacter> It(GetWorld()); It; ++It)
+	{
+		const AUPAICharacter* Bot = *It;
+
+		UUPAttributeComponent* AttributeComp = UUPAttributeComponent::GetAttributes(Bot);
+		if (ensure(AttributeComp) && AttributeComp->IsAlive())
+		{
+			AttributeComp->Kill(this);
+		}
+	}
 }
 
 void AUPGameModeBase::SpawnBotTimerElapsed()

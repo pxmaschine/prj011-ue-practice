@@ -29,6 +29,11 @@ bool UUPAttributeComponent::IsActorAlive(const AActor* FromActor)
 	return false;
 }
 
+bool UUPAttributeComponent::Kill(AActor* InstigatorActor)
+{
+	return ApplyHealthChange(InstigatorActor, -GetMaxHealth());
+}
+
 bool UUPAttributeComponent::IsAlive() const
 {
 	return Health > 0.0f;
@@ -41,6 +46,11 @@ bool UUPAttributeComponent::IsFullHealth() const
 
 bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
 {
+	if (!GetOwner()->CanBeDamaged())
+	{
+		return false;
+	}
+
 	const float OldHealth = Health;
 
 	Health = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);

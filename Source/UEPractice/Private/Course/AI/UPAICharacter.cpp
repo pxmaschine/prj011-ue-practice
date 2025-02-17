@@ -2,11 +2,13 @@
 
 
 #include "Course/AI/UPAICharacter.h"
+#include "Course/UPAttributeComponent.h"
+#include "Course/UPWorldUserWidget.h"
 
 #include "AIController.h"
 #include "BrainComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Course/UPAttributeComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "Perception/PawnSensingComponent.h"
 
 
@@ -18,6 +20,11 @@ AUPAICharacter::AUPAICharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	LowHealthThreshold = 30.0f;
 	TimeToHitParamName = "TimeToHit";
+}
+
+bool AUPAICharacter::HasLowHealth() const
+{
+	return AttributeComponent->GetCurrentHealth() < LowHealthThreshold;
 }
 
 void AUPAICharacter::PostInitializeComponents()
@@ -50,6 +57,16 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 		if (InstigatorActor != this)
 		{
 			SetTargetActor(InstigatorActor);
+		}
+
+		if (ActiveHealthBar == nullptr)
+		{
+			ActiveHealthBar = CreateWidget<UUPWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
+			if (ActiveHealthBar)
+			{
+				ActiveHealthBar->AttachedActor = this;
+				ActiveHealthBar->AddToViewport();
+			}
 		}
 
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
