@@ -24,8 +24,13 @@ public:
 protected:
 	virtual void PostInitializeComponents() override;
 
+	void SetTargetActor(AActor* NewTarget);
+
 	UFUNCTION()
 	void OnPawnSeen(APawn* Pawn);
+
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
 
 protected:
 	// UPawnSensingComponent is an older implementation of AI perception.
@@ -36,6 +41,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPAttributeComponent* AttributeComponent;
+
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TimeToHitParamName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
 	float LowHealthThreshold;

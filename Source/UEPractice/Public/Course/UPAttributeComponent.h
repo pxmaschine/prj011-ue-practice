@@ -19,6 +19,13 @@ public:
 	// Sets default values for this component's properties
 	UUPAttributeComponent();
 
+public:
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	static UUPAttributeComponent* GetAttributes(const AActor* FromActor);
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes", meta = (DisplayName = "IsAlive"))
+	static bool IsActorAlive(const AActor* FromActor);
+
 protected:
 	// EditAnywhere - edit in BP editor and per-instance in level.
 	// VisibleAnywhere - 'read-only' in editor and level. (Use for Components)
@@ -51,7 +58,7 @@ public:
 	float GetCurrentHealth() const { return Health; }
 
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	bool ApplyHealthChange(float Delta);
+	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
 
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChanged OnHealthChanged;

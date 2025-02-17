@@ -13,9 +13,16 @@ UCLASS()
 class UEPRACTICE_API UUPBTTask_RangedAttack : public UBTTaskNode
 {
 	GENERATED_BODY()
-	
+
+public:
+	UUPBTTask_RangedAttack();
+
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float MaxBulletSpread;
 
 	UPROPERTY(EditAnywhere, Category = "AI")
 	TSubclassOf<AActor> ProjectileClass;

@@ -28,7 +28,7 @@ void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent
 	{
 		if (UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(OtherActor->GetComponentByClass(UUPAttributeComponent::StaticClass())))
 		{
-			AttributeComp->ApplyHealthChange(-DamageAmount);
+			AttributeComp->ApplyHealthChange(GetInstigator(), -DamageAmount);
 		}
 
 		Explode_Implementation();

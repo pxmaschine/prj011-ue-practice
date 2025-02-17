@@ -8,13 +8,16 @@
 
 EBTNodeResult::Type UUPBTTask_Heal::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	if (const APawn* AIPawn = OwnerComp.GetAIOwner()->GetPawn(); ensure(AIPawn))
+	if (const AAIController* AIC = OwnerComp.GetAIOwner(); ensure(AIC))
 	{
-		UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(AIPawn->GetComponentByClass(UUPAttributeComponent::StaticClass()));
+		if (const APawn* AIPawn = AIC->GetPawn(); ensure(AIPawn))
+		{
+			UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(AIPawn->GetComponentByClass(UUPAttributeComponent::StaticClass()));
 
-		AttributeComp->ApplyHealthChange(AttributeComp->GetMaxHealth());
+			AttributeComp->ApplyHealthChange(AIC->GetInstigator(), AttributeComp->GetMaxHealth());
 
-		return EBTNodeResult::Succeeded;
+			return EBTNodeResult::Succeeded;
+		}
 	}
 
 	return EBTNodeResult::Failed;

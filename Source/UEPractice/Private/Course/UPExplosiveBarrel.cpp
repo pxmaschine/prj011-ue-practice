@@ -31,12 +31,6 @@ AUPExplosiveBarrel::AUPExplosiveBarrel()
 	RadialForce->AddCollisionChannelToAffect(ECC_WorldDynamic);
 }
 
-// Called when the game starts or when spawned
-void AUPExplosiveBarrel::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
 void AUPExplosiveBarrel::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -70,15 +64,7 @@ void AUPExplosiveBarrel::OnHitCallback(UPrimitiveComponent* HitComponent, AActor
 		UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(OtherActor->GetComponentByClass(UUPAttributeComponent::StaticClass()));
 		if (AttributeComp)
 		{
-			AttributeComp->ApplyHealthChange(-50.0f);
+			AttributeComp->ApplyHealthChange(this, -50.0f);
 		}
 	}
 }
-
-// Called every frame
-void AUPExplosiveBarrel::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-

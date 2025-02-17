@@ -15,20 +15,13 @@ class UEPRACTICE_API AUPExplosiveBarrel : public AActor
 	GENERATED_BODY()
 	
 public:
-	// Sets default values for this actor's properties
 	AUPExplosiveBarrel();
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
 
 	UFUNCTION()
 	void OnHitCallback(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere)

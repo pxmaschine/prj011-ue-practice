@@ -24,6 +24,33 @@ void AUPGameModeBase::StartPlay()
 
 void AUPGameModeBase::SpawnBotTimerElapsed()
 {
+	int32 NrOfAliveBots = 0;
+	for (TActorIterator<AUPAICharacter> It(GetWorld()); It; ++It)
+	{
+		const AUPAICharacter* Bot = *It;
+
+		const UUPAttributeComponent* AttributeComp = UUPAttributeComponent::GetAttributes(Bot);
+		if (ensure(AttributeComp) && AttributeComp->IsAlive())
+		{
+			NrOfAliveBots++;
+		}
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Found %i alive bots."), NrOfAliveBots);
+
+	int32 MaxBotCount = 3;
+
+	if (DifficultyCurve)
+	{
+		MaxBotCount = DifficultyCurve->GetFloatValue(GetWorld()->TimeSeconds);
+	}
+
+	if (NrOfAliveBots >= MaxBotCount)
+	{
+		UE_LOG(LogTemp, Log, TEXT("At maximum bot capacity. Skipping bot spawn."));
+		return;
+	}
+
 	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest25Pct, nullptr);
 	if (ensure(QueryInstance))
 	{
@@ -40,34 +67,11 @@ void AUPGameModeBase::OnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryI
 		return;
 	}
 
-	int32 NrOfAliveBots = 0;
-	for (TActorIterator<AUPAICharacter> It(GetWorld()); It; ++It)
-	{
-		const AUPAICharacter* Bot = *It;
-
-		const UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(Bot->GetComponentByClass(UUPAttributeComponent::StaticClass()));
-		if (AttributeComp && AttributeComp->IsAlive())
-		{
-			NrOfAliveBots++;
-		}
-	}
-
-	int32 MaxBotCount = 3;
-
-	if (DifficultyCurve)
-	{
-		MaxBotCount = DifficultyCurve->GetFloatValue(GetWorld()->TimeSeconds);
-	}
-
-	if (NrOfAliveBots >= MaxBotCount)
-	{
-		return;
-	}
-
 	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
-
 	if (Locations.Num() > 0)
 	{
 		GetWorld()->SpawnActor<AActor>(MinionClass, Locations[0], FRotator::ZeroRotator);
+
+		DrawDebugSphere(GetWorld(), Locations[0], 50.0f, 20, FColor::Blue, false, 60.0f);
 	}
 }

@@ -2,17 +2,23 @@
 
 
 #include "Course/AI/UPBTTask_RangedAttack.h"
+#include "Course/UPAttributeComponent.h"
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 
 
+UUPBTTask_RangedAttack::UUPBTTask_RangedAttack()
+{
+	MaxBulletSpread = 2.0f;
+}
+
 EBTNodeResult::Type UUPBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	if (AAIController* AIController = OwnerComp.GetAIOwner(); ensure(AIController))
 	{
-		const ACharacter* AIPawn = Cast<ACharacter>(AIController->GetPawn());
+		ACharacter* AIPawn = Cast<ACharacter>(AIController->GetPawn());
 		if (AIPawn == nullptr)
 		{
 			return EBTNodeResult::Failed;
@@ -26,11 +32,20 @@ EBTNodeResult::Type UUPBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& 
 			return EBTNodeResult::Failed;
 		}
 
+		if (!UUPAttributeComponent::IsActorAlive(TargetActor))
+		{
+			return EBTNodeResult::Failed;
+		}
+
 		const FVector Direction = TargetActor->GetActorLocation() - MuzzleLocation;
-		const FRotator MuzzleRotation = Direction.Rotation();
+		FRotator MuzzleRotation = Direction.Rotation();
+
+		MuzzleRotation.Pitch += FMath::RandRange(0.0f, MaxBulletSpread);
+		MuzzleRotation.Yaw += FMath::RandRange(-MaxBulletSpread, MaxBulletSpread);
 
 		FActorSpawnParameters Params;
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.Instigator = AIPawn;
 
 		const AActor* NewProjectile = GetWorld()->SpawnActor<AActor>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
 

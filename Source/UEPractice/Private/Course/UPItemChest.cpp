@@ -24,18 +24,3 @@ void AUPItemChest::Interact_Implementation(APawn* InstigatorPawn)
 
 
 }
-
-// Called when the game starts or when spawned
-void AUPItemChest::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AUPItemChest::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-

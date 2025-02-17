@@ -9,6 +9,26 @@ UUPAttributeComponent::UUPAttributeComponent()
 	Health = MaxHealth;
 }
 
+UUPAttributeComponent* UUPAttributeComponent::GetAttributes(const AActor* FromActor)
+{
+	if (FromActor)
+	{
+		return FromActor->GetComponentByClass<UUPAttributeComponent>();
+	}
+
+	return nullptr;
+}
+
+bool UUPAttributeComponent::IsActorAlive(const AActor* FromActor)
+{
+	if (const UUPAttributeComponent* Attributes = GetAttributes(FromActor))
+	{
+		return Attributes->IsAlive();
+	}
+
+	return false;
+}
+
 bool UUPAttributeComponent::IsAlive() const
 {
 	return Health > 0.0f;
@@ -19,12 +39,14 @@ bool UUPAttributeComponent::IsFullHealth() const
 	return !(Health < MaxHealth);
 }
 
-bool UUPAttributeComponent::ApplyHealthChange(float Delta)
+bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
 {
-	Health += Delta;
-	Health = FMath::Clamp(Health, 0.0f, MaxHealth);
+	const float OldHealth = Health;
 
-	OnHealthChanged.Broadcast(nullptr, this, Health, Delta);
+	Health = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);
 
-	return true;
+	const float ActualDelta = -(OldHealth - Health);
+	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+
+	return ActualDelta != 0;
 }

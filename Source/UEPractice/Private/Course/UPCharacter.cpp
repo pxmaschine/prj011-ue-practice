@@ -148,7 +148,7 @@ void AUPCharacter::SpawnProjectile(TSubclassOf<AUPProjectileBase> ProjectileClas
 
 	FVector ImpactLocation = bBlockingHit ? Hit.ImpactPoint : Hit.TraceEnd;
 	USkeletalMeshComponent* MeshComp = GetMesh();
-	const FTransform Hand = MeshComp->GetSocketTransform("Muzzle_01");
+	const FTransform Hand = MeshComp->GetSocketTransform(HandSocketName);
 	const FVector HandLocation = Hand.GetLocation();
 
 	FRotator ProjectileRotation = FRotationMatrix::MakeFromX(ImpactLocation - HandLocation).Rotator();
@@ -172,7 +172,7 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 {
 	if (Delta < 0.0f)
 	{
-		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 
 		if (NewHealth <= 0.0f)
 		{
