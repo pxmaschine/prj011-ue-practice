@@ -16,11 +16,11 @@ class UEPRACTICE_API AUPHealthPotionActor : public AUPPickUpActor
 
 public:
 	AUPHealthPotionActor();
-
-protected:
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	UStaticMeshComponent* MeshComp;
-
+	
 public:
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
+
+protected:
+	UPROPERTY(EditAnywhere, Category = "HealthPotion")
+	int32 CreditCost;
 };

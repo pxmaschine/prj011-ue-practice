@@ -3,13 +3,11 @@
 
 #include "Course/UPHealthPotionActor.h"
 #include "Course/UPAttributeComponent.h"
+#include "Course/UPPlayerState.h"
 
 AUPHealthPotionActor::AUPHealthPotionActor()
 {
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>("MeshComp");
-	// Disable collision, instead we use SphereComp to handle interaction queries
-	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	MeshComp->SetupAttachment(RootComponent);
+	CreditCost = 50;
 }
 
 void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
@@ -23,10 +21,14 @@ void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
 	// Check if not already at max health
 	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())
 	{
-		// Only activate if healed successfully
-		if (AttributeComp->ApplyHealthChange(this, AttributeComp->GetMaxHealth()))
+		
+		if (AUPPlayerState* PS = InstigatorPawn->GetPlayerState<AUPPlayerState>())
 		{
-			HideAndCooldownPickUp();
+			if (PS->RemoveCredits(CreditCost) && AttributeComp->ApplyHealthChange(this, AttributeComp->GetMaxHealth()))
+			{
+				// Only activate if healed successfully
+				HideAndCooldownPickUp();
+			}
 		}
 	}
 }

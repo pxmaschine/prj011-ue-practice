@@ -234,6 +234,11 @@ void AUPCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRota
 	}
 }
 
+FVector AUPCharacter::GetPawnViewLocation() const
+{
+	return CameraComp->GetComponentLocation();
+}
+
 void AUPCharacter::HealSelf(float Amount /* = 100.0f */)
 {
 	AttributeComponent->ApplyHealthChange(this, Amount);

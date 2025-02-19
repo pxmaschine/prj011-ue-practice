@@ -8,6 +8,7 @@
 #include "UPPickUpActor.generated.h"
 
 class USphereComponent;
+class UStaticMeshComponent;
 
 UCLASS(Abstract)
 class UEPRACTICE_API AUPPickUpActor : public AActor, public IUPGameplayInterface
@@ -19,9 +20,6 @@ public:
 	AUPPickUpActor();
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "PickUp")
-	float RespawnTime;
-
 	UFUNCTION()
 	void ShowPickUp();
 
@@ -29,6 +27,13 @@ protected:
 
 	void SetPickUpState(bool bNewIsActive);
 
+protected:
+	UPROPERTY(EditAnywhere, Category = "PickUp")
+	float RespawnTime;
+
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	USphereComponent* SphereComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UStaticMeshComponent* MeshComp;
 };

@@ -4,6 +4,10 @@
 #include "Course/UPInteractionComponent.h"
 #include "Course/UPGameplayInterface.h"
 
+
+static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("up_InteractionDebugDraw"), false, TEXT("Enable debug drawing of interaction component."), ECVF_Cheat);
+
+
 // Sets default values for this component's properties
 UUPInteractionComponent::UUPInteractionComponent()
 {
@@ -14,6 +18,8 @@ UUPInteractionComponent::UUPInteractionComponent()
 
 void UUPInteractionComponent::PrimaryInteract() const
 {
+	const bool bIsDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
+
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
 
@@ -48,12 +54,18 @@ void UUPInteractionComponent::PrimaryInteract() const
 
 				IUPGameplayInterface::Execute_Interact(HitActor, MyPawn);
 
-				DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, DebugColor, false, 2.0f);
+				if (bIsDebugDraw)
+				{
+					DrawDebugSphere(GetWorld(), Hit.ImpactPoint, Radius, 32, DebugColor, false, 2.0f);
+				}
 
 				break;
 			}
 		}
 	}
 
-	DrawDebugLine(GetWorld(), EyeLocation, End, DebugColor, false, 2.0f, 0, 2.0f);
+	if (bIsDebugDraw)
+	{
+		DrawDebugLine(GetWorld(), EyeLocation, End, DebugColor, false, 2.0f, 0, 2.0f);
+	}
 }

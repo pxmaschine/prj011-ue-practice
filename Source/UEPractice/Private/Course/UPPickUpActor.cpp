@@ -4,6 +4,7 @@
 #include "Course/UPPickUpActor.h"
 
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h"
 
 // Sets default values
 AUPPickUpActor::AUPPickUpActor()
@@ -12,6 +13,11 @@ AUPPickUpActor::AUPPickUpActor()
 	SphereComp->SetCollisionProfileName("PickUp");
 	SphereComp->SetSphereRadius(100.0f);
 	RootComponent = SphereComp;
+
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>("MeshComp");
+	// Disable collision, instead we use SphereComp to handle interaction queries
+	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MeshComp->SetupAttachment(RootComponent);
 
 	RespawnTime = 10.0f;
 }

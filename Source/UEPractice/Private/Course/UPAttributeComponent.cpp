@@ -2,6 +2,11 @@
 
 #include "Course/UPAttributeComponent.h"
 
+#include "Course/UPGameModeBase.h"
+
+static TAutoConsoleVariable<float> CVarDamageMultiplier(TEXT("up_DamageMultiplier"), 1.0f, TEXT("Global damage modifier for attribute component."), ECVF_Cheat);
+
+
 // Sets default values for this component's properties
 UUPAttributeComponent::UUPAttributeComponent()
 {
@@ -46,9 +51,16 @@ bool UUPAttributeComponent::IsFullHealth() const
 
 bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
 {
-	if (!GetOwner()->CanBeDamaged())
+	if (!GetOwner()->CanBeDamaged() && Delta < 0.0f)
 	{
 		return false;
+	}
+
+	if (Delta < 0.0f)
+	{
+		const float DamageMultiplier = CVarDamageMultiplier.GetValueOnGameThread();
+
+		Delta *= DamageMultiplier;
 	}
 
 	const float OldHealth = Health;
@@ -57,6 +69,15 @@ bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Del
 
 	const float ActualDelta = -(OldHealth - Health);
 	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+
+	// Died
+	if (ActualDelta < 0.0f && Health == 0.0f)
+	{
+		if (AUPGameModeBase* GM = GetWorld()->GetAuthGameMode<AUPGameModeBase>())
+		{
+			GM->OnActorKilled(GetOwner(), InstigatorActor);
+		}
+	}
 
 	return ActualDelta != 0;
 }

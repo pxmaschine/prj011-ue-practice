@@ -108,6 +108,8 @@ public:
 
 	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
+	virtual FVector GetPawnViewLocation() const override;
+
 public:
 	// Exec works for certain classes - PlayerController, GameMode, CheatManager
 	// Adds function automatic to console commands
