@@ -4,6 +4,7 @@
 #include "Course/AI/UPAICharacter.h"
 #include "Course/UPAttributeComponent.h"
 #include "Course/UPWorldUserWidget.h"
+#include "Course/UPActionComponent.h"
 
 #include "AIController.h"
 #include "BrainComponent.h"
@@ -18,6 +19,7 @@ AUPAICharacter::AUPAICharacter()
 {
 	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComp");
 	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>("AttributeComp");
+	ActionComponent = CreateDefaultSubobject<UUPActionComponent>("ActionComp");
 
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	GetMesh()->SetGenerateOverlapEvents(true);

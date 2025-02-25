@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "UPAICharacter.generated.h"
 
+class UUPActionComponent;
 class UUPWorldUserWidget;
 class UPawnSensingComponent;
 class UPAttributeComponent;
@@ -48,6 +49,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPAttributeComponent* AttributeComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UUPActionComponent* ActionComponent;
 
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;

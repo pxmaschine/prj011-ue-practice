@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Components/ActorComponent.h"
 #include "UPActionComponent.generated.h"
 
@@ -17,6 +18,12 @@ class UEPRACTICE_API UUPActionComponent : public UActorComponent
 public:	
 	UUPActionComponent();
 
+protected:
+	virtual void BeginPlay() override;
+
+public:	
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 public:
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	void AddAction(TSubclassOf<UUPAction> ActionClass);
@@ -27,11 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	bool StopActionByName(AActor* Instigator, FName ActionName);
 
-protected:
-	virtual void BeginPlay() override;
-
-public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
+	FGameplayTagContainer ActiveGameplayTags;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Actions")

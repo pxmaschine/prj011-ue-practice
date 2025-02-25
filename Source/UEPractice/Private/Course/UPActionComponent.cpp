@@ -29,6 +29,13 @@ bool UUPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 	{
 		if (Action && Action->ActionName == ActionName)
 		{
+			if (!Action->CanStart(Instigator))
+			{
+				const FString DebugMsg = FString::Printf(TEXT("Failed to run: %s"), *ActionName.ToString());
+				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, DebugMsg);
+				continue;
+			}
+
 			Action->StartAction(Instigator);
 			return true;
 		}
@@ -43,8 +50,11 @@ bool UUPActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
 	{
 		if (Action && Action->ActionName == ActionName)
 		{
-			Action->StopAction(Instigator);
-			return true;
+			if (Action->IsRunning())
+			{
+				Action->StopAction(Instigator);
+				return true;
+			}
 		}
 	}
 
@@ -66,5 +76,8 @@ void UUPActionComponent::BeginPlay()
 void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	const FString DebugMsg = GetNameSafe(GetOwner()) + " : " + ActiveGameplayTags.ToStringSimple( );
+	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
 }
 

@@ -2,10 +2,11 @@
 
 
 #include "Course/UPMagicProjectile.h"
-#include "Course/UPAttributeComponent.h"
+#include "Course/UPActionComponent.h"
+#include "Course/UPGameplayFunctionLibrary.h"
 
 #include "Components/SphereComponent.h"
-#include "Course/UPGameplayFunctionLibrary.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 
 
 AUPMagicProjectile::AUPMagicProjectile()
@@ -36,6 +37,18 @@ void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent
 
 	if (!OtherActor || OtherActor == GetInstigator())
 	{
+		return;
+	}
+
+	// static FGameplayTag Tag = FGameplayTag::RequestGameplayTag("Status.Parrying");
+
+	UUPActionComponent* ActionComp = Cast<UUPActionComponent>(OtherActor->GetComponentByClass(UUPActionComponent::StaticClass()));
+	if (ActionComp && ActionComp->ActiveGameplayTags.HasTag(ParryTag))
+	{
+		MovementComp->Velocity = -MovementComp->Velocity;
+
+		SetInstigator(Cast<APawn>(OtherActor));
+
 		return;
 	}
 
