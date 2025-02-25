@@ -4,15 +4,13 @@
 #include "Course/UPCharacter.h"
 #include "Course/UPAttributeComponent.h"
 #include "Course/UPInteractionComponent.h"
-#include "Course/UPProjectileBase.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Course/UPActionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
-#include "Particles/ParticleSystemComponent.h"
 
 
 // Sets default values
@@ -32,12 +30,12 @@ AUPCharacter::AUPCharacter()
 
 	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>("AttributeComp");
 
+	ActionComponent = CreateDefaultSubobject<UUPActionComponent>("ActionComp");
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
 
-	AttackAnimDelay = 0.2f;
 	TimeToHitParamName = "TimeToHit";
-	HandSocketName = "Muzzle_01";
 }
 
 void AUPCharacter::PostInitializeComponents()
@@ -81,85 +79,29 @@ void AUPCharacter::Look(const FInputActionValue& Value)
 	APawn::AddControllerPitchInput(InputValue.Y);
 }
 
-void AUPCharacter::PrimaryAttack()
+void AUPCharacter::SprintStart()
 {
-	StartAttackEffects();
-
-	GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &AUPCharacter::PrimaryAttack_TimeElapsed, AttackAnimDelay);
+	ActionComponent->StartActionByName(this, "Sprint");
 }
 
-void AUPCharacter::PrimaryAttack_TimeElapsed()
+void AUPCharacter::SprintStop()
 {
-	SpawnProjectile(MagicProjectileClass);
+	ActionComponent->StopActionByName(this, "Sprint");
+}
+
+void AUPCharacter::PrimaryAttack()
+{
+	ActionComponent->StartActionByName(this, "PrimaryAttack");
 }
 
 void AUPCharacter::BlackholeAttack()
 {
-	StartAttackEffects();
-
-	GetWorldTimerManager().SetTimer(TimerHandle_BlackholeAttack, this, &AUPCharacter::BlackholeAttack_TimeElapsed, AttackAnimDelay);
-}
-
-void AUPCharacter::BlackholeAttack_TimeElapsed()
-{
-	SpawnProjectile(BlackholeProjectileClass);
+	ActionComponent->StartActionByName(this, "BlackholeAttack");
 }
 
 void AUPCharacter::Dash()
 {
-	StartAttackEffects();
-
-	GetWorldTimerManager().SetTimer(TimerHandle_Dash, this, &AUPCharacter::Dash_TimeElapsed, AttackAnimDelay);
-}
-
-void AUPCharacter::Dash_TimeElapsed()
-{
-	SpawnProjectile(DashProjectileClass);
-}
-
-void AUPCharacter::StartAttackEffects()
-{
-	PlayAnimMontage(AttackAnim);
-
-	UGameplayStatics::SpawnEmitterAttached(CastVFX, GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
-}
-
-void AUPCharacter::SpawnProjectile(TSubclassOf<AUPProjectileBase> ProjectileClass)
-{
-	if (!ensureAlways(ProjectileClass))
-	{
-		return;
-	}
-
-	FVector EyeLocation = CameraComp->GetComponentLocation();
-	FRotator EyeRotation = CameraComp->GetComponentRotation();
-	const FVector End = EyeLocation + (EyeRotation.Vector() * 10000.0);
-
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-
-	FCollisionObjectQueryParams ObjectQueryParams;
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldDynamic);
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_WorldStatic);
-	ObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
-
-	FHitResult Hit;
-	bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams, Params);
-
-	FVector ImpactLocation = bBlockingHit ? Hit.ImpactPoint : Hit.TraceEnd;
-	USkeletalMeshComponent* MeshComp = GetMesh();
-	const FTransform Hand = MeshComp->GetSocketTransform(HandSocketName);
-	const FVector HandLocation = Hand.GetLocation();
-
-	FRotator ProjectileRotation = FRotationMatrix::MakeFromX(ImpactLocation - HandLocation).Rotator();
-
-	FTransform SpawnTM = FTransform(ProjectileRotation, HandLocation);
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParams.Instigator = this;
-
-	GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+	ActionComponent->StartActionByName(this, "DashAttack");
 }
 
 void AUPCharacter::PrimaryInteract()
@@ -212,12 +154,13 @@ void AUPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPCharacter::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPCharacter::Look);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AUPCharacter::SprintStart);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AUPCharacter::SprintStop);
 		EnhancedInputComponent->BindAction(PrimaryAttackAction, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryAttack);
 		EnhancedInputComponent->BindAction(UltimateAttackAction, ETriggerEvent::Triggered, this, &AUPCharacter::BlackholeAttack);
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AUPCharacter::Dash);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryInteract);
-
 	}
 }
 

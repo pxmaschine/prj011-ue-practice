@@ -7,6 +7,7 @@
 #include "UPCharacter.generated.h"
 
 
+class UUPActionComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -28,31 +29,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	FName TimeToHitParamName;
 
-	UPROPERTY(VisibleAnywhere, Category = "Effects")
-	FName HandSocketName;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AUPProjectileBase> MagicProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AUPProjectileBase> BlackholeProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	TSubclassOf<AUPProjectileBase> DashProjectileClass;
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UAnimMontage* AttackAnim{ nullptr };
-
-	UPROPERTY(EditAnywhere, Category = "Attack")
-	UParticleSystem* CastVFX{ nullptr };
-
-	FTimerHandle TimerHandle_PrimaryAttack;
-	FTimerHandle TimerHandle_BlackholeAttack;
-	FTimerHandle TimerHandle_Dash;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	float AttackAnimDelay;
-
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComp{ nullptr };
 
@@ -65,6 +41,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPAttributeComponent* AttributeComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UUPActionComponent* ActionComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext{ nullptr };
 
@@ -73,6 +52,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction{ nullptr };
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SprintAction{ nullptr };
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* PrimaryAttackAction{ nullptr };
@@ -118,17 +100,18 @@ public:
 
 protected:
 	void Move(const FInputActionValue& Value);
+
 	void Look(const FInputActionValue& Value);
+
+	void SprintStart();
+
+	void SprintStop();
+
 	void PrimaryAttack();
-	void PrimaryAttack_TimeElapsed();
+
 	void BlackholeAttack();
-	void BlackholeAttack_TimeElapsed();
+
 	void Dash();
-	void Dash_TimeElapsed();
-
-	void StartAttackEffects();
-
-	void SpawnProjectile(TSubclassOf<AUPProjectileBase> ProjectileClass);
 
 	void PrimaryInteract();
 

@@ -1,0 +1,70 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "Course/UPActionComponent.h"
+#include "Course/UPAction.h"
+
+
+UUPActionComponent::UUPActionComponent()
+{
+	PrimaryComponentTick.bCanEverTick = true;
+}
+
+void UUPActionComponent::AddAction(TSubclassOf<UUPAction> ActionClass)
+{
+	if (!ensure(ActionClass))
+	{
+		return;
+	}
+
+	if (UUPAction* NewAction = NewObject<UUPAction>(this, ActionClass); ensure(NewAction))
+	{
+		Actions.Add(NewAction);
+	}
+}
+
+bool UUPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
+{
+	for (UUPAction* Action : Actions)
+	{
+		if (Action && Action->ActionName == ActionName)
+		{
+			Action->StartAction(Instigator);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UUPActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
+{
+	for (UUPAction* Action : Actions)
+	{
+		if (Action && Action->ActionName == ActionName)
+		{
+			Action->StopAction(Instigator);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+void UUPActionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	for (const TSubclassOf<UUPAction> ActionClass : DefaultActions)
+	{
+		AddAction(ActionClass);
+	}
+}
+
+
+void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+}
+
