@@ -5,6 +5,7 @@
 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AUPPickUpActor::AUPPickUpActor()
@@ -20,8 +21,16 @@ AUPPickUpActor::AUPPickUpActor()
 	MeshComp->SetupAttachment(RootComponent);
 
 	RespawnTime = 10.0f;
+	bIsPickedUp = false;
 
 	bReplicates = true;
+}
+
+void AUPPickUpActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AUPPickUpActor, bIsPickedUp);
 }
 
 void AUPPickUpActor::ShowPickUp()
@@ -39,8 +48,15 @@ void AUPPickUpActor::HideAndCooldownPickUp()
 
 void AUPPickUpActor::SetPickUpState(bool bNewIsActive)
 {
-	SetActorEnableCollision(bNewIsActive);
+	bIsPickedUp = !bNewIsActive;
+
+	OnRep_PickedUp();
+}
+
+void AUPPickUpActor::OnRep_PickedUp()
+{
+	SetActorEnableCollision(!bIsPickedUp);
 
 	// Set visibility on root and all children
-	RootComponent->SetVisibility(bNewIsActive, true);
+	RootComponent->SetVisibility(!bIsPickedUp, true);
 }

@@ -74,7 +74,9 @@ void AUPGameModeBase::OnActorKilled(AActor* VictimActor, AActor* KillerActor)
 	}
 
 	// Give Credits for kill
-	if (const APawn* KillerPawn = Cast<APawn>(KillerActor))
+	const APawn* KillerPawn = Cast<APawn>(KillerActor);
+	// Don't credit kills of self
+	if (KillerPawn && KillerPawn != VictimActor)
 	{
 		if (AUPPlayerState* PS = KillerPawn->GetPlayerState<AUPPlayerState>()) // < can cast and check for nullptr within if-statement.
 		{

@@ -27,6 +27,9 @@ protected:
 
 	void SetPickUpState(bool bNewIsActive);
 
+	UFUNCTION()
+	void OnRep_PickedUp();
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "PickUp")
 	float RespawnTime;
@@ -36,4 +39,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* MeshComp;
+
+	UPROPERTY(ReplicatedUsing="OnRep_PickedUp")
+	bool bIsPickedUp;
 };

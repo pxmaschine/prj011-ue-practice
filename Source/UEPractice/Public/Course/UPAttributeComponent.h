@@ -58,6 +58,9 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)  // @FIXME: Mark as 'Unreliable' once we move the 'state' out of UPCharacter
 	void MulticastHealthChanged(AActor* InstigatorActor, float NewHealth, float Delta);
 
+	UFUNCTION(NetMulticast, Reliable)  // @FIXME: Mark as 'Unreliable' once we move the 'state' out of UPCharacter
+	void MulticastRageChanged(AActor* InstigatorActor, float NewHealth, float Delta);
+
 public:
 	UPROPERTY(BlueprintAssignable, Category = "Attributes")
 	FOnAttributeChanged OnHealthChanged;

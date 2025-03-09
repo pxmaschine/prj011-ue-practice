@@ -115,14 +115,20 @@ bool UUPAttributeComponent::ApplyRageChange(AActor* InstigatorActor, float Delta
 
 	if (!FMath::IsNearlyZero(ActualDelta))
 	{
-		OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
+		//OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
+		MulticastRageChanged(InstigatorActor, Rage, ActualDelta);
 		return true;
 	}
 
 	return false;
 }
 
-void UUPAttributeComponent::MulticastHealthChanged_Implementation(AActor* InstigatorActor, float NewHealth, float Delta)
+void UUPAttributeComponent::MulticastHealthChanged_Implementation(AActor* InstigatorActor, float NewValue, float Delta)
 {
-	OnHealthChanged.Broadcast(InstigatorActor, this, NewHealth, Delta);
+	OnHealthChanged.Broadcast(InstigatorActor, this, NewValue, Delta);
+}
+
+void UUPAttributeComponent::MulticastRageChanged_Implementation(AActor* InstigatorActor, float NewValue, float Delta)
+{
+	OnRageChanged.Broadcast(InstigatorActor, this, NewValue, Delta);
 }

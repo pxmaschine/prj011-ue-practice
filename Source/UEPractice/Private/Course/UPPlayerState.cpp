@@ -3,6 +3,16 @@
 
 #include "Course/UPPlayerState.h"
 
+#include "Net/UnrealNetwork.h"
+
+
+void AUPPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+ {
+ 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+ 
+ 	DOREPLIFETIME(AUPPlayerState, Credits);
+ }
+
 int32 AUPPlayerState::GetCredits() const
 {
 	return Credits;
@@ -40,4 +50,9 @@ bool AUPPlayerState::RemoveCredits(int32 Delta)
 	OnCreditsChanged.Broadcast(this, Credits, -Delta);
 
 	return true;
+}
+
+void AUPPlayerState::OnRep_Credits(int32 OldCredits)
+{
+	OnCreditsChanged.Broadcast(this, Credits, Credits - OldCredits);
 }
