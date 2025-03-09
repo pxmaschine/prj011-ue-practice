@@ -43,9 +43,9 @@ void UUPActionEffect::StopAction_Implementation(AActor* Instigator)
 	GetWorld()->GetTimerManager().ClearTimer(PeriodHandle);
 	GetWorld()->GetTimerManager().ClearTimer(DurationHandle);
 
-	if (UUPActionComponent* ActionComp = GetOwningComponent())
+	if (UUPActionComponent* Comp = GetOwningComponent())
 	{
-		ActionComp->RemoveAction(this);
+		Comp->RemoveAction(this);
 	}
 }
 

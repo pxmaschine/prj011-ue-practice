@@ -4,6 +4,7 @@
 #include "Course/UPExplosiveBarrel.h"
 #include "Course/UPAttributeComponent.h"
 
+#include "Logging/StructuredLog.h"
 #include "UEPractice/UEPractice.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 

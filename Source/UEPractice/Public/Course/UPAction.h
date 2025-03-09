@@ -18,7 +18,14 @@ class UEPRACTICE_API UUPAction : public UObject
 public:
 	virtual UWorld* GetWorld() const override;
 
+	virtual bool IsSupportedForNetworking() const override
+	{
+		return true;
+	}
+
 public:
+	void Initialize(UUPActionComponent* NewActionComp);
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Action")
 	bool CanStart(AActor* Instigator) const;
 
@@ -34,6 +41,9 @@ public:
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	UUPActionComponent* GetOwningComponent() const;
+	
+	UFUNCTION()
+	void OnRep_IsRunning();
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
@@ -44,6 +54,9 @@ public:
 	bool bAutoStart;
 
 protected:
+	UPROPERTY(Replicated)
+	UUPActionComponent* ActionComp;
+
 	// Tags added to OwningActor when activated, removed when action stops
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTagContainer GrantedTags;
@@ -52,5 +65,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTagContainer BlockedTags;
 
+	UPROPERTY(ReplicatedUsing="OnRep_IsRunning")
 	bool bIsRunning;
 };

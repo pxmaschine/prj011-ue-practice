@@ -4,12 +4,72 @@
 #include "Course/UPActionComponent.h"
 #include "Course/UPAction.h"
 
+#include "Engine/ActorChannel.h"
+#include "Net/UnrealNetwork.h"
+#include "UEPractice/UEPractice.h"
+
 
 UUPActionComponent::UUPActionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
 	SetIsReplicatedByDefault(true);
+}
+
+void UUPActionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UUPActionComponent, Actions);
+}
+
+void UUPActionComponent::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Server only
+	if (GetOwner()->HasAuthority())
+	{
+		for (const TSubclassOf<UUPAction> ActionClass : DefaultActions)
+		{
+			AddAction(GetOwner(), ActionClass);
+		}	
+	}
+}
+
+void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	//const FString DebugMsg = GetNameSafe(GetOwner()) + " : " + ActiveGameplayTags.ToStringSimple( );
+	//GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
+
+	// Draw all actions
+	for (const UUPAction* Action : Actions)
+	{
+		const FColor TextColor = Action->IsRunning() ? FColor::Blue : FColor::White;
+		FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s : IsRunning: %s : Outer: %s"),
+			*GetNameSafe(GetOwner()),
+			*Action->ActionName.ToString(),
+			Action->IsRunning() ? TEXT("true") : TEXT("false"),
+			*GetNameSafe(Action->GetOuter()));
+		LogOnScreen(this, ActionMsg, TextColor, 0.0f);
+	}
+}
+
+bool UUPActionComponent::ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags)
+{
+	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
+
+	for (UUPAction* Action : Actions)
+	{
+		if (Action)
+		{
+			WroteSomething |= Channel->ReplicateSubobject(Action, *Bunch, *RepFlags);
+		}
+	}
+
+	return WroteSomething;
 }
 
 void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> ActionClass)
@@ -19,8 +79,11 @@ void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> Ac
 		return;
 	}
 
-	if (UUPAction* NewAction = NewObject<UUPAction>(this, ActionClass); ensure(NewAction))
+	UUPAction* NewAction = NewObject<UUPAction>(GetOwner(), ActionClass);
+	if (ensure(NewAction))
 	{
+		NewAction->Initialize(this);
+
 		Actions.Add(NewAction);
 
 		if (NewAction->bAutoStart && ensure(NewAction->CanStart(Instigator)))
@@ -101,22 +164,3 @@ void UUPActionComponent::ServerStartAction_Implementation(AActor* Instigator, FN
 {
 	StartActionByName(Instigator, ActionName);
 }
-
-void UUPActionComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	for (const TSubclassOf<UUPAction> ActionClass : DefaultActions)
-	{
-		AddAction(GetOwner(), ActionClass);
-	}
-}
-
-void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	const FString DebugMsg = GetNameSafe(GetOwner()) + " : " + ActiveGameplayTags.ToStringSimple( );
-	GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
-}
-
