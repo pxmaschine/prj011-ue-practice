@@ -20,17 +20,25 @@ UUPInteractionComponent::UUPInteractionComponent()
 	CollisionChannel = ECC_WorldDynamic;
 }
 
-void UUPInteractionComponent::TickComponent(float DeltaTime, enum ELevelTick TickType,
-	FActorComponentTickFunction* ThisTickFunction)
+void UUPInteractionComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FindBestInteractable();
+	const APawn* MyPawn = Cast<APawn>(GetOwner());
+	if (MyPawn->IsLocallyControlled())
+	{
+		FindBestInteractable();
+	}
 }
 
-void UUPInteractionComponent::PrimaryInteract() const
+void UUPInteractionComponent::PrimaryInteract()
 {
-	if (!FocusedActor)
+	ServerInteract(FocusedActor);
+}
+
+void UUPInteractionComponent::ServerInteract_Implementation(AActor* InFocus)
+{
+	if (!InFocus)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("No focused actor to interact."));
 		return;
@@ -38,7 +46,7 @@ void UUPInteractionComponent::PrimaryInteract() const
 
 	APawn* MyPawn = Cast<APawn>(GetOwner());
 
-	IUPGameplayInterface::Execute_Interact(FocusedActor, MyPawn);
+	IUPGameplayInterface::Execute_Interact(InFocus, MyPawn);
 }
 
 void UUPInteractionComponent::FindBestInteractable()

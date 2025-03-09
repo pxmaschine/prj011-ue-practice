@@ -3,12 +3,11 @@
 
 #include "Course/UPItemChest.h"
 
-// Sets default values
+#include "Net/UnrealNetwork.h"
+
+
 AUPItemChest::AUPItemChest()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 	BaseMesh = CreateDefaultSubobject<UStaticMeshComponent>("BaseMesh");
 	RootComponent = BaseMesh;
 
@@ -16,11 +15,27 @@ AUPItemChest::AUPItemChest()
 	LidMesh->SetupAttachment(BaseMesh);
 
 	TargetPitch = 110.0f;
+	bLidOpened = false;
+
+	bReplicates = true;
+}
+
+void AUPItemChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AUPItemChest, bLidOpened);
 }
 
 void AUPItemChest::Interact_Implementation(APawn* InstigatorPawn)
 {
-	LidMesh->SetRelativeRotation(FRotator(TargetPitch, 0.0, 0.0));
+	bLidOpened = !bLidOpened;
 
+	OnRep_LipOpened();
+}
 
+void AUPItemChest::OnRep_LipOpened()
+{
+	const float CurrentPitch = bLidOpened ? TargetPitch : 0.0f;
+	LidMesh->SetRelativeRotation(FRotator(CurrentPitch, 0.0, 0.0));
 }

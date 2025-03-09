@@ -20,6 +20,10 @@ public:
 	void Interact_Implementation(APawn* InstigatorPawn) override;
 
 protected:
+	UFUNCTION()
+	void OnRep_LipOpened();
+
+protected:
 	UPROPERTY(VisibleAnywhere)
 	UStaticMeshComponent* BaseMesh{ nullptr };
 
@@ -28,4 +32,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 	float TargetPitch;
+
+	UPROPERTY(ReplicatedUsing="OnRep_LipOpened", BlueprintReadOnly)  // RepNotify
+	bool bLidOpened;
 };
