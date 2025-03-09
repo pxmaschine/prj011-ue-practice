@@ -35,6 +35,8 @@ AUPProjectileBase::AUPProjectileBase()
 
 	ImpactShakeInnerRadius = 0.0f;
 	ImpactShakeOuterRadius = 1500.0f;
+
+	bReplicates = true;
 }
 
 void AUPProjectileBase::PostInitializeComponents()

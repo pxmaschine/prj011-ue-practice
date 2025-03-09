@@ -3,6 +3,7 @@
 #include "Course/UPAttributeComponent.h"
 
 #include "Course/UPGameModeBase.h"
+#include "Net/UnrealNetwork.h"
 
 static TAutoConsoleVariable<float> CVarDamageMultiplier(TEXT("up_DamageMultiplier"), 1.0f, TEXT("Global damage modifier for attribute component."), ECVF_Cheat);
 
@@ -15,6 +16,21 @@ UUPAttributeComponent::UUPAttributeComponent()
 
 	MaxRage = 100.0f;
 	Rage = 0.0f;
+
+	SetIsReplicatedByDefault(true);
+}
+
+void UUPAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UUPAttributeComponent, Health);
+	DOREPLIFETIME(UUPAttributeComponent, MaxHealth);
+	DOREPLIFETIME(UUPAttributeComponent, Rage);
+	DOREPLIFETIME(UUPAttributeComponent, MaxRage);
+
+	//DOREPLIFETIME_CONDITION(UUPAttributeComponent, MaxHealth, COND_OwnerOnly)
+	//DOREPLIFETIME_CONDITION(UUPAttributeComponent, MaxRage, COND_OwnerOnly)
 }
 
 UUPAttributeComponent* UUPAttributeComponent::GetAttributes(const AActor* FromActor)
@@ -71,7 +87,11 @@ bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Del
 	Health = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);
 
 	const float ActualDelta = -(OldHealth - Health);
-	OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
+	if (!FMath::IsNearlyZero(ActualDelta))
+	{
+		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
+	}
 
 	// Died
 	if (ActualDelta < 0.0f && Health == 0.0f)
@@ -100,4 +120,9 @@ bool UUPAttributeComponent::ApplyRageChange(AActor* InstigatorActor, float Delta
 	}
 
 	return false;
+}
+
+void UUPAttributeComponent::MulticastHealthChanged_Implementation(AActor* InstigatorActor, float NewHealth, float Delta)
+{
+	OnHealthChanged.Broadcast(InstigatorActor, this, NewHealth, Delta);
 }

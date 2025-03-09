@@ -8,6 +8,8 @@
 UUPActionComponent::UUPActionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
+	SetIsReplicatedByDefault(true);
 }
 
 void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> ActionClass)
@@ -64,6 +66,12 @@ bool UUPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 				continue;
 			}
 
+			// Is client?
+			if (!GetOwner()->HasAuthority())
+			{
+				ServerStartAction(Instigator, ActionName);
+			}
+
 			Action->StartAction(Instigator);
 			return true;
 		}
@@ -89,6 +97,10 @@ bool UUPActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
 	return false;
 }
 
+void UUPActionComponent::ServerStartAction_Implementation(AActor* Instigator, FName ActionName)
+{
+	StartActionByName(Instigator, ActionName);
+}
 
 void UUPActionComponent::BeginPlay()
 {
@@ -99,7 +111,6 @@ void UUPActionComponent::BeginPlay()
 		AddAction(GetOwner(), ActionClass);
 	}
 }
-
 
 void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {

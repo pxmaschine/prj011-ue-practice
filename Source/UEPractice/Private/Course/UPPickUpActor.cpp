@@ -20,6 +20,8 @@ AUPPickUpActor::AUPPickUpActor()
 	MeshComp->SetupAttachment(RootComponent);
 
 	RespawnTime = 10.0f;
+
+	bReplicates = true;
 }
 
 void AUPPickUpActor::ShowPickUp()
