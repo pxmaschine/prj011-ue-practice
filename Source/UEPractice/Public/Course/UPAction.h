@@ -39,6 +39,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
 	FName ActionName;
 
+	// Start immediately when added to an action component
+	UPROPERTY(EditDefaultsOnly, Category = "Action")
+	bool bAutoStart;
+
 protected:
 	// Tags added to OwningActor when activated, removed when action stops
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")

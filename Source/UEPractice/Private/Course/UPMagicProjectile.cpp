@@ -4,6 +4,7 @@
 #include "Course/UPMagicProjectile.h"
 #include "Course/UPActionComponent.h"
 #include "Course/UPGameplayFunctionLibrary.h"
+#include "Course/UPActionEffect.h"
 
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -55,5 +56,10 @@ void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent
 	if (UUPGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageAmount, SweepResult))
 	{
 		Explode();
+
+		if (ActionComp)
+		{
+			ActionComp->AddAction(GetInstigator(), BurningActionClass);
+		}
 	}
 }

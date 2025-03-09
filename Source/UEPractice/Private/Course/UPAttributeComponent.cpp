@@ -12,6 +12,9 @@ UUPAttributeComponent::UUPAttributeComponent()
 {
 	MaxHealth = 100.0f;
 	Health = MaxHealth;
+
+	MaxRage = 100.0f;
+	Rage = 0.0f;
 }
 
 UUPAttributeComponent* UUPAttributeComponent::GetAttributes(const AActor* FromActor)
@@ -80,4 +83,21 @@ bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Del
 	}
 
 	return ActualDelta != 0;
+}
+
+bool UUPAttributeComponent::ApplyRageChange(AActor* InstigatorActor, float Delta)
+{
+	const float OldRage = Rage;
+
+	Rage = FMath::Clamp(Rage + Delta, 0.0f, MaxRage);
+
+	const float ActualDelta = -(OldRage - Rage);
+
+	if (!FMath::IsNearlyZero(ActualDelta))
+	{
+		OnRageChanged.Broadcast(InstigatorActor, this, Rage, ActualDelta);
+		return true;
+	}
+
+	return false;
 }

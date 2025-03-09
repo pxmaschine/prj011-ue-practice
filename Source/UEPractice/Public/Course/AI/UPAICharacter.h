@@ -27,7 +27,12 @@ public:
 protected:
 	virtual void PostInitializeComponents() override;
 
+protected:
+ 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetTargetActor(AActor* NewTarget);
+
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	AActor* GetTargetActor() const;
 
 	UFUNCTION()
 	void OnPawnSeen(APawn* Pawn);
@@ -41,6 +46,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> HealthBarWidgetClass;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UUserWidget> SpottedWidgetClass;
+
+	/* Key for AI Blackboard 'TargetActor' */
+ 	UPROPERTY(VisibleAnywhere, Category = "Effects")
+ 	FName TargetActorKey;
+
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TimeToHitParamName;
+
 	// UPawnSensingComponent is an older implementation of AI perception.
 	// It has less features, but is also easier to use.
 	// AI Perception is the modern API. It allows more customization.
@@ -52,9 +67,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPActionComponent* ActionComponent;
-
-	UPROPERTY(VisibleAnywhere, Category = "Effects")
-	FName TimeToHitParamName;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
 	float LowHealthThreshold;

@@ -9,6 +9,7 @@
 
 class UAudioComponent;
 class USoundCue;
+class UUPActionEffect;
 
 UCLASS()
 class UEPRACTICE_API AUPMagicProjectile : public AUPProjectileBase
@@ -27,6 +28,9 @@ protected:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	FGameplayTag ParryTag;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	TSubclassOf<UUPActionEffect> BurningActionClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	float DamageAmount;

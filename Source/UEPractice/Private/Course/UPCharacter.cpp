@@ -109,18 +109,24 @@ void AUPCharacter::PrimaryInteract()
 	InteractionComp->PrimaryInteract();
 }
 
-void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth,
+void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewValue,
 	float Delta)
 {
+	// Damaged
 	if (Delta < 0.0f)
 	{
 		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 
-		if (NewHealth <= 0.0f)
-		{
-			APlayerController* PC = Cast<APlayerController>(GetController());
-			DisableInput(PC);
-		}
+		// Rage added equal to damage received (Abs to turn into positive rage number)
+		float RageDelta = FMath::Abs(Delta);
+		OwningComp->ApplyRageChange(InstigatorActor, RageDelta);
+	}
+
+	// Died
+	if (NewValue <= 0.0f && Delta < 0.0f)
+	{
+		APlayerController* PC = Cast<APlayerController>(GetController());
+		DisableInput(PC);
 	}
 }
 

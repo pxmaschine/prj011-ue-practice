@@ -10,7 +10,7 @@ UUPActionComponent::UUPActionComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UUPActionComponent::AddAction(TSubclassOf<UUPAction> ActionClass)
+void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> ActionClass)
 {
 	if (!ensure(ActionClass))
 	{
@@ -20,7 +20,35 @@ void UUPActionComponent::AddAction(TSubclassOf<UUPAction> ActionClass)
 	if (UUPAction* NewAction = NewObject<UUPAction>(this, ActionClass); ensure(NewAction))
 	{
 		Actions.Add(NewAction);
+
+		if (NewAction->bAutoStart && ensure(NewAction->CanStart(Instigator)))
+		{
+			NewAction->StartAction(Instigator);
+		}
 	}
+}
+
+void UUPActionComponent::RemoveAction(UUPAction* Action)
+{
+	if (!ensure(Action && !Action->IsRunning()))
+	{
+		return;
+	}
+
+	Actions.Remove(Action);
+}
+
+UUPAction* UUPActionComponent::GetAction(TSubclassOf<UUPAction> ActionClass) const
+{
+	for (UUPAction* Action : Actions)
+	{
+ 		if (Action && Action->IsA(ActionClass))
+ 		{
+ 			return Action;
+ 		}
+	}
+
+	return nullptr;
 }
 
 bool UUPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
@@ -68,7 +96,7 @@ void UUPActionComponent::BeginPlay()
 
 	for (const TSubclassOf<UUPAction> ActionClass : DefaultActions)
 	{
-		AddAction(ActionClass);
+		AddAction(GetOwner(), ActionClass);
 	}
 }
 
