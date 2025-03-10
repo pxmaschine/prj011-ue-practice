@@ -4,12 +4,12 @@
 #include "Course/UPCharacter.h"
 #include "Course/UPAttributeComponent.h"
 #include "Course/UPInteractionComponent.h"
+#include "Course/UPActionComponent.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "Course/UPActionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -127,6 +127,8 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 	{
 		APlayerController* PC = Cast<APlayerController>(GetController());
 		DisableInput(PC);
+
+		SetLifeSpan(5.0f);
 	}
 }
 

@@ -12,7 +12,7 @@ void UUPAction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetim
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UUPAction, bIsRunning);
+	DOREPLIFETIME(UUPAction, RepData);
 	DOREPLIFETIME(UUPAction, ActionComp);
 }
 
@@ -23,19 +23,20 @@ void UUPAction::Initialize(UUPActionComponent* NewActionComp)
 
 void UUPAction::StartAction_Implementation(AActor* Instigator)
 {
-	//UE_LOG(LogTemp, Log, TEXT("Running: %s"), *GetNameSafe(this));
-	LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *ActionName.ToString()), FColor::Green);
+	UE_LOG(LogTemp, Log, TEXT("Running: %s"), *GetNameSafe(this));
+	//LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *ActionName.ToString()), FColor::Green);
 
 	UUPActionComponent* Comp = GetOwningComponent();
 	Comp->ActiveGameplayTags.AppendTags(GrantedTags);
 
-	bIsRunning = true;
+	RepData.bIsRunning = true;
+	RepData.Instigator = Instigator;
 }
 
 void UUPAction::StopAction_Implementation(AActor* Instigator)
 {
-	//UE_LOG(LogTemp, Log, TEXT("Stopped: %s"), *GetNameSafe(this));
-	LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *ActionName.ToString()), FColor::White);
+	UE_LOG(LogTemp, Log, TEXT("Stopped: %s"), *GetNameSafe(this));
+	//LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *ActionName.ToString()), FColor::White);
 
 	// TODO: Not true for the client
 	//ensureAlways(bIsRunning);
@@ -43,7 +44,8 @@ void UUPAction::StopAction_Implementation(AActor* Instigator)
 	UUPActionComponent* Comp = GetOwningComponent();
 	Comp->ActiveGameplayTags.RemoveTags(GrantedTags);
 
-	bIsRunning = false;
+	RepData.bIsRunning = false;
+	RepData.Instigator = Instigator;
 }
 
 UWorld* UUPAction::GetWorld() const
@@ -64,7 +66,7 @@ bool UUPAction::CanStart_Implementation(AActor* Instigator) const
 		return false;
 	}
 
-	UUPActionComponent* Comp = GetOwningComponent();
+	const UUPActionComponent* Comp = GetOwningComponent();
 	if (Comp->ActiveGameplayTags.HasAny(BlockedTags))
 	{
 		return false;
@@ -78,19 +80,19 @@ UUPActionComponent* UUPAction::GetOwningComponent() const
 	return ActionComp;
 }
 
-void UUPAction::OnRep_IsRunning()
+void UUPAction::OnRep_RepData()
 {
-	if (bIsRunning)
+	if (RepData.bIsRunning)
 	{
-		StartAction(nullptr);
+		StartAction(RepData.Instigator);
 	}
 	else
 	{
-		StopAction(nullptr);
+		StopAction(RepData.Instigator);
 	}
 }
 
 bool UUPAction::IsRunning_Implementation() const
 {
-	return bIsRunning;
+	return RepData.bIsRunning;
 }

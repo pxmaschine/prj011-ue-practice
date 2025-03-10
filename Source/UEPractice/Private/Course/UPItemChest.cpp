@@ -20,6 +20,11 @@ AUPItemChest::AUPItemChest()
 	bReplicates = true;
 }
 
+void AUPItemChest::OnActorLoaded_Implementation()
+{
+	OnRep_LipOpened();
+}
+
 void AUPItemChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);

@@ -7,7 +7,9 @@
 #include "UPPlayerState.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCreditsChanged, AUPPlayerState*, PlayerState, int32, NewCredits, int32, Delta);
+class UUPSaveGame;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCreditsChanged, AUPPlayerState*, PlayerState, int32, NewCredits,
+                                               int32, Delta);
 
 UCLASS()
 class UEPRACTICE_API AUPPlayerState : public APlayerState
@@ -24,12 +26,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Credits")
 	bool RemoveCredits(int32 Delta);
 
-	UPROPERTY(BlueprintAssignable, Category = "Events")
-	FOnCreditsChanged OnCreditsChanged;
+	UFUNCTION(BlueprintNativeEvent)
+	void SavePlayerState(UUPSaveGame* SaveGame);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void LoadPlayerState(UUPSaveGame* SaveGame);
 
 protected:
 	UFUNCTION()
 	void OnRep_Credits(int32 OldCredits);
+
+public:
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnCreditsChanged OnCreditsChanged;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, ReplicatedUsing="OnRep_Credits", Category = "Credits")

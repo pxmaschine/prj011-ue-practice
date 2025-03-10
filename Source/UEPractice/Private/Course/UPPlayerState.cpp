@@ -3,6 +3,8 @@
 
 #include "Course/UPPlayerState.h"
 
+#include <Course/UPSaveGame.h>
+
 #include "Net/UnrealNetwork.h"
 
 
@@ -50,6 +52,22 @@ bool AUPPlayerState::RemoveCredits(int32 Delta)
 	OnCreditsChanged.Broadcast(this, Credits, -Delta);
 
 	return true;
+}
+
+void AUPPlayerState::SavePlayerState_Implementation(UUPSaveGame* SaveGame)
+{
+	if (SaveGame)
+	{
+		SaveGame->Credits = Credits;
+	}
+}
+
+void AUPPlayerState::LoadPlayerState_Implementation(UUPSaveGame* SaveGame)
+{
+	if (SaveGame)
+	{
+		Credits = SaveGame->Credits;
+	}
 }
 
 void AUPPlayerState::OnRep_Credits(int32 OldCredits)

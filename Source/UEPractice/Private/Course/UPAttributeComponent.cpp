@@ -83,22 +83,26 @@ bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Del
 	}
 
 	const float OldHealth = Health;
+	const float NewHealth = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);
+	const float ActualDelta = -(OldHealth - NewHealth);
 
-	Health = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);
-
-	const float ActualDelta = -(OldHealth - Health);
-	//OnHealthChanged.Broadcast(InstigatorActor, this, Health, ActualDelta);
-	if (!FMath::IsNearlyZero(ActualDelta))
+	// Only server
+	if (GetOwner()->HasAuthority())
 	{
-		MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
-	}
+		Health = NewHealth;
 
-	// Died
-	if (ActualDelta < 0.0f && Health == 0.0f)
-	{
-		if (AUPGameModeBase* GM = GetWorld()->GetAuthGameMode<AUPGameModeBase>())
+		if (!FMath::IsNearlyZero(ActualDelta))
 		{
-			GM->OnActorKilled(GetOwner(), InstigatorActor);
+			MulticastHealthChanged(InstigatorActor, Health, ActualDelta);
+		}
+
+		// Died
+		if (ActualDelta < 0.0f && Health == 0.0f)
+		{
+			if (AUPGameModeBase* GM = GetWorld()->GetAuthGameMode<AUPGameModeBase>())
+			{
+				GM->OnActorKilled(GetOwner(), InstigatorActor);
+			}
 		}
 	}
 

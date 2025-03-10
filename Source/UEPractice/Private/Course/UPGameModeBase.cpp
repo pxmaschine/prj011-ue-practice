@@ -6,10 +6,15 @@
 #include "Course/UPCharacter.h"
 #include "Course/UPPlayerState.h"
 #include "Course/AI/UPAICharacter.h"
+#include "Course/UPSaveGame.h"
 
 #include "EngineUtils.h"
+#include "Course/UPGameplayInterface.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
+#include "GameFramework/GameStateBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 
 
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("up_SpawnBots"), true, TEXT("Enable spawning of bots via timer."), ECVF_Cheat);
@@ -23,12 +28,34 @@ AUPGameModeBase::AUPGameModeBase()
 	CreditsPerKill = 20;
 	DesiredPowerupCount = 10;
 	RequiredPowerupDistance = 2000;
+
 	PlayerStateClass = AUPPlayerState::StaticClass();
+
+	SlotName = "SaveGame01";
+}
+
+void AUPGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	LoadSaveGame();
+}
+
+void AUPGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+
+	if (AUPPlayerState* PS = NewPlayer->GetPlayerState<AUPPlayerState>())
+	{
+		PS->LoadPlayerState(CurrentSaveGame);
+	}
 }
 
 void AUPGameModeBase::StartPlay()
 {
 	Super::StartPlay();
+
+	ApplyLoadedSaveGame();
 
 	// Continuous timer to spawn in more bots
 	// Actual amount of bots and whether its allowed to spawn determined by spawn logic later in the chain
@@ -81,6 +108,110 @@ void AUPGameModeBase::OnActorKilled(AActor* VictimActor, AActor* KillerActor)
 		if (AUPPlayerState* PS = KillerPawn->GetPlayerState<AUPPlayerState>()) // < can cast and check for nullptr within if-statement.
 		{
 			PS->AddCredits(CreditsPerKill);
+		}
+	}
+}
+
+void AUPGameModeBase::WriteSaveGame()
+{
+	// Iterate all player states, we don't have proper ID to match yet (requires Steam or EOS)
+	for (int32 i = 0; i < GameState->PlayerArray.Num(); ++i)
+	{
+		AUPPlayerState* PS = Cast<AUPPlayerState>(GameState->PlayerArray[i]);
+		if (PS)
+		{
+			PS->SavePlayerState(CurrentSaveGame);
+			break; // single player only at this point.
+		}
+	}
+
+	CurrentSaveGame->SavedActors.Empty();
+
+	// Iterate the entire world of Actors
+	for (FActorIterator It(GetWorld()); It; ++It)
+	{
+		AActor* Actor = *It;
+		// Only interested in our 'gameplay' Actors
+		if (!Actor->Implements<UUPGameplayInterface>())
+		{
+			continue;
+		}
+
+		FActorSaveData ActorData;
+		ActorData.ActorName = Actor->GetName();
+		ActorData.Transform = Actor->GetActorTransform();
+
+		// Pass the array to fill with data from Actor
+		FMemoryWriter MemWriter(ActorData.ByteData);
+
+		FObjectAndNameAsStringProxyArchive Ar(MemWriter, true);
+		// Find only variables with UPROPERTY(SaveGame)
+		Ar.ArIsSaveGame = true;
+		// Converts Actor's SaveGame PROPERTIES into binary array
+		Actor->Serialize(Ar);
+
+		CurrentSaveGame->SavedActors.Add(ActorData);
+	}
+
+	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SlotName, 0);
+}
+
+void AUPGameModeBase::LoadSaveGame()
+{
+	if (UGameplayStatics::DoesSaveGameExist(SlotName, 0))
+	{
+		CurrentSaveGame = Cast<UUPSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
+		if (!CurrentSaveGame)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load SaveGame data."));
+			return;
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("Loaded SaveGame data."));
+	}
+	else
+	{
+		CurrentSaveGame = Cast<UUPSaveGame>(UGameplayStatics::CreateSaveGameObject(UUPSaveGame::StaticClass()));
+
+		UE_LOG(LogTemp, Log, TEXT("Created new SaveGame data."));
+	}
+}
+
+void AUPGameModeBase::ApplyLoadedSaveGame()
+{
+	if (CurrentSaveGame->SavedActors.Num() == 0)
+	{
+		return;
+	}
+
+	// Iterate the entire world of Actors
+	for (FActorIterator It(GetWorld()); It; ++It)
+	{
+		AActor* Actor = *It;
+		// Only interested in our 'gameplay' Actors
+		if (!Actor->Implements<UUPGameplayInterface>())
+		{
+			continue;
+		}
+
+		for (const auto& ActorData : CurrentSaveGame->SavedActors)
+		{
+			if (ActorData.ActorName == Actor->GetName())
+			{
+				Actor->SetActorTransform(ActorData.Transform);
+
+				FMemoryReader MemReader(ActorData.ByteData);
+
+				FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
+				// Find only variables with UPROPERTY(SaveGame)
+				Ar.ArIsSaveGame = true;
+				// Converts binary array into Actor's PROPERTIES 
+				Actor->Serialize(Ar);
+
+				IUPGameplayInterface::Execute_OnActorLoaded(Actor);
+
+				break;
+			}
 		}
 	}
 }
