@@ -43,12 +43,12 @@ void AUPGameModeBase::InitGame(const FString& MapName, const FString& Options, F
 
 void AUPGameModeBase::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
-
 	if (AUPPlayerState* PS = NewPlayer->GetPlayerState<AUPPlayerState>())
 	{
 		PS->LoadPlayerState(CurrentSaveGame);
 	}
+
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 }
 
 void AUPGameModeBase::StartPlay()

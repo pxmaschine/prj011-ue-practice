@@ -66,7 +66,9 @@ void AUPPlayerState::LoadPlayerState_Implementation(UUPSaveGame* SaveGame)
 {
 	if (SaveGame)
 	{
-		Credits = SaveGame->Credits;
+		//Credits = SaveGame->Credits;
+		// Make sure we trigger credits changed event
+		AddCredits(SaveGame->Credits);
 	}
 }
 
