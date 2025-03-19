@@ -4,6 +4,8 @@
 #include "Course/UPActionEffect.h"
 #include "Course/UPActionComponent.h"
 
+#include "GameFramework/GameStateBase.h"
+
 
 UUPActionEffect::UUPActionEffect()
 {
@@ -47,6 +49,17 @@ void UUPActionEffect::StopAction_Implementation(AActor* Instigator)
 	{
 		Comp->RemoveAction(this);
 	}
+}
+
+float UUPActionEffect::GetTimeRemaining() const
+{
+	if (const AGameStateBase* GS = GetWorld()->GetGameState<AGameStateBase>())
+	{
+		const float EndTime = TimeStarted + Duration;
+		return EndTime - GS->GetServerWorldTimeSeconds();	
+	}
+
+	return Duration;
 }
 
 void UUPActionEffect::ExecutePeriodicEffect_Implementation(AActor* Instigator)
