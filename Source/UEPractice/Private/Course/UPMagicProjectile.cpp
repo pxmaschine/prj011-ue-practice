@@ -14,6 +14,8 @@ AUPMagicProjectile::AUPMagicProjectile()
 {
 	SphereComp->SetSphereRadius(20.0f);
 
+	InitialLifeSpan = 8.0f;
+
 	DamageAmount = 20.0f;
 }
 

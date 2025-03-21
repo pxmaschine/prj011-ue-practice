@@ -13,6 +13,8 @@ AUPDashProjectile::AUPDashProjectile()
 	TeleportDelay = 0.2f;
 	DetonateDelay = 0.2f;
 
+	InitialLifeSpan = 5.0f;
+
 	MovementComp->InitialSpeed = 6000.0f;
 }
 

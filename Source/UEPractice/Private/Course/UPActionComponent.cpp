@@ -9,6 +9,8 @@
 #include "UEPractice/UEPractice.h"
 
 
+DECLARE_CYCLE_STAT(TEXT("StartActionByName"), STAT_StartActionByName, STATGROUP_UEPRACTICE);
+
 UUPActionComponent::UUPActionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -35,6 +37,20 @@ void UUPActionComponent::BeginPlay()
 			AddAction(GetOwner(), ActionClass);
 		}	
 	}
+}
+
+void UUPActionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	TArray ActionsCopy(Actions);
+	for (UUPAction* Action : ActionsCopy)
+	{
+		if (Action && Action->IsRunning())
+		{
+			Action->StopAction(GetOwner());
+		}
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -121,6 +137,8 @@ UUPAction* UUPActionComponent::GetAction(TSubclassOf<UUPAction> ActionClass) con
 
 bool UUPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 {
+	SCOPE_CYCLE_COUNTER(STAT_StartActionByName);
+
 	for (UUPAction* Action : Actions)
 	{
 		if (Action && Action->ActionName == ActionName)
@@ -137,6 +155,9 @@ bool UUPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 			{
 				ServerStartAction(Instigator, ActionName);
 			}
+
+			// Bookmark for Unreal Insights
+			TRACE_BOOKMARK(TEXT("StartAction::%s"), *GetNameSafe(Action))
 
 			Action->StartAction(Instigator);
 			return true;
