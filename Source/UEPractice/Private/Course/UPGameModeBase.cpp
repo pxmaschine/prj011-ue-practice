@@ -7,14 +7,18 @@
 #include "Course/UPPlayerState.h"
 #include "Course/AI/UPAICharacter.h"
 #include "Course/UPSaveGame.h"
+#include "Course/UPMonsterData.h"
 
 #include "EngineUtils.h"
+#include "Course/UPActionComponent.h"
 #include "Course/UPGameplayInterface.h"
+#include "Engine/AssetManager.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
+#include "UEPractice/UEPractice.h"
 
 
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("up_SpawnBots"), true, TEXT("Enable spawning of bots via timer."), ECVF_Cheat);
@@ -270,9 +274,50 @@ void AUPGameModeBase::OnBotSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper
 	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
 	if (Locations.Num() > 0)
 	{
-		GetWorld()->SpawnActor<AActor>(MinionClass, Locations[0], FRotator::ZeroRotator);
+		if (MonsterTable)
+		{
+			TArray<FMonsterInfoRow*> Rows;
+			MonsterTable->GetAllRows("", Rows);
 
-		DrawDebugSphere(GetWorld(), Locations[0], 50.0f, 20, FColor::Blue, false, 60.0f);
+			const int32 RandomIndex = FMath::RandRange(0, Rows.Num() - 1);
+			const FMonsterInfoRow* SelectedRow = Rows[RandomIndex];
+
+			if (UAssetManager* Manager = UAssetManager::GetIfInitialized())
+			{
+				LogOnScreen(this, FString::Printf(TEXT("Loading monster '%s' ..."), *SelectedRow->MonsterId.PrimaryAssetName.ToString()), FColor::Green);
+
+				// The basic idea of bundles is which part of the asset to load (e.g. in case of multiple soft references)
+				const TArray<FName> Bundles;
+				FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &AUPGameModeBase::OnMonsterLoaded, SelectedRow->MonsterId, Locations[0]);
+				Manager->LoadPrimaryAsset(SelectedRow->MonsterId, Bundles, Delegate);
+			}
+		}
+	}
+}
+
+void AUPGameModeBase::OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation)
+{
+	LogOnScreen(this, FString::Printf(TEXT("Finished loading '%s'."), *LoadedId.PrimaryAssetName.ToString()), FColor::Green);
+
+	if (const UAssetManager* Manager = UAssetManager::GetIfInitialized())
+	{
+		if (UUPMonsterData* MonsterData = Cast<UUPMonsterData>(Manager->GetPrimaryAssetObject(LoadedId)))
+		{
+			if (AActor* NewBot = GetWorld()->SpawnActor<AActor>(MonsterData->MonsterClass, SpawnLocation, FRotator::ZeroRotator))
+			{
+				LogOnScreen(this, FString::Printf(TEXT("Spawned enemy: %s (%s)"), *GetNameSafe(NewBot), *GetNameSafe(MonsterData)));
+
+				if (UUPActionComponent* ActionComp = Cast<UUPActionComponent>(NewBot->GetComponentByClass(UUPActionComponent::StaticClass())))
+				{
+					for (const TSubclassOf<UUPAction> ActionClass : MonsterData->Actions)
+					{
+						ActionComp->AddAction(NewBot, ActionClass);
+					}
+				}
+
+				DrawDebugSphere(GetWorld(), SpawnLocation, 50.0f, 20, FColor::Blue, false, 60.0f);
+			}	
+		}
 	}
 }
 

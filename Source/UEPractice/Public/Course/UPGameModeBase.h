@@ -13,6 +13,38 @@ namespace EEnvQueryStatus
 class UEnvQuery;
 class UCurveFloat;
 class UUPSaveGame;
+class UDataTable;
+class UUPMonsterData;
+
+USTRUCT(BlueprintType)
+struct FMonsterInfoRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	FMonsterInfoRow()
+	{
+		Weight = 1.0f;
+		SpawnCost = 5.0f;
+		KillReward = 20.0f;
+	}
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FPrimaryAssetId MonsterId;
+
+	// Relative chance to pick this monster
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Weight;
+
+	// Points required by gamemode to spawn this unit
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float SpawnCost;
+
+	// Amount of credits awarded to killer of this unit
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float KillReward;
+};
 
 UCLASS()
 class UEPRACTICE_API AUPGameModeBase : public AGameModeBase
@@ -50,6 +82,8 @@ protected:
 	UFUNCTION()
 	void OnBotSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 
+	void OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation);
+
 	UFUNCTION()
 	void OnPowerupSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
 
@@ -58,7 +92,10 @@ protected:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	TSubclassOf<AActor> MinionClass;
+	UDataTable* MonsterTable;
+
+	//UPROPERTY(EditDefaultsOnly, Category = "AI")
+	//TSubclassOf<AActor> MinionClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UEnvQuery* SpawnBotQuery;
