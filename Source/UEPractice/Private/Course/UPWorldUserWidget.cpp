@@ -20,11 +20,18 @@ void UUPWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	}
 
 	FVector2D WidgetPosition;
-	if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), AttachedActor->GetActorLocation() + WorldOffset, WidgetPosition, false))
+	const bool bIsOnScreen = UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(), AttachedActor->GetActorLocation() + WorldOffset, WidgetPosition, false);
+
+	if (bIsOnScreen)
 	{
 		if (ParentSizeBox)
 		{
 			ParentSizeBox->SetRenderTranslation(WidgetPosition);
 		}
+	}
+
+	if (ParentSizeBox)
+	{
+		ParentSizeBox->SetVisibility(bIsOnScreen ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 }
