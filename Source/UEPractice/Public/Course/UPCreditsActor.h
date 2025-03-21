@@ -16,7 +16,7 @@ public:
 	AUPCreditsActor();
 
 public:
-	void Interact_Implementation(APawn* InstigatorPawn) override;
+	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Credits")

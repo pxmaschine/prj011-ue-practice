@@ -5,6 +5,9 @@
 #include "Course/UPAttributeComponent.h"
 #include "Course/UPPlayerState.h"
 
+
+#define LOCTEXT_NAMESPACE "InteractableActors"
+
 AUPHealthPotionActor::AUPHealthPotionActor()
 {
 	CreditCost = 50;
@@ -12,6 +15,8 @@ AUPHealthPotionActor::AUPHealthPotionActor()
 
 void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
 {
+	Super::Interact_Implementation(InstigatorPawn);
+
 	if (!ensure(InstigatorPawn))
 	{
 		return;
@@ -32,3 +37,17 @@ void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
 		}
 	}
 }
+
+FText AUPHealthPotionActor::GetInteractText_Implementation(APawn* InstigatorPawn)
+{
+	const UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(InstigatorPawn->GetComponentByClass(UUPAttributeComponent::StaticClass()));
+
+	if (ensure(AttributeComp) && AttributeComp->IsFullHealth())
+	{
+		return LOCTEXT("HealthPotion_FullHealthWarning", "Already at full health.");
+	}
+
+	return FText::Format(LOCTEXT("HealthPotion_InteractMessage", "Cost {0} Credits. Restores health to maximum."), CreditCost);
+}
+
+#undef LOCTEXT_NAMESPACE

@@ -26,6 +26,16 @@ AUPPickUpActor::AUPPickUpActor()
 	bReplicates = true;
 }
 
+void AUPPickUpActor::Interact_Implementation(APawn* InstigatorPawn)
+{
+	// Implemented in derived classes
+}
+
+FText AUPPickUpActor::GetInteractText_Implementation(APawn* InstigatorPawn)
+{
+	return FText::GetEmpty();
+}
+
 void AUPPickUpActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
