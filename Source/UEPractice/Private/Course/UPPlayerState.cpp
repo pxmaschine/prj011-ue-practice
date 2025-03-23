@@ -23,7 +23,7 @@ int32 AUPPlayerState::GetCredits() const
 void AUPPlayerState::AddCredits(int32 Delta)
 {
 	// Avoid user-error of adding a negative amount or zero
-	if (!ensure(Delta > 0.0f))
+	if (!ensure(Delta >= 0.0f))
 	{
 		return;
 	}
