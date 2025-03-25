@@ -6,10 +6,8 @@
 #include "Course/UPCharacter.h"
 #include "Course/UPPlayerState.h"
 #include "Course/AI/UPAICharacter.h"
-#include "Course/UPSaveGame.h"
 #include "Course/UPMonsterData.h"
 #include "Course/UPActionComponent.h"
-#include "Course/UPGameplayInterface.h"
 #include "Course/UPSaveGameSubsystem.h"
 
 #include "EngineUtils.h"
@@ -18,7 +16,6 @@
 #include "EnvironmentQuery/EnvQueryTypes.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "UEPractice/UEPractice.h"
 
 
@@ -28,9 +25,11 @@ static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("up_SpawnBots"), true, TEXT
 AUPGameModeBase::AUPGameModeBase()
 {
 	SpawnTimerInterval = 2.0f;
+	CreditsPerKill = 20;
+	CooldownTimeBetweenFailures = 8.0f;
+
 	PlayerRespawnDelay = 2.0f;
 
-	CreditsPerKill = 20;
 	DesiredPowerupCount = 10;
 	RequiredPowerupDistance = 2000;
 
@@ -145,6 +144,21 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 		return;
 	}
 
+	// Give points to spend
+	if (SpawnCreditCurve)
+	{
+		AvailableSpawnCredit += SpawnCreditCurve->GetFloatValue(GetWorld()->TimeSeconds);
+	}
+
+	if (CooldownBotSpawnUntil > GetWorld()->TimeSeconds)
+	{
+		// Still cooling down
+		return;
+	}
+
+	LogOnScreen(this, FString::Printf(TEXT("Available SpawnCredits: %f"), AvailableSpawnCredit));
+
+	// Count alive bots before spawning
 	int32 NrOfAliveBots = 0;
 	for (TActorIterator<AUPAICharacter> It(GetWorld()); It; ++It)
 	{
@@ -159,62 +173,91 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 
 	UE_LOG(LogTemp, Log, TEXT("Found %i alive bots."), NrOfAliveBots);
 
-	int32 MaxBotCount = 3;
-
-	if (DifficultyCurve)
-	{
-		MaxBotCount = DifficultyCurve->GetFloatValue(GetWorld()->TimeSeconds);
-	}
-
+	constexpr float MaxBotCount = 40.0f;
 	if (NrOfAliveBots >= MaxBotCount)
 	{
 		UE_LOG(LogTemp, Log, TEXT("At maximum bot capacity. Skipping bot spawn."));
 		return;
 	}
 
-	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest25Pct, nullptr);
+	if (MonsterTable)
+	{
+		// Reset before selecting new row
+		SelectedMonsterRow = nullptr;
+
+		TArray<FMonsterInfoRow*> Rows;
+		MonsterTable->GetAllRows("", Rows);
+
+		// Get total weight
+		float TotalWeight = 0;
+		for (const FMonsterInfoRow* Entry : Rows)
+		{
+			TotalWeight += Entry->Weight;
+		}
+
+		// Random number within total random
+		const int32 RandomWeight = FMath::RandRange(0.0f, TotalWeight);
+
+		//Reset
+		TotalWeight = 0;
+
+		// Get monster based on random weight
+		for (FMonsterInfoRow* Entry : Rows)
+		{
+			TotalWeight += Entry->Weight;
+
+			if (RandomWeight <= TotalWeight)
+			{
+				SelectedMonsterRow = Entry;
+				break;
+			}
+		}
+
+		if (SelectedMonsterRow && SelectedMonsterRow->SpawnCost >= AvailableSpawnCredit)
+		{
+			//LogOnScreen(this, FString::Printf(TEXT("Loading monster '%s' ..."), *SelectedRow->MonsterId.PrimaryAssetName.ToString()), FColor::Green);
+			// Too expensive to spawn, try again soon
+			CooldownBotSpawnUntil = GetWorld()->TimeSeconds + CooldownTimeBetweenFailures;
+
+			LogOnScreen(this, FString::Printf(TEXT("Cooling down until: %f"), CooldownBotSpawnUntil), FColor::Red);
+			return;
+		}
+	}
+
+	// Run EQS to find valid spawn location
+	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest5Pct, nullptr);
 	if (ensure(QueryInstance))
 	{
 		QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &AUPGameModeBase::OnBotSpawnQueryCompleted);
 	}
 }
 
-void AUPGameModeBase::OnBotSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance,
-	EEnvQueryStatus::Type QueryStatus)
+void AUPGameModeBase::OnBotSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
 {
 	if (QueryStatus != EEnvQueryStatus::Success)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Spawn bot EQS Query failed!"));
+		UE_LOG(LogTemp, Warning, TEXT("Spawn bot EQS Query Failed!"));
 		return;
 	}
 
 	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
-	if (Locations.Num() > 0)
-	{
-		if (MonsterTable)
-		{
-			TArray<FMonsterInfoRow*> Rows;
-			MonsterTable->GetAllRows("", Rows);
+	if (Locations.IsValidIndex(0) && MonsterTable)
+	{	
+		UAssetManager& Manager = UAssetManager::Get();
+		// Apply spawn cost
+		AvailableSpawnCredit -= SelectedMonsterRow->SpawnCost;
 
-			const int32 RandomIndex = FMath::RandRange(0, Rows.Num() - 1);
-			const FMonsterInfoRow* SelectedRow = Rows[RandomIndex];
+		FPrimaryAssetId MonsterId = SelectedMonsterRow->MonsterId;
 
-			if (UAssetManager* Manager = UAssetManager::GetIfInitialized())
-			{
-				LogOnScreen(this, FString::Printf(TEXT("Loading monster '%s' ..."), *SelectedRow->MonsterId.PrimaryAssetName.ToString()), FColor::Green);
-
-				// The basic idea of bundles is which part of the asset to load (e.g. in case of multiple soft references)
-				const TArray<FName> Bundles;
-				FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &AUPGameModeBase::OnMonsterLoaded, SelectedRow->MonsterId, Locations[0]);
-				Manager->LoadPrimaryAsset(SelectedRow->MonsterId, Bundles, Delegate);
-			}
-		}
+		const TArray<FName> Bundles;
+		const FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &AUPGameModeBase::OnMonsterLoaded, MonsterId, Locations[0]);
+		Manager.LoadPrimaryAsset(MonsterId, Bundles, Delegate);
 	}
 }
 
 void AUPGameModeBase::OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation)
 {
-	LogOnScreen(this, FString::Printf(TEXT("Finished loading '%s'."), *LoadedId.PrimaryAssetName.ToString()), FColor::Green);
+	//LogOnScreen(this, FString::Printf(TEXT("Finished loading '%s'."), *LoadedId.PrimaryAssetName.ToString()), FColor::Green);
 
 	if (const UAssetManager* Manager = UAssetManager::GetIfInitialized())
 	{

@@ -86,26 +86,26 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UDataTable* MonsterTable;
 
-	//UPROPERTY(EditDefaultsOnly, Category = "AI")
-	//TSubclassOf<AActor> MinionClass;
-
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UEnvQuery* SpawnBotQuery;
 
+	/* Curve to grant credits to spend on spawning monsters */
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	UCurveFloat* DifficultyCurve;
+	UCurveFloat* SpawnCreditCurve;
+	
+	/* Time to wait between failed attempts to spawn/buy monster to give some time to build up credits. */
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	float CooldownTimeBetweenFailures;
 
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	float SpawnTimerInterval;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
-	float PlayerRespawnDelay;
-
-	FTimerHandle TimerHandle_SpawnBots;
-
 	// Read/write access as we could change this as our difficulty increases via Blueprint
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
 	int32 CreditsPerKill;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	float PlayerRespawnDelay;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
 	UEnvQuery* PowerupSpawnQuery;
@@ -121,4 +121,15 @@ protected:
 	/* Amount of powerups to spawn during match start */
 	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
 	int32 DesiredPowerupCount;
+
+protected:
+	FTimerHandle TimerHandle_SpawnBots;
+
+	// Points available to spend on spawning monsters
+	float AvailableSpawnCredit;
+
+	/* GameTime cooldown to give spawner some time to build up credits */
+	float CooldownBotSpawnUntil;
+
+	FMonsterInfoRow* SelectedMonsterRow;
 };
