@@ -12,9 +12,9 @@ namespace EEnvQueryStatus
 }
 class UEnvQuery;
 class UCurveFloat;
-class UUPSaveGame;
 class UDataTable;
 class UUPMonsterData;
+
 
 USTRUCT(BlueprintType)
 struct FMonsterInfoRow : public FTableRowBase
@@ -66,14 +66,6 @@ public:
 	void KillAll();
 
 	virtual void OnActorKilled(AActor* VictimActor, AActor* KillerActor);
-
-public:
-	UFUNCTION(BlueprintCallable, Category = "SaveGame")
-	void WriteSaveGame();
-
-	void LoadSaveGame();
-
-	void ApplyLoadedSaveGame();
 
 protected:
 	UFUNCTION()
@@ -129,9 +121,4 @@ protected:
 	/* Amount of powerups to spawn during match start */
 	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
 	int32 DesiredPowerupCount;
-
-	FString SlotName;
-
-	UPROPERTY()
-	UUPSaveGame* CurrentSaveGame;
 };

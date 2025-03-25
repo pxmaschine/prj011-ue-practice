@@ -5,6 +5,7 @@
 
 #include "EnhancedInputComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "Kismet/GameplayStatics.h"
 
 void AUPPlayerController::BeginPlayingState()
 {
@@ -38,6 +39,12 @@ void AUPPlayerController::TogglePauseMenu()
 		SetShowMouseCursor(false);
 		SetInputMode(FInputModeGameOnly());
 
+		// Single-player only
+		if (GetWorld()->IsNetMode(NM_Standalone))
+		{
+			UGameplayStatics::SetGamePaused(this, false);
+		}
+
 		return;
 	}
 
@@ -49,5 +56,11 @@ void AUPPlayerController::TogglePauseMenu()
 
 		SetShowMouseCursor(true);
 		SetInputMode(FInputModeUIOnly());
+
+		// Single-player only
+		if (GetWorld()->IsNetMode(NM_Standalone))
+		{
+			UGameplayStatics::SetGamePaused(this, false);
+		}
 	}
 }

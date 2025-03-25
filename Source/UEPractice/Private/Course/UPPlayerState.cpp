@@ -9,11 +9,28 @@
 
 
 void AUPPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
- {
- 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
  
  	DOREPLIFETIME(AUPPlayerState, Credits);
- }
+}
+
+bool AUPPlayerState::UpdatePersonalRecord(float NewTime)
+{
+	// Higher time is better
+	if (NewTime > PersonalRecordTime)
+	{
+		float OldRecord = PersonalRecordTime;
+
+		PersonalRecordTime = NewTime;
+
+		OnRecordTimeChanged.Broadcast(this, PersonalRecordTime, OldRecord);
+
+		return true;
+	}
+
+	return false;
+}
 
 int32 AUPPlayerState::GetCredits() const
 {
@@ -58,7 +75,21 @@ void AUPPlayerState::SavePlayerState_Implementation(UUPSaveGame* SaveGame)
 {
 	if (SaveGame)
 	{
-		SaveGame->Credits = Credits;
+		// Gather all relevant data for player
+		FPlayerSaveData SaveData;
+		SaveData.Credits = Credits;
+		SaveData.PersonalRecordTime = PersonalRecordTime;
+		SaveData.PlayerID = GetUniqueId()->ToString();
+
+		// May not be alive while we save
+		if (APawn* MyPawn = GetPawn())
+		{
+			SaveData.Location = MyPawn->GetActorLocation();
+			SaveData.Rotation = MyPawn->GetActorRotation();
+			SaveData.bResumeAtTransform = true;
+		}
+		
+		SaveGame->SavedPlayers.Add(SaveData);
 	}
 }
 
@@ -66,9 +97,19 @@ void AUPPlayerState::LoadPlayerState_Implementation(UUPSaveGame* SaveGame)
 {
 	if (SaveGame)
 	{
-		//Credits = SaveGame->Credits;
-		// Make sure we trigger credits changed event
-		AddCredits(SaveGame->Credits);
+		const FPlayerSaveData* FoundData = SaveGame->GetPlayerData(this);
+		if (FoundData)
+		{
+			//Credits = SaveObject->Credits;
+			// Makes sure we trigger credits changed event
+			AddCredits(FoundData->Credits);
+
+			PersonalRecordTime = FoundData->PersonalRecordTime;
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Could not find SaveGame data for player id '%i'."), GetPlayerId());
+		}
 	}
 }
 

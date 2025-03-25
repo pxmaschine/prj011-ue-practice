@@ -10,6 +10,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -35,7 +36,11 @@ AUPCharacter::AUPCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
 
+	// Enabled on mesh to react to incoming projectiles
 	GetMesh()->SetGenerateOverlapEvents(true);
+	// Disable on capsule collision to avoid double-dipping and receiving 2 overlaps when entering trigger zones etc.
+	// Once from the mesh, and 2nd time from capsule
+	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
 
 	TimeToHitParamName = "TimeToHit";
 }
