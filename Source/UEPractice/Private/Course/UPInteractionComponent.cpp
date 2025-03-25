@@ -14,6 +14,8 @@ static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("up_InteractionD
 UUPInteractionComponent::UUPInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+	// Since we use Camera info in Tick we want the most up to date camera position for tracing
+	PrimaryComponentTick.TickGroup = TG_PostUpdateWork;
 
 	TraceRadius = 30.0f;
 	TraceDistance = 500.0f;
