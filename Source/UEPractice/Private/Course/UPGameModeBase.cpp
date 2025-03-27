@@ -18,7 +18,7 @@
 #include "Kismet/GameplayStatics.h"
 
 
-static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("up_SpawnBots"), true, TEXT("Enable spawning of bots via timer."), ECVF_Cheat);
+static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("up.SpawnBots"), true, TEXT("Enable spawning of bots via timer."), ECVF_Cheat);
 
 
 AUPGameModeBase::AUPGameModeBase()

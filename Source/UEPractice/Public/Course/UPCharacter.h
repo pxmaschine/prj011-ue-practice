@@ -24,53 +24,6 @@ class UEPRACTICE_API AUPCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-protected:
-	/* VisibleAnywhere = read-only, still useful to view in-editor and enforce a convention. */
-	UPROPERTY(VisibleAnywhere, Category = "Effects")
-	FName TimeToHitParamName;
-
-	UPROPERTY(VisibleAnywhere)
-	USpringArmComponent* SpringArmComp{ nullptr };
-
-	UPROPERTY(VisibleAnywhere)
-	UCameraComponent* CameraComp{ nullptr };
-
-	UPROPERTY(VisibleAnywhere)
-	UUPInteractionComponent* InteractionComp{ nullptr };
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UUPAttributeComponent* AttributeComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UUPActionComponent* ActionComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SprintAction{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* PrimaryAttackAction{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* UltimateAttackAction{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* DashAction{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction{ nullptr };
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* InteractAction{ nullptr };
-
 public:
 	// Sets default values for this character's properties
 	AUPCharacter();
@@ -81,8 +34,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
@@ -101,7 +52,9 @@ public:
 protected:
 	void Move(const FInputActionValue& Value);
 
-	void Look(const FInputActionValue& Value);
+	void LookMouse(const FInputActionValue& InputValue);
+
+	void LookStick(const FInputActionValue& InputValue);
 
 	void SprintStart();
 
@@ -109,7 +62,7 @@ protected:
 
 	void PrimaryAttack();
 
-	void BlackholeAttack();
+	void SecondaryAttack();
 
 	void Dash();
 
@@ -117,4 +70,63 @@ protected:
 
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
+
+	void FindCrosshairTarget();
+
+	void CrosshairTraceComplete(const FTraceHandle& InTraceHandle, FTraceDatum& InTraceDatum);
+
+protected:
+	/* VisibleAnywhere = read-only, still useful to view in-editor and enforce a convention. */
+	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	FName TimeToHitParamName;
+
+	UPROPERTY(VisibleAnywhere)
+	USpringArmComponent* SpringArmComp;
+
+	UPROPERTY(VisibleAnywhere)
+	UCameraComponent* CameraComp;
+
+	UPROPERTY(VisibleAnywhere)
+	UUPInteractionComponent* InteractionComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UUPAttributeComponent* AttributeComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UUPActionComponent* ActionComponent;
+
+	FTraceHandle TraceHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputMappingContext* DefaultMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_Move;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_LookMouse;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_LookStick;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_Sprint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_PrimaryAttack;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_SecondaryAttack;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_Dash;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_Jump;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_Interact;
+
+private:
+	bool bHasPawnTarget;
 };

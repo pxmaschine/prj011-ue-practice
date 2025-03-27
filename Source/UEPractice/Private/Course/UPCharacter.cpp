@@ -11,6 +11,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Components/CapsuleComponent.h"
+#include "Course/UPPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -74,6 +75,13 @@ void AUPCharacter::BeginPlay()
 	}
 }
 
+void AUPCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	FindCrosshairTarget();
+}
+
 void AUPCharacter::Move(const FInputActionValue& Value)
 {
 	FVector2D InputValue = Value.Get<FVector2D>();
@@ -86,13 +94,50 @@ void AUPCharacter::Move(const FInputActionValue& Value)
 	AddMovementInput(FRotationMatrix(ControlRot).GetScaledAxis(EAxis::Y), InputValue.X);
 }
 
-void AUPCharacter::Look(const FInputActionValue& Value)
+void AUPCharacter::LookMouse(const FInputActionValue& Value)
 {
 	FVector2D InputValue = Value.Get<FVector2D>();
 
 	APawn::AddControllerYawInput(InputValue.X);
 	APawn::AddControllerPitchInput(InputValue.Y);
 }
+
+void AUPCharacter::LookStick(const FInputActionValue& Value)
+{
+	FVector2D InputValue = Value.Get<FVector2D>();
+
+	// Track negative as we'll lose this during the conversion
+ 	bool XNegative = InputValue.X < 0.f;
+ 	bool YNegative = InputValue.Y < 0.f;
+
+	// Can further modify with 'sensitivity' settings
+ 	static const float LookYawRate = 100.0f;
+ 	static const float LookPitchRate = 50.0f;
+
+	// non-linear to make aiming a little easier
+ 	InputValue = InputValue * InputValue;
+
+	if (XNegative)
+	{
+ 		InputValue.X *= -1.f;
+ 	}
+ 	if (YNegative)
+ 	{
+ 		InputValue.Y *= -1.f;
+ 	}
+
+	// Aim assist
+	// todo: may need to ease this out and/or change strength based on distance to target
+	float RateMultiplier = 1.0f;
+	if (bHasPawnTarget)
+	{
+		RateMultiplier = 0.5f;
+	}
+
+	AddControllerYawInput(InputValue.X * (LookYawRate * RateMultiplier) * GetWorld()->GetDeltaSeconds());
+	AddControllerPitchInput(InputValue.Y * (LookPitchRate * RateMultiplier) * GetWorld()->GetDeltaSeconds());
+}
+
 
 void AUPCharacter::SprintStart()
 {
@@ -109,7 +154,7 @@ void AUPCharacter::PrimaryAttack()
 	ActionComponent->StartActionByName(this, "PrimaryAttack");
 }
 
-void AUPCharacter::BlackholeAttack()
+void AUPCharacter::SecondaryAttack()
 {
 	ActionComponent->StartActionByName(this, "BlackholeAttack");
 }
@@ -147,25 +192,49 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 	}
 }
 
-// Called every frame
-void AUPCharacter::Tick(float DeltaTime)
+void AUPCharacter::FindCrosshairTarget()
 {
-	Super::Tick(DeltaTime);
+	// Ignore if not using GamePad
+	AUPPlayerController* PC = Cast<AUPPlayerController>(GetController());
 
-	//const float DrawScale = 100.0f;
-	//const float Thickness = 5.0f;
+	// Only use aim assist when currently controlled and using gamepad
+	// Note: you *may* always want to line trace if using this result for other things like coloring crosshair or re-using this hit data for aim adjusting during projectile attacks
+	if (PC == nullptr || !PC->IsUsingGamepad())
+	{
+		bHasPawnTarget = false;
+		return;
+	}
 
-	//FVector LineStart = GetActorLocation();
-	//// Offset to the right of pawn
-	//LineStart += GetActorRightVector() * 100.0f;
-	//// Set line end in direction of the actor's forward
-	//FVector ActorDirection_LineEnd = LineStart + (GetActorForwardVector() * 100.0f);
-	//// Draw Actor's Direction
-	//DrawDebugDirectionalArrow(GetWorld(), LineStart, ActorDirection_LineEnd, DrawScale, FColor::Yellow, false, 0.0f, 0, Thickness);
+	FVector EyeLocation;
+	FRotator EyeRotation;
+	GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
-	//FVector ControllerDirection_LineEnd = LineStart + (GetControlRotation().Vector() * 100.0f);
-	//// Draw 'Controller' Rotation ('PlayerController' that 'possessed' this character
-	//DrawDebugDirectionalArrow(GetWorld(), LineStart, ControllerDirection_LineEnd, DrawScale, FColor::Green, false, 0.0f, 0, Thickness);
+	const float AimAssistDistance = 5000.f;
+	const FVector TraceEnd = EyeLocation + (EyeRotation.Vector() * AimAssistDistance);
+
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	FCollisionShape Shape;
+	Shape.SetSphere(50.f);
+
+	// Called next frame when the trace has completed
+	FTraceDelegate Delegate = FTraceDelegate::CreateUObject(this, &AUPCharacter::CrosshairTraceComplete);
+	
+	TraceHandle = GetWorld()->AsyncSweepByChannel(EAsyncTraceType::Single, EyeLocation, TraceEnd, FQuat::Identity, ECC_Pawn, Shape, Params, FCollisionResponseParams::DefaultResponseParam, &Delegate);
+}
+
+void AUPCharacter::CrosshairTraceComplete(const FTraceHandle& InTraceHandle, FTraceDatum& InTraceDatum)
+{
+	// at most expect one hit
+	if (InTraceDatum.OutHits.IsValidIndex(0))
+	{
+		FHitResult Hit = InTraceDatum.OutHits[0];
+		// Figure out if dealing with a Pawn, may want aim assist on other 'things', which requires a different check
+		bHasPawnTarget = Hit.IsValidBlockingHit() && Hit.GetActor()->IsA(APawn::StaticClass());
+
+		//UE_LOG(LogGame, Log, TEXT("has pawn target: %s"), bHasPawnTarget ? TEXT("true") : TEXT("false"));
+	}
 }
 
 // Called to bind functionality to input
@@ -175,15 +244,24 @@ void AUPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AUPCharacter::Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AUPCharacter::Look);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AUPCharacter::SprintStart);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AUPCharacter::SprintStop);
-		EnhancedInputComponent->BindAction(PrimaryAttackAction, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryAttack);
-		EnhancedInputComponent->BindAction(UltimateAttackAction, ETriggerEvent::Triggered, this, &AUPCharacter::BlackholeAttack);
-		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AUPCharacter::Dash);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryInteract);
+		// General
+		EnhancedInputComponent->BindAction(Input_Move, ETriggerEvent::Triggered, this, &AUPCharacter::Move);
+		EnhancedInputComponent->BindAction(Input_Jump, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(Input_Interact, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryInteract);
+
+		// MKB
+		EnhancedInputComponent->BindAction(Input_LookMouse, ETriggerEvent::Triggered, this, &AUPCharacter::LookMouse);
+		// Gamepad
+		EnhancedInputComponent->BindAction(Input_LookStick, ETriggerEvent::Triggered, this, &AUPCharacter::LookStick);
+
+		// Sprint while key is held
+		EnhancedInputComponent->BindAction(Input_Sprint, ETriggerEvent::Started, this, &AUPCharacter::SprintStart);
+		EnhancedInputComponent->BindAction(Input_Sprint, ETriggerEvent::Completed, this, &AUPCharacter::SprintStop);
+
+		// Abilities
+		EnhancedInputComponent->BindAction(Input_PrimaryAttack, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryAttack);
+		EnhancedInputComponent->BindAction(Input_SecondaryAttack, ETriggerEvent::Triggered, this, &AUPCharacter::SecondaryAttack);
+		EnhancedInputComponent->BindAction(Input_Dash, ETriggerEvent::Triggered, this, &AUPCharacter::Dash);
 	}
 }
 

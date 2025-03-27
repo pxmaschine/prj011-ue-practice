@@ -5,7 +5,7 @@
 #include "Course/UPGameModeBase.h"
 #include "Net/UnrealNetwork.h"
 
-static TAutoConsoleVariable<float> CVarDamageMultiplier(TEXT("up_DamageMultiplier"), 1.0f, TEXT("Global damage modifier for attribute component."), ECVF_Cheat);
+static TAutoConsoleVariable<float> CVarDamageMultiplier(TEXT("up.DamageMultiplier"), 1.0f, TEXT("Global damage modifier for attribute component."), ECVF_Cheat);
 
 
 // Sets default values for this component's properties

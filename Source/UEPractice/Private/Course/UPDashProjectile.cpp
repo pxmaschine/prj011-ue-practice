@@ -2,8 +2,8 @@
 
 
 #include "Course/UPDashProjectile.h"
+#include "Course/UPProjectileMovementComponent.h"
 
-#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 

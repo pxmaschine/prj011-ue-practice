@@ -7,7 +7,7 @@
 #include "UPProjectileBase.generated.h"
 
 class USphereComponent;
-class UProjectileMovementComponent;
+class UUPProjectileMovementComponent;
 class UParticleSystemComponent;
 class UCameraShakeBase;
 class USoundCue;
@@ -26,6 +26,8 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	UFUNCTION()
 	virtual void OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -33,6 +35,8 @@ protected:
 	// BlueprintCallable = Allow child classes to trigger explosions
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Explode();
+
+	virtual void LifeSpanExpired() override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
@@ -57,7 +61,7 @@ protected:
 	USphereComponent* SphereComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UProjectileMovementComponent* MovementComp;
+	UUPProjectileMovementComponent* MovementComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UParticleSystemComponent* EffectComp;

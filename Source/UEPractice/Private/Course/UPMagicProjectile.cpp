@@ -4,10 +4,10 @@
 #include "Course/UPMagicProjectile.h"
 #include "Course/UPActionComponent.h"
 #include "Course/UPGameplayFunctionLibrary.h"
+#include "Course/UPProjectileMovementComponent.h"
 #include "Course/UPActionEffect.h"
 
 #include "Components/SphereComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
 
 
 AUPMagicProjectile::AUPMagicProjectile()

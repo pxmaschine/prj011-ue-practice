@@ -26,12 +26,21 @@ protected:
 
 	virtual void SetupInputComponent() override;
 
+public:
+	UFUNCTION(BlueprintPure, Category= "Input")
+	bool IsUsingGamepad() const
+	{
+		return bIsUsingGamepad;
+	}
+
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BlueprintBeginPlayingState();
 
 	UFUNCTION(BlueprintCallable)
 	void TogglePauseMenu();
+
+	void AnyKeyInput(FKey PressedKey);
 
 protected:
 	// Listen for incoming PlayerState (for clients this may be nullptr when initially joining the game,
@@ -47,4 +56,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InputAction_ToggleMenu;
+
+private:
+	/* Was any input recently using GamePad */
+	bool bIsUsingGamepad;
 };

@@ -27,6 +27,9 @@ void AUPPlayerController::SetupInputComponent()
 	{
 		InputComp->BindAction(InputAction_ToggleMenu, ETriggerEvent::Started, this, &AUPPlayerController::TogglePauseMenu);
 	}
+
+	// Keeping as 'old' input for now until we figure out how to do this easily in Enhanced input
+	InputComponent->BindAction("AnyKey", IE_Pressed, this, &AUPPlayerController::AnyKeyInput);
 }
 
 void AUPPlayerController::TogglePauseMenu()
@@ -63,4 +66,9 @@ void AUPPlayerController::TogglePauseMenu()
 			UGameplayStatics::SetGamePaused(this, false);
 		}
 	}
+}
+
+void AUPPlayerController::AnyKeyInput(FKey PressedKey)
+{
+	bIsUsingGamepad = PressedKey.IsGamepadKey();
 }

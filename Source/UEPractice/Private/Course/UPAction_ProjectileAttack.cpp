@@ -2,6 +2,7 @@
 
 
 #include "Course/UPAction_ProjectileAttack.h"
+#include "Course/UPActorPoolingSubsystem.h"
 #include "UEPractice/UEPractice.h"
 
 #include "GameFramework/Character.h"
@@ -93,7 +94,11 @@ void UUPAction_ProjectileAttack::AttackDelay_Elapsed(ACharacter* InstigatorChara
 
 		FRotator ProjRotation = (AdjustedTraceEnd - HandLocation).Rotation();
 		FTransform SpawnTM = FTransform(ProjRotation, HandLocation);
-		GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+
+		//GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+
+		// re-use a pooled actor instead of always spawning new Actors
+		UUPActorPoolingSubsystem::GetPooledActor(this, ProjectileClass, SpawnTM, SpawnParams);
 	}
 
 	StopAction(InstigatorCharacter);

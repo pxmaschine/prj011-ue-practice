@@ -8,7 +8,7 @@
 #include "Blueprint/UserWidget.h"
 
 
-static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("up_InteractionDebugDraw"), false, TEXT("Enable debug drawing of interaction component."), ECVF_Cheat);
+static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("up.InteractionDebugDraw"), false, TEXT("Enable debug drawing of interaction component."), ECVF_Cheat);
 
 
 UUPInteractionComponent::UUPInteractionComponent()
