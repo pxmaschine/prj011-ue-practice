@@ -14,6 +14,7 @@ class UEnvQuery;
 class UCurveFloat;
 class UDataTable;
 class UUPMonsterData;
+struct FEnvQueryResult;
 
 
 USTRUCT(BlueprintType)
@@ -68,16 +69,17 @@ public:
 	virtual void OnActorKilled(AActor* VictimActor, AActor* KillerActor);
 
 protected:
+	UFUNCTION(BlueprintCallable)
+	void StartSpawningBots();
+
 	UFUNCTION()
 	void SpawnBotTimerElapsed();
 
-	UFUNCTION()
-	void OnBotSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+	void OnBotSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result);
 
 	void OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation);
 
-	UFUNCTION()
-	void OnPowerupSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus);
+	void OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result);
 
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);
@@ -103,6 +105,13 @@ protected:
 	// Read/write access as we could change this as our difficulty increases via Blueprint
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
 	int32 CreditsPerKill;
+
+	/* Amount available to start spawning some bots immediately */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
+	int32 InitialSpawnCredit;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
+	bool bAutoStartBotSpawning;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Player")
 	float PlayerRespawnDelay;

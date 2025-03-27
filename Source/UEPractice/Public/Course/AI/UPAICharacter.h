@@ -44,6 +44,7 @@ protected:
 	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
 
 protected:
+	UPROPERTY()
 	UUPWorldUserWidget* ActiveHealthBar;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")

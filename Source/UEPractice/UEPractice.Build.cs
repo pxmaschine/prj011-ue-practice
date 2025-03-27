@@ -7,8 +7,8 @@ public class UEPractice : ModuleRules
 	public UEPractice(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayTags", "OnlineSubsystem" });
+
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayTags", "OnlineSubsystem", "SignificanceManager" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

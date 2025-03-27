@@ -32,6 +32,15 @@ struct FPlayerSaveData
 {
 	GENERATED_BODY()
 
+	FPlayerSaveData()
+	{
+		Credits = 0;
+		PersonalRecordTime = 0.0f;
+		Location = FVector::ZeroVector;
+		Rotation = FRotator::ZeroRotator;
+		bResumeAtTransform = true;
+	}
+
 public:
 	/* Player Id defined by the online sub system. */ 
 	UPROPERTY()

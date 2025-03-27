@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
+#include "UEPractice/UEPractice.h"
+
 #include "Course/UPSaveGameSubsystem.h"
 #include "Course/UPGameplayInterface.h"
 #include "Course/UPPlayerState.h"
@@ -145,17 +147,17 @@ void UUPSaveGameSubsystem::LoadSaveGame(FString InSlotName)
 		CurrentSaveGame = Cast<UUPSaveGame>(UGameplayStatics::LoadGameFromSlot(CurrentSlotName, 0));
 		if (CurrentSaveGame == nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to load SaveGame Data."));
+			UE_LOGFMT(LogGame, Warning, "Failed to load SaveGame Data.");
 			return;
 		}
 
-		UE_LOG(LogTemp, Log, TEXT("Loaded SaveGame Data."));
+		UE_LOGFMT(LogGame, Log, "Loaded SaveGame Data.");
 	}
 	else
 	{
 		CurrentSaveGame = Cast<UUPSaveGame>(UGameplayStatics::CreateSaveGameObject(UUPSaveGame::StaticClass()));
 
-		UE_LOG(LogTemp, Log, TEXT("Created New SaveGame Data."));
+		UE_LOGFMT(LogGame, Log, "Created New SaveGame Data.");
 	}
 }
 

@@ -37,7 +37,7 @@ UUPAttributeComponent* UUPAttributeComponent::GetAttributes(const AActor* FromAc
 {
 	if (FromActor)
 	{
-		return FromActor->GetComponentByClass<UUPAttributeComponent>();
+		return FromActor->FindComponentByClass<UUPAttributeComponent>();
 	}
 
 	return nullptr;

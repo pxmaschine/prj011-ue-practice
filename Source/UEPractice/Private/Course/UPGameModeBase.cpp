@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Course/UPGameModeBase.h"
 #include "Course/UPAttributeComponent.h"
 #include "Course/UPCharacter.h"
@@ -9,6 +8,7 @@
 #include "Course/UPMonsterData.h"
 #include "Course/UPActionComponent.h"
 #include "Course/UPSaveGameSubsystem.h"
+#include "UEPractice/UEPractice.h"
 
 #include "EngineUtils.h"
 #include "Engine/AssetManager.h"
@@ -16,7 +16,6 @@
 #include "EnvironmentQuery/EnvQueryTypes.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "UEPractice/UEPractice.h"
 
 
 static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("up_SpawnBots"), true, TEXT("Enable spawning of bots via timer."), ECVF_Cheat);
@@ -32,6 +31,10 @@ AUPGameModeBase::AUPGameModeBase()
 
 	DesiredPowerupCount = 10;
 	RequiredPowerupDistance = 2000;
+	InitialSpawnCredit = 50;
+
+	// We start spawning as the player walks on a button instead for convenient testing w/o bots.
+	bAutoStartBotSpawning = false;
 
 	PlayerStateClass = AUPPlayerState::StaticClass();
 }
@@ -68,28 +71,34 @@ void AUPGameModeBase::StartPlay()
 	const UUPSaveGameSubsystem* SG = GetGameInstance()->GetSubsystem<UUPSaveGameSubsystem>();
 	SG->ApplyLoadedSaveGame();
 
-	// Continuous timer to spawn in more bots
-	// Actual amount of bots and whether its allowed to spawn determined by spawn logic later in the chain
-	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &AUPGameModeBase::SpawnBotTimerElapsed, SpawnTimerInterval, true);
+	AvailableSpawnCredit = InitialSpawnCredit;
 
+	if (bAutoStartBotSpawning)
+	{
+		StartSpawningBots();
+	}
+	
 	// Make sure we have assigned at least one power-up class
 	if (ensure(PowerupClasses.Num() > 0))
 	{
 		// Run EQS to find potential power-up spawn locations
-		UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, PowerupSpawnQuery, this, EEnvQueryRunMode::AllMatching, nullptr);
-		if (ensure(QueryInstance))
-		{
-			QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &AUPGameModeBase::OnPowerupSpawnQueryCompleted);
-		}
+
+		//UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, PowerupSpawnQuery, this, EEnvQueryRunMode::AllMatching, nullptr);
+		//if (ensure(QueryInstance))
+		//{
+		//	QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &AUPGameModeBase::OnPowerupSpawnQueryCompleted);
+		//}
+
+		// Skip the Blueprint wrapper and use the direct C++ option which the Wrapper uses as well
+		FEnvQueryRequest Request(PowerupSpawnQuery, this);
+		Request.Execute(EEnvQueryRunMode::AllMatching, this, &AUPGameModeBase::OnPowerupSpawnQueryCompleted);
 	}
 }
 
 void AUPGameModeBase::KillAll()
 {
-	for (TActorIterator<AUPAICharacter> It(GetWorld()); It; ++It)
+	for (const AUPAICharacter* Bot : TActorRange<AUPAICharacter>(GetWorld()))
 	{
-		const AUPAICharacter* Bot = *It;
-
 		UUPAttributeComponent* AttributeComp = UUPAttributeComponent::GetAttributes(Bot);
 		if (ensure(AttributeComp) && AttributeComp->IsAlive())
 		{
@@ -100,7 +109,7 @@ void AUPGameModeBase::KillAll()
 
 void AUPGameModeBase::OnActorKilled(AActor* VictimActor, AActor* KillerActor)
 {
-	UE_LOG(LogTemp, Log, TEXT("OnActorKilled: Victim: %s, Killer: %s"), *GetNameSafe(VictimActor), *GetNameSafe(KillerActor));
+	UE_LOGFMT(LogGame, Log, "OnActorKilled: Victim: {victim}, Killer: {killer}", GetNameSafe(VictimActor), GetNameSafe(KillerActor));
 
 	if (const AUPCharacter* Player = Cast<AUPCharacter>(VictimActor))
 	{
@@ -136,6 +145,19 @@ void AUPGameModeBase::OnActorKilled(AActor* VictimActor, AActor* KillerActor)
 	}
 }
 
+void AUPGameModeBase::StartSpawningBots()
+{
+	if (TimerHandle_SpawnBots.IsValid())
+	{
+		// Already spawning bots.
+		return;
+	}
+	
+	// Continuous timer to spawn in more bots.
+	// Actual amount of bots and whether its allowed to spawn determined by spawn logic later in the chain...
+	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &AUPGameModeBase::SpawnBotTimerElapsed, SpawnTimerInterval, true);
+}
+
 void AUPGameModeBase::SpawnBotTimerElapsed()
 {
 	if (CVarSpawnBots.GetValueOnGameThread() == false)
@@ -160,10 +182,9 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 
 	// Count alive bots before spawning
 	int32 NrOfAliveBots = 0;
-	for (TActorIterator<AUPAICharacter> It(GetWorld()); It; ++It)
+	// TActorRange simplifies the code compared to TActorIterator<T>
+	for (const AUPAICharacter* Bot : TActorRange<AUPAICharacter>(GetWorld()))
 	{
-		const AUPAICharacter* Bot = *It;
-
 		const UUPAttributeComponent* AttributeComp = UUPAttributeComponent::GetAttributes(Bot);
 		if (ensure(AttributeComp) && AttributeComp->IsAlive())
 		{
@@ -171,12 +192,12 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 		}
 	}
 
-	UE_LOG(LogTemp, Log, TEXT("Found %i alive bots."), NrOfAliveBots);
+	UE_LOGFMT(LogGame, Log, "Found {number} alive bots.", NrOfAliveBots);
 
 	constexpr float MaxBotCount = 40.0f;
 	if (NrOfAliveBots >= MaxBotCount)
 	{
-		UE_LOG(LogTemp, Log, TEXT("At maximum bot capacity. Skipping bot spawn."));
+		UE_LOGFMT(LogGame, Log, "Found {number} alive bots.", NrOfAliveBots);
 		return;
 	}
 
@@ -225,22 +246,32 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 	}
 
 	// Run EQS to find valid spawn location
-	UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest5Pct, nullptr);
-	if (ensure(QueryInstance))
-	{
-		QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &AUPGameModeBase::OnBotSpawnQueryCompleted);
-	}
+
+	//UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest5Pct, nullptr);
+	//if (ensure(QueryInstance))
+	//{
+	//	QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &AUPGameModeBase::OnBotSpawnQueryCompleted);
+	//}
+
+	// Skip the Blueprint wrapper and use the direct C++ option which the Wrapper uses as well
+	FEnvQueryRequest Request(SpawnBotQuery, this);
+	Request.Execute(EEnvQueryRunMode::RandomBest5Pct, this, &AUPGameModeBase::OnBotSpawnQueryCompleted);
 }
 
-void AUPGameModeBase::OnBotSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
+void AUPGameModeBase::OnBotSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result)
 {
-	if (QueryStatus != EEnvQueryStatus::Success)
+	FEnvQueryResult* QueryResult = Result.Get();
+	if (!QueryResult->IsSuccessful())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Spawn bot EQS Query Failed!"));
+		UE_LOGFMT(LogGame, Warning, "Spawn bot EQS Query Failed!");
 		return;
 	}
 
-	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
+	// Retrieve all possible locations that passed the query
+	TArray<FVector> Locations;
+	QueryResult->GetAllAsLocations(Locations);
+
+
 	if (Locations.IsValidIndex(0) && MonsterTable)
 	{	
 		UAssetManager& Manager = UAssetManager::Get();
@@ -281,15 +312,18 @@ void AUPGameModeBase::OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLoc
 	}
 }
 
-void AUPGameModeBase::OnPowerupSpawnQueryCompleted(UEnvQueryInstanceBlueprintWrapper* QueryInstance, EEnvQueryStatus::Type QueryStatus)
+void AUPGameModeBase::OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result)
 {
-	if (QueryStatus != EEnvQueryStatus::Success)
+	FEnvQueryResult* QueryResult = Result.Get();
+	if (!QueryResult->IsSuccessful())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Spawn bot EQS Query Failed!"));
+		UE_LOGFMT(LogGame, Warning, "Spawn bot EQS Query Failed!");
 		return;
 	}
 
-	TArray<FVector> Locations = QueryInstance->GetResultsAsLocations();
+	// Retrieve all possible locations that passed the query
+	TArray<FVector> Locations;
+	QueryResult->GetAllAsLocations(Locations);
 
 	// Keep used locations to easily check distance between points
 	TArray<FVector> UsedLocations;

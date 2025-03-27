@@ -3,9 +3,9 @@
 
 #include "Course/UPAction.h"
 #include "Course/UPActionComponent.h"
+#include "UEPractice/UEPractice.h"
 
 #include "Net/UnrealNetwork.h"
-#include "UEPractice/UEPractice.h"
 
 
 void UUPAction::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -24,7 +24,7 @@ void UUPAction::Initialize(UUPActionComponent* NewActionComp)
 
 void UUPAction::StartAction_Implementation(AActor* Instigator)
 {
-	UE_LOG(LogTemp, Log, TEXT("Running: %s"), *GetNameSafe(this));
+	UE_LOGFMT(LogGame, Log, "Started: {ActionName}", GetName());
 	//LogOnScreen(this, FString::Printf(TEXT("Started: %s"), *ActionName.ToString()), FColor::Green);
 
 	UUPActionComponent* Comp = GetOwningComponent();
@@ -43,7 +43,7 @@ void UUPAction::StartAction_Implementation(AActor* Instigator)
 
 void UUPAction::StopAction_Implementation(AActor* Instigator)
 {
-	UE_LOG(LogTemp, Log, TEXT("Stopped: %s"), *GetNameSafe(this));
+	UE_LOGFMT(LogGame, Log, "Stopped: {name}", GetName());
 	//LogOnScreen(this, FString::Printf(TEXT("Stopped: %s"), *ActionName.ToString()), FColor::White);
 
 	// TODO: Not true for the client

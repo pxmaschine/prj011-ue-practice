@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
+#include "UEPractice/UEPractice.h"
 #include "Course/UPWorldUserWidget.h"
 
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -14,7 +15,7 @@ void UUPWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	{
 		RemoveFromParent();
 
-		UE_LOG(LogTemp, Warning, TEXT("AttachedActor no longer valid, removing health widget."));
+		UE_LOGFMT(LogGame, Warning, "AttachedActor no longer valid, removing Health Widget.");
 
 		return;
 	}

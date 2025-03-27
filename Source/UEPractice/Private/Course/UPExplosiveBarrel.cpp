@@ -3,9 +3,8 @@
 
 #include "Course/UPExplosiveBarrel.h"
 #include "Course/UPAttributeComponent.h"
-
-#include "Logging/StructuredLog.h"
 #include "UEPractice/UEPractice.h"
+
 #include "PhysicsEngine/RadialForceComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UPExplosiveBarrel)
@@ -51,10 +50,8 @@ void AUPExplosiveBarrel::OnHitCallback(UPrimitiveComponent* HitComponent, AActor
 {
 	RadialForce->FireImpulse();
 
-	//UE_LOG(LogGame, Log, TEXT("OnActorHit in Explosive Barrel"));
 	UE_LOGFMT(LogGame, Log, "OnActorHit in Explosive Barrel");
 
-	//UE_LOG(LogGame, Warning, TEXT("OtherActor: %s, at game time: %f"), *GetNameSafe(OtherActor), GetWorld()->TimeSeconds);
 	UE_LOGFMT(LogGame, Warning, "OnActorHit, OtherActor: {name}, at game time: {timeseconds}", GetNameSafe(OtherActor), GetWorld()->TimeSeconds);
 
 	FString CombinedString = FString::Printf(TEXT("Hit at location: %s"), *Hit.ImpactPoint.ToString());

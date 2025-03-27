@@ -1,9 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Course/UPPlayerState.h"
-
-#include <Course/UPSaveGame.h>
+#include "Course/UPSaveGame.h"
+#include "UEPractice/UEPractice.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -108,7 +107,7 @@ void AUPPlayerState::LoadPlayerState_Implementation(UUPSaveGame* SaveGame)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Could not find SaveGame data for player id '%i'."), GetPlayerId());
+			UE_LOGFMT(LogGame, Warning, "Could not find SaveGame data for player id: {playerid}.", GetPlayerId());
 		}
 	}
 }

@@ -15,6 +15,11 @@ struct FActionRepData
 {
 	GENERATED_BODY()
 
+	FActionRepData()
+	{
+		bIsRunning = false;
+	}
+
 public:
 	UPROPERTY()
 	bool bIsRunning;

@@ -3,10 +3,10 @@
 
 #include "Course/UPActionComponent.h"
 #include "Course/UPAction.h"
+#include "UEPractice/UEPractice.h"
 
 #include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
-#include "UEPractice/UEPractice.h"
 
 
 DECLARE_CYCLE_STAT(TEXT("StartActionByName"), STAT_StartActionByName, STATGROUP_UEPRACTICE);
@@ -94,7 +94,7 @@ void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> Ac
 	// Skip for clients
 	if (!GetOwner()->HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Client attempting to AddAction. [Class: %s]"), *GetNameSafe(ActionClass));
+		UE_LOGFMT(LogGame, Warning, "Client attempting to AddAction. [Class: {Class}]", GetNameSafe(ActionClass));
 		return;
 	}
 
