@@ -14,10 +14,20 @@ class UEPRACTICE_API UUPBTService_CheckAttackRange : public UBTService
 {
 	GENERATED_BODY()
 
+public:
+	UUPBTService_CheckAttackRange();
+
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "AI")
 	FBlackboardKeySelector AttackRangeKey;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	FBlackboardKeySelector TargetActorKey;
+
+	/* Max desired attack range of AI pawn */
+	UPROPERTY(EditAnywhere, Category = "AI")
+	float MaxAttackRange;
 };

@@ -65,7 +65,7 @@ protected:
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
-	FName ActionName;
+	FGameplayTag ActivationTag;
 
 	// Start immediately when added to an action component
 	UPROPERTY(EditDefaultsOnly, Category = "Action")

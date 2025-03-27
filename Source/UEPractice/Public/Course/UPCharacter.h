@@ -77,8 +77,12 @@ protected:
 
 protected:
 	/* VisibleAnywhere = read-only, still useful to view in-editor and enforce a convention. */
+	//UPROPERTY(VisibleAnywhere, Category = "Effects")
+	//FName TimeToHitParamName;
+
+	/* Index must match the CustomPrimitiveData index used in the Overlay material */
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
-	FName TimeToHitParamName;
+	int32 HitFlash_CustomPrimitiveIndex;
 
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArmComp;

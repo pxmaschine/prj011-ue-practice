@@ -2,9 +2,9 @@
 
 
 #include "Course/AI/UPBTTask_Heal.h"
+#include "Course/UPAttributeComponent.h"
 
 #include "AIController.h"
-#include "Course/AI/UPAICharacter.h"
 
 EBTNodeResult::Type UUPBTTask_Heal::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {

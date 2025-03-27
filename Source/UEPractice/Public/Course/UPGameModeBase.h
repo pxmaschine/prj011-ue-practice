@@ -72,7 +72,6 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void StartSpawningBots();
 
-	UFUNCTION()
 	void SpawnBotTimerElapsed();
 
 	void OnBotSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result);
@@ -115,7 +114,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
 	bool bAutoStartBotSpawning;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Player")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ruleset")
+	bool bAutoRespawnPlayer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ruleset")
 	float PlayerRespawnDelay;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Powerups")

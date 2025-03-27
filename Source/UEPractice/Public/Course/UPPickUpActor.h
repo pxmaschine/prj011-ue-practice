@@ -25,7 +25,6 @@ public:
 	virtual FText GetInteractText_Implementation(APawn* InstigatorPawn) override;
 
 protected:
-	UFUNCTION()
 	void ShowPickUp();
 
 	void HideAndCooldownPickUp();

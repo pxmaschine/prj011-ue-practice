@@ -30,6 +30,8 @@ void UUPAction_ProjectileAttack::StartAction_Implementation(AActor* Instigator)
 		UGameplayStatics::SpawnEmitterAttached(CastVFX, Character->GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator,
 			EAttachLocation::SnapToTarget, true, EPSCPoolMethod::AutoRelease);
 
+		UGameplayStatics::SpawnSoundAttached(CastingSound, Character->GetMesh());
+
 		// Only on server
 		if (Character->HasAuthority())
 		{

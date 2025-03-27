@@ -7,33 +7,35 @@
 #include "BehaviorTree/BlackboardComponent.h"
 
 
+UUPBTService_CheckAttackRange::UUPBTService_CheckAttackRange()
+{
+	MaxAttackRange = 2000.f;
+
+	TargetActorKey.SelectedKeyName = "TargetActor";
+}
+
 void UUPBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
 	// Check distance between ai pawn and target actor
+	UBlackboardComponent* BlackBoardComp = OwnerComp.GetBlackboardComponent();
+	check(BlackBoardComp);
 
-	if (UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent(); ensure(BlackboardComponent))
+	if (const AActor* TargetActor = Cast<AActor>(BlackBoardComp->GetValueAsObject(TargetActorKey.SelectedKeyName)))
 	{
-		if (const AActor* TargetActor = Cast<AActor>(BlackboardComponent->GetValueAsObject("TargetActor")))
+		const AAIController* MyController = OwnerComp.GetAIOwner();
+		check(MyController);
+		
+		const float DistanceTo = FVector::Distance(TargetActor->GetActorLocation(), MyController->GetPawn()->GetActorLocation());
+		const bool bWithinRange = DistanceTo < MaxAttackRange;
+
+		bool bHasLOS = false;
+		if (bWithinRange)
 		{
-			if (const AAIController* AIController = OwnerComp.GetAIOwner(); ensure(AIController))
-			{
-				if (const APawn* AIPawn = AIController->GetPawn(); ensure(AIPawn))
-				{
-					const float DistanceTo = FVector::Distance(TargetActor->GetActorLocation(), AIPawn->GetActorLocation());
-
-					const bool bWithinRange = DistanceTo < 2000.0f;
-
-					bool bHasLOS = false;
-					if (DistanceTo)
-					{
-						bHasLOS = AIController->LineOfSightTo(TargetActor);
-					}
-
-					BlackboardComponent->SetValueAsBool(AttackRangeKey.SelectedKeyName, bWithinRange && bHasLOS);
-				}
-			}
+			bHasLOS = MyController->LineOfSightTo(TargetActor);
 		}
+
+		BlackBoardComp->SetValueAsBool(AttackRangeKey.SelectedKeyName, (bWithinRange && bHasLOS));
 	}
 }

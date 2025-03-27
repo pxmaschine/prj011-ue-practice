@@ -5,13 +5,14 @@
 #include "Course/UPAttributeComponent.h"
 #include "Course/UPInteractionComponent.h"
 #include "Course/UPActionComponent.h"
+#include "Course/SharedGameplayTags.h"
+#include "Course/UPPlayerController.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Components/CapsuleComponent.h"
-#include "Course/UPPlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -51,7 +52,8 @@ AUPCharacter::AUPCharacter()
 	// Once from the mesh, and 2nd time from capsule
 	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
 
-	TimeToHitParamName = "TimeToHit";
+	//TimeToHitParamName = "TimeToHit";
+	HitFlash_CustomPrimitiveIndex = 0;
 }
 
 void AUPCharacter::PostInitializeComponents()
@@ -141,27 +143,27 @@ void AUPCharacter::LookStick(const FInputActionValue& Value)
 
 void AUPCharacter::SprintStart()
 {
-	ActionComponent->StartActionByName(this, "Sprint");
+	ActionComponent->StartActionByName(this, SharedGameplayTags::Action_Sprint);
 }
 
 void AUPCharacter::SprintStop()
 {
-	ActionComponent->StopActionByName(this, "Sprint");
+	ActionComponent->StopActionByName(this, SharedGameplayTags::Action_Sprint);
 }
 
 void AUPCharacter::PrimaryAttack()
 {
-	ActionComponent->StartActionByName(this, "PrimaryAttack");
+	ActionComponent->StartActionByName(this, SharedGameplayTags::Action_PrimaryAttack);
 }
 
 void AUPCharacter::SecondaryAttack()
 {
-	ActionComponent->StartActionByName(this, "BlackholeAttack");
+	ActionComponent->StartActionByName(this, SharedGameplayTags::Action_Blackhole);
 }
 
 void AUPCharacter::Dash()
 {
-	ActionComponent->StartActionByName(this, "DashAttack");
+	ActionComponent->StartActionByName(this, SharedGameplayTags::Action_Dash);
 }
 
 void AUPCharacter::PrimaryInteract()
@@ -175,10 +177,13 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 	// Damaged
 	if (Delta < 0.0f)
 	{
-		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
+		//GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
+
+		// Replaces the above "old" method of requiring unique material instances for every mesh element on the player 
+		GetMesh()->SetCustomPrimitiveDataFloat(HitFlash_CustomPrimitiveIndex, GetWorld()->TimeSeconds);
 
 		// Rage added equal to damage received (Abs to turn into positive rage number)
-		float RageDelta = FMath::Abs(Delta);
+		const float RageDelta = FMath::Abs(Delta);
 		OwningComp->ApplyRageChange(InstigatorActor, RageDelta);
 	}
 

@@ -57,8 +57,12 @@ protected:
  	UPROPERTY(VisibleAnywhere, Category = "Effects")
  	FName TargetActorKey;
 
+	//UPROPERTY(VisibleAnywhere, Category = "Effects")
+	//FName TimeToHitParamName;
+	
+	/* Index must match the CustomPrimitiveData index used in the Overlay material */
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
-	FName TimeToHitParamName;
+	int32 HitFlash_CustomPrimitiveIndex;
 
 	// UPawnSensingComponent is an older implementation of AI perception.
 	// It has less features, but is also easier to use.

@@ -34,7 +34,8 @@ AUPAICharacter::AUPAICharacter()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 	LowHealthThreshold = 30.0f;
-	TimeToHitParamName = "TimeToHit";
+	//TimeToHitParamName = "TimeToHit";
+	HitFlash_CustomPrimitiveIndex = 0;
 	TargetActorKey = "TargetActor";
 }
 
@@ -113,7 +114,11 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 			}
 		}
 
-		GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
+		//GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
+
+		// Replaces the above "old" method of requiring unique material instances for every mesh element on the player 
+		GetMesh()->SetCustomPrimitiveDataFloat(HitFlash_CustomPrimitiveIndex, GetWorld()->TimeSeconds);
+
 
 		// Died
 		if (NewHealth <= 0.0f)

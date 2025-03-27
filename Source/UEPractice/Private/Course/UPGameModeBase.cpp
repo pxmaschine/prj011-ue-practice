@@ -38,6 +38,8 @@ AUPGameModeBase::AUPGameModeBase()
 	// We start spawning as the player walks on a button instead for convenient testing w/o bots.
 	bAutoStartBotSpawning = false;
 
+	bAutoRespawnPlayer = false;
+
 	PlayerStateClass = AUPPlayerState::StaticClass();
 }
 
@@ -83,14 +85,6 @@ void AUPGameModeBase::StartPlay()
 	// Make sure we have assigned at least one power-up class
 	if (ensure(PowerupClasses.Num() > 0))
 	{
-		// Run EQS to find potential power-up spawn locations
-
-		//UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, PowerupSpawnQuery, this, EEnvQueryRunMode::AllMatching, nullptr);
-		//if (ensure(QueryInstance))
-		//{
-		//	QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &AUPGameModeBase::OnPowerupSpawnQueryCompleted);
-		//}
-
 		// Skip the Blueprint wrapper and use the direct C++ option which the Wrapper uses as well
 		FEnvQueryRequest Request(PowerupSpawnQuery, this);
 		Request.Execute(EEnvQueryRunMode::AllMatching, this, &AUPGameModeBase::OnPowerupSpawnQueryCompleted);
@@ -115,12 +109,15 @@ void AUPGameModeBase::OnActorKilled(AActor* VictimActor, AActor* KillerActor)
 
 	if (const AUPCharacter* Player = Cast<AUPCharacter>(VictimActor))
 	{
-		// Disable auto-respawn
-		//FTimerHandle TimerHandle_RespawnDelay;
-		//FTimerDelegate Delegate;
-		//Delegate.BindUFunction(this, "RespawnPlayerElapsed", Player->GetController());
+		// Auto-respawn
+		if (bAutoRespawnPlayer)
+		{
+			FTimerHandle TimerHandle_RespawnDelay;
+			FTimerDelegate Delegate;
+			Delegate.BindUFunction(this, "RespawnPlayerElapsed", Player->GetController());
 
-		//GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, PlayerRespawnDelay, false);
+			GetWorldTimerManager().SetTimer(TimerHandle_RespawnDelay, Delegate, PlayerRespawnDelay, false);
+		}
 
 		// Store time if it was better than previous record
 		AUPPlayerState* PS = Player->GetPlayerState<AUPPlayerState>();
@@ -247,14 +244,6 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 		}
 	}
 
-	// Run EQS to find valid spawn location
-
-	//UEnvQueryInstanceBlueprintWrapper* QueryInstance = UEnvQueryManager::RunEQSQuery(this, SpawnBotQuery, this, EEnvQueryRunMode::RandomBest5Pct, nullptr);
-	//if (ensure(QueryInstance))
-	//{
-	//	QueryInstance->GetOnQueryFinishedEvent().AddDynamic(this, &AUPGameModeBase::OnBotSpawnQueryCompleted);
-	//}
-
 	// Skip the Blueprint wrapper and use the direct C++ option which the Wrapper uses as well
 	FEnvQueryRequest Request(SpawnBotQuery, this);
 	Request.Execute(EEnvQueryRunMode::RandomBest5Pct, this, &AUPGameModeBase::OnBotSpawnQueryCompleted);
@@ -277,6 +266,7 @@ void AUPGameModeBase::OnBotSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Resul
 	if (Locations.IsValidIndex(0) && MonsterTable)
 	{	
 		UAssetManager& Manager = UAssetManager::Get();
+
 		// Apply spawn cost
 		AvailableSpawnCredit -= SelectedMonsterRow->SpawnCost;
 

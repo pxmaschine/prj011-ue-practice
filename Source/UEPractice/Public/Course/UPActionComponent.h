@@ -41,17 +41,17 @@ public:
  	UUPAction* GetAction(TSubclassOf<UUPAction> ActionClass) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Action")
-	bool StartActionByName(AActor* Instigator, FName ActionName);
+	bool StartActionByName(AActor* Instigator, FGameplayTag ActionName);
 
 	UFUNCTION(BlueprintCallable, Category = "Action")
-	bool StopActionByName(AActor* Instigator, FName ActionName);
+	bool StopActionByName(AActor* Instigator, FGameplayTag ActionName);
 
 protected:
 	UFUNCTION(Server, Reliable)
-	void ServerStartAction(AActor* Instigator, FName ActionName);
+	void ServerStartAction(AActor* Instigator, FGameplayTag ActionName);
 
 	UFUNCTION(Server, Reliable)
-	void ServerStopAction(AActor* Instigator, FName ActionName);
+	void ServerStopAction(AActor* Instigator, FGameplayTag ActionName);
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")

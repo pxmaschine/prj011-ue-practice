@@ -47,4 +47,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
 	UParticleSystem* CastVFX;
+
+	/* Sound Effect to play (Can be Wave or Cue) */
+	UPROPERTY(EditAnywhere, Category = "Attack")
+	TObjectPtr<USoundBase> CastingSound;
+
 };

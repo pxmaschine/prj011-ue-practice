@@ -13,7 +13,7 @@ DECLARE_CYCLE_STAT(TEXT("StartActionByName"), STAT_StartActionByName, STATGROUP_
 
 UUPActionComponent::UUPActionComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
 	SetIsReplicatedByDefault(true);
 }
@@ -135,13 +135,13 @@ UUPAction* UUPActionComponent::GetAction(TSubclassOf<UUPAction> ActionClass) con
 	return nullptr;
 }
 
-bool UUPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
+bool UUPActionComponent::StartActionByName(AActor* Instigator, FGameplayTag ActionName)
 {
 	SCOPE_CYCLE_COUNTER(STAT_StartActionByName);
 
 	for (UUPAction* Action : Actions)
 	{
-		if (Action && Action->ActionName == ActionName)
+		if (Action && Action->ActivationTag == ActionName)
 		{
 			if (!Action->CanStart(Instigator))
 			{
@@ -167,11 +167,11 @@ bool UUPActionComponent::StartActionByName(AActor* Instigator, FName ActionName)
 	return false;
 }
 
-bool UUPActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
+bool UUPActionComponent::StopActionByName(AActor* Instigator, FGameplayTag ActionName)
 {
 	for (UUPAction* Action : Actions)
 	{
-		if (Action && Action->ActionName == ActionName)
+		if (Action && Action->ActivationTag == ActionName)
 		{
 			if (Action->IsRunning())
 			{
@@ -190,12 +190,12 @@ bool UUPActionComponent::StopActionByName(AActor* Instigator, FName ActionName)
 	return false;
 }
 
-void UUPActionComponent::ServerStartAction_Implementation(AActor* Instigator, FName ActionName)
+void UUPActionComponent::ServerStartAction_Implementation(AActor* Instigator, FGameplayTag ActionName)
 {
 	StartActionByName(Instigator, ActionName);
 }
 
-void UUPActionComponent::ServerStopAction_Implementation(AActor* Instigator, FName ActionName)
+void UUPActionComponent::ServerStopAction_Implementation(AActor* Instigator, FGameplayTag ActionName)
 {
 	StopActionByName(Instigator, ActionName);
 }
