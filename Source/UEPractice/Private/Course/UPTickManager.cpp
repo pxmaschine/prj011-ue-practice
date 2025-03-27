@@ -5,8 +5,11 @@
 #include "UEPractice/UEPractice.h"
 
 
-static TAutoConsoleVariable<bool> CVarAggregateTicks(TEXT("up.AggregateTicks"), true, TEXT("Enable aggregate ticking for selected objects. Takes effect on next level load."), ECVF_Default);
-
+static TAutoConsoleVariable CVarAggregateTicks(
+	TEXT("game.AggregateTicks"),
+	true,
+	TEXT("Enable aggregate ticking for selected objects. Takes effect on next level load."),
+	ECVF_Default);
 
 void FTickablesTickFunction::ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread,
 	const FGraphEventRef& MyCompletionGraphEvent)

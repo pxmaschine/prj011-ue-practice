@@ -14,9 +14,11 @@ class UEPRACTICE_API UUPProjectileMovementComponent : public UProjectileMovement
 {
 	GENERATED_BODY()
 
-	virtual void InitializeComponent() override;
-
+protected:
 	virtual void BeginPlay() override;
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+public:
+	void Reset();
 };

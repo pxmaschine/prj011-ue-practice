@@ -4,14 +4,6 @@
 #include "Course/UPProjectileMovementComponent.h"
 #include "Course/UPTickManager.h"
 
-void UUPProjectileMovementComponent::InitializeComponent()
-{
-	// Reset to default for object pooling support
-	Velocity = FVector(1,0,0);
-	
-	Super::InitializeComponent();
-}
-
 void UUPProjectileMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -27,4 +19,13 @@ void UUPProjectileMovementComponent::EndPlay(const EEndPlayReason::Type EndPlayR
 
 	UUPTickManager* TickManager = GetWorld()->GetSubsystem<UUPTickManager>();
 	TickManager->UnregisterComponent(&PrimaryComponentTick);
+}
+
+void UUPProjectileMovementComponent::Reset()
+{
+	// Reset to default for object pooling support
+	Velocity = FVector(1,0,0);
+
+	// Properly resets velocities and rotations
+	InitializeComponent();
 }

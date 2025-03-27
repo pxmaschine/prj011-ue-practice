@@ -8,6 +8,8 @@
 #include "Course/UPMonsterData.h"
 #include "Course/UPActionComponent.h"
 #include "Course/UPSaveGameSubsystem.h"
+#include "Course/UPActorPoolingSubsystem.h"
+
 #include "UEPractice/UEPractice.h"
 
 #include "EngineUtils.h"
@@ -379,5 +381,14 @@ void AUPGameModeBase::RespawnPlayerElapsed(AController* Controller)
 		Controller->UnPossess();
 
 		RestartPlayer(Controller);
+	}
+}
+
+void AUPGameModeBase::RequestPrimedActors()
+{
+	UUPActorPoolingSubsystem* PoolingSystem = GetWorld()->GetSubsystem<UUPActorPoolingSubsystem>();
+	for (auto& Entry : ActorPoolClasses)
+	{
+		PoolingSystem->PrimeActorPool(Entry.Key, Entry.Value);
 	}
 }

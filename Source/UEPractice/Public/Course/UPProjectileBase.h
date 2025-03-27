@@ -3,17 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UPActorPoolingInterface.h"
 #include "GameFramework/Actor.h"
 #include "UPProjectileBase.generated.h"
 
 class USphereComponent;
 class UUPProjectileMovementComponent;
-class UParticleSystemComponent;
+class UNiagaraComponent;
 class UCameraShakeBase;
 class USoundCue;
 
 UCLASS(Abstract)
-class UEPRACTICE_API AUPProjectileBase : public AActor
+class UEPRACTICE_API AUPProjectileBase : public AActor, public IUPActorPoolingInterface
 {
 	GENERATED_BODY()
 	
@@ -37,6 +38,10 @@ protected:
 	void Explode();
 
 	virtual void LifeSpanExpired() override;
+
+	virtual void PoolBeginPlay_Implementation() override;
+
+	virtual void PoolEndPlay_Implementation() override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Effects|Shake")
@@ -64,7 +69,7 @@ protected:
 	UUPProjectileMovementComponent* MovementComp;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UParticleSystemComponent* EffectComp;
+	TObjectPtr<UNiagaraComponent> NiagaraLoopComp;
 
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UAudioComponent* AudioComp;

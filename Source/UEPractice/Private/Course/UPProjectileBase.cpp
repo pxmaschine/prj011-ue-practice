@@ -7,7 +7,7 @@
 
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
-#include "Particles/ParticleSystemComponent.h"
+#include "NiagaraComponent.h"
 #include "kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 
@@ -20,8 +20,9 @@ AUPProjectileBase::AUPProjectileBase()
 	SphereComp->SetCanEverAffectNavigation(false);
 	RootComponent = SphereComp;
 
-	EffectComp = CreateDefaultSubobject<UParticleSystemComponent>("EffectComp");
-	EffectComp->SetupAttachment(SphereComp);
+	NiagaraLoopComp = CreateDefaultSubobject<UNiagaraComponent>("EffectComp");
+	//NiagaraLoopComp->PoolingMethod = ENCPoolMethod::AutoRelease;
+	NiagaraLoopComp->SetupAttachment(RootComponent);
 
 	AudioComp = CreateDefaultSubobject<UAudioComponent>("AudioComp");
 	AudioComp->SetupAttachment(RootComponent);
@@ -56,16 +57,6 @@ void AUPProjectileBase::BeginPlay()
 void AUPProjectileBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-
-	// Prepare for pool by disabling and resetting for the next time it will be re-used
-	{
-		// Complete any active PSCs (These may be pooled themselves by the particle manager) - old Cascade system since we dont use Niagara yet
-		TInlineComponentArray<UParticleSystemComponent*> ParticleComponents(this);
-		for (UParticleSystemComponent* const PSC  : ParticleComponents)
-		{
-			PSC->Complete();
-		}
-	}
 }
 
 void AUPProjectileBase::OnActorHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -75,12 +66,33 @@ void AUPProjectileBase::OnActorHit(UPrimitiveComponent* HitComponent, AActor* Ot
 
 void AUPProjectileBase::LifeSpanExpired()
 {
-	//Super::LifeSpanExpired();
-
 	// Skip destroy and instead release to pool
-	// This would need to be generically implemented for any pooled actor
-	UUPActorPoolingSubsystem* PoolingSubsystem = GetWorld()->GetSubsystem<UUPActorPoolingSubsystem>();
-	PoolingSubsystem->ReleaseToPool(this);
+
+	UUPActorPoolingSubsystem::ReleaseToPool(this);
+}
+
+void AUPProjectileBase::PoolBeginPlay_Implementation()
+{
+	MovementComp->Reset();
+
+	//NiagaraLoopComp->Activate();
+	//AudioComp->Play();
+	
+	// Unpausing is significantly faster than re-creating renderstates due to Deactivate()
+	// Does keep its state around which is OK for our loopable VFX that will mostly be active/in-use
+	// @todo: ribbon VFX will teleport and cause a large streak on screen as it catches up with the new actor location
+	NiagaraLoopComp->SetPaused(false);
+	// Reset to fix ribbon positions
+	//NiagaraLoopComp->ResetSystem();
+	AudioComp->SetPaused(false);
+}
+
+void AUPProjectileBase::PoolEndPlay_Implementation()
+{
+	//NiagaraLoopComp->Deactivate();
+	//AudioComp->Stop();
+	NiagaraLoopComp->SetPaused(true);
+	AudioComp->SetPaused(true);
 }
 
 void AUPProjectileBase::Explode_Implementation()
@@ -88,7 +100,8 @@ void AUPProjectileBase::Explode_Implementation()
 	// Check to make sure we aren't already being destroyed
 	if (ensure(IsValid(this)))
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+		// Auto-managed particle pooling
+		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation(), true, EPSCPoolMethod::AutoRelease);
 		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
 		UGameplayStatics::PlayWorldCameraShake(this, ImpactShake, GetActorLocation(), ImpactShakeInnerRadius, ImpactShakeOuterRadius);
 

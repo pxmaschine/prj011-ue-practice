@@ -5,7 +5,7 @@
 #include "Course/UPProjectileMovementComponent.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "Particles/ParticleSystemComponent.h"
+#include "NiagaraComponent.h"
 
 
 AUPDashProjectile::AUPDashProjectile()
@@ -31,7 +31,7 @@ void AUPDashProjectile::Explode_Implementation()
 
 	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
 
-	EffectComp->DeactivateSystem();
+	NiagaraLoopComp->Deactivate();
 
 	MovementComp->StopMovementImmediately();
 	SetActorEnableCollision(false);

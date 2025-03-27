@@ -26,7 +26,9 @@ void UUPAction_ProjectileAttack::StartAction_Implementation(AActor* Instigator)
 	{
 		Character->PlayAnimMontage(AttackAnim);
 
-		UGameplayStatics::SpawnEmitterAttached(CastVFX, Character->GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
+		// Auto-released particle pooling
+		UGameplayStatics::SpawnEmitterAttached(CastVFX, Character->GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator,
+			EAttachLocation::SnapToTarget, true, EPSCPoolMethod::AutoRelease);
 
 		// Only on server
 		if (Character->HasAuthority())
@@ -98,7 +100,7 @@ void UUPAction_ProjectileAttack::AttackDelay_Elapsed(ACharacter* InstigatorChara
 		//GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
 
 		// re-use a pooled actor instead of always spawning new Actors
-		UUPActorPoolingSubsystem::GetPooledActor(this, ProjectileClass, SpawnTM, SpawnParams);
+		UUPActorPoolingSubsystem::AcquireFromPool(this, ProjectileClass, SpawnTM, SpawnParams);
 	}
 
 	StopAction(InstigatorCharacter);

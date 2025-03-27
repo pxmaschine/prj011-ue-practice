@@ -84,6 +84,8 @@ protected:
 	UFUNCTION()
 	void RespawnPlayerElapsed(AController* Controller);
 
+	void RequestPrimedActors();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UDataTable* MonsterTable;
@@ -131,7 +133,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
 	int32 DesiredPowerupCount;
 
-protected:
+	/* Allow per game mode actor pools and custom amount of primed instances */
+	UPROPERTY(EditDefaultsOnly, Category= "Actor Pooling")
+	TMap<TSubclassOf<AActor>, int32> ActorPoolClasses;
+
 	FTimerHandle TimerHandle_SpawnBots;
 
 	// Points available to spend on spawning monsters
