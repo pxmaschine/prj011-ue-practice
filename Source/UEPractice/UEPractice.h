@@ -9,6 +9,9 @@
 // Define category "LogGame"
 UEPRACTICE_API DECLARE_LOG_CATEGORY_EXTERN(LogGame, Log, All);
 
+// Define alias to easily keep track of custom channels in C++ (must match what is specified in Project Settings > Collision 
+#define COLLISION_PROJECTILE ECC_GameTraceChannel1
+
 // Define new "stat command" group shown in-game via "stat uepractice"
 DECLARE_STATS_GROUP(TEXT("UEPRACTICE_Game"), STATGROUP_UEPRACTICE, STATCAT_Advanced);
 

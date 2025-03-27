@@ -1,10 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
-#include "UEPractice/UEPractice.h"
-
 #include "Course/UPSignificanceComponent.h"
 #include "Course/UPSignificanceInterface.h"
+#include "UEPractice/UEPractice.h"
 
 #include "ParticleHelper.h"
 #include "Particles/ParticleSystemComponent.h"

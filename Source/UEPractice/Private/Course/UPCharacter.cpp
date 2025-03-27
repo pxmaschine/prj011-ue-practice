@@ -42,6 +42,10 @@ AUPCharacter::AUPCharacter()
 
 	// Enabled on mesh to react to incoming projectiles
 	GetMesh()->SetGenerateOverlapEvents(true);
+
+	// Skip performing overlap queries on the Physics Asset after animation (7 queries in case of our Gideon mesh)
+	GetMesh()->bUpdateOverlapsOnAnimationFinalize = false;
+
 	// Disable on capsule collision to avoid double-dipping and receiving 2 overlaps when entering trigger zones etc.
 	// Once from the mesh, and 2nd time from capsule
 	GetCapsuleComponent()->SetGenerateOverlapEvents(false);

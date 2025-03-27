@@ -21,10 +21,14 @@ AUPAICharacter::AUPAICharacter()
 	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>("AttributeComp");
 	ActionComponent = CreateDefaultSubobject<UUPActionComponent>("ActionComp");
 
-	// Disabled on capsule to let projectiles pass through capsule and hit mesh instead
-	//GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 	// Enabled on mesh to react to incoming projectiles
-	GetMesh()->SetGenerateOverlapEvents(true);
+	USkeletalMeshComponent* SkelMesh = GetMesh();
+	SkelMesh->SetGenerateOverlapEvents(true);
+	// Skip performing overlap queries on the Physics Asset after animation (17 queries in case of our MinionRangedBP)
+	SkelMesh->bUpdateOverlapsOnAnimationFinalize = false;
+
+	// Skip bones when not visible, may miss anim notifies etc. if animation is skipped so these options must be tested per use case
+	SkelMesh->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
 
 	// Ensures we receive a controlled when spawned in the level by our gamemode
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
