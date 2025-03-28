@@ -26,8 +26,10 @@ void UUPInteractionComponent::TickComponent(float DeltaTime, enum ELevelTick Tic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	const APawn* MyPawn = Cast<APawn>(GetOwner());
-	if (MyPawn->IsLocallyControlled())
+	// Cast checked acts like static_cast in shipping builds. Less overhead compared to regular Cast<T> which does have safety nets.
+	// Can use this in places where the cast object should never be nullptr by design and we know exactly the base class it is.
+	const APawn* MyPawn = CastChecked<APawn>(GetOwner());
+	if (MyPawn->IsLocallyControlled()) // Todo: Ideally just disable tick on this component when owner is not locally controlled.
 	{
 		FindBestInteractable();
 	}
@@ -46,7 +48,7 @@ void UUPInteractionComponent::ServerInteract_Implementation(AActor* InFocus)
 		return;
 	}
 
-	APawn* MyPawn = Cast<APawn>(GetOwner());
+	APawn* MyPawn = CastChecked<APawn>(GetOwner());
 
 	IUPGameplayInterface::Execute_Interact(InFocus, MyPawn);
 }
@@ -58,11 +60,9 @@ void UUPInteractionComponent::FindBestInteractable()
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(CollisionChannel);
 
-	AActor* MyOwner = GetOwner();
-
 	FVector EyeLocation;
 	FRotator EyeRotation;
-	MyOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
+	GetOwner()->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 	const FVector End = EyeLocation + (EyeRotation.Vector() * TraceDistance);
 

@@ -244,6 +244,8 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 		}
 	}
 
+	UE_LOG(LogGame, Log, TEXT("Spawning New Bot"));
+
 	// Skip the Blueprint wrapper and use the direct C++ option which the Wrapper uses as well
 	FEnvQueryRequest Request(SpawnBotQuery, this);
 	Request.Execute(EEnvQueryRunMode::RandomBest5Pct, this, &AUPGameModeBase::OnBotSpawnQueryCompleted);
@@ -282,24 +284,22 @@ void AUPGameModeBase::OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLoc
 {
 	//LogOnScreen(this, FString::Printf(TEXT("Finished loading '%s'."), *LoadedId.PrimaryAssetName.ToString()), FColor::Green);
 
-	if (const UAssetManager* Manager = UAssetManager::GetIfInitialized())
+	const UAssetManager& Manager = UAssetManager::Get();
+
+	UUPMonsterData* MonsterData = CastChecked<UUPMonsterData>(Manager.GetPrimaryAssetObject(LoadedId));
+
+	// Spawn might fail if colliding with environment
+	if (AActor* NewBot = GetWorld()->SpawnActor<AActor>(MonsterData->MonsterClass, SpawnLocation, FRotator::ZeroRotator))
 	{
-		if (UUPMonsterData* MonsterData = Cast<UUPMonsterData>(Manager->GetPrimaryAssetObject(LoadedId)))
+		LogOnScreen(this, FString::Printf(TEXT("Spawned enemy: %s (%s)"), *GetNameSafe(NewBot), *GetNameSafe(MonsterData)));
+
+		// Grant special actions, buffs etc.
+		UUPActionComponent* ActionComp = NewBot->FindComponentByClass<UUPActionComponent>();
+		check(ActionComp);
+		
+		for (const TSubclassOf<UUPAction> ActionClass : MonsterData->Actions)
 		{
-			if (AActor* NewBot = GetWorld()->SpawnActor<AActor>(MonsterData->MonsterClass, SpawnLocation, FRotator::ZeroRotator))
-			{
-				LogOnScreen(this, FString::Printf(TEXT("Spawned enemy: %s (%s)"), *GetNameSafe(NewBot), *GetNameSafe(MonsterData)));
-
-				if (UUPActionComponent* ActionComp = Cast<UUPActionComponent>(NewBot->GetComponentByClass(UUPActionComponent::StaticClass())))
-				{
-					for (const TSubclassOf<UUPAction> ActionClass : MonsterData->Actions)
-					{
-						ActionComp->AddAction(NewBot, ActionClass);
-					}
-				}
-
-				DrawDebugSphere(GetWorld(), SpawnLocation, 50.0f, 20, FColor::Blue, false, 60.0f);
-			}	
+			ActionComp->AddAction(NewBot, ActionClass);
 		}
 	}
 }

@@ -21,9 +21,6 @@ public:
 	// Sets default values for this character's properties
 	AUPAICharacter();
 
-public:
-	bool HasLowHealth() const;
-
 protected:
 	virtual void PostInitializeComponents() override;
 
@@ -75,7 +72,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPActionComponent* ActionComponent;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "AI")
-	float LowHealthThreshold;
 };

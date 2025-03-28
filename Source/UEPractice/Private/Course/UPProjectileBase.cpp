@@ -97,17 +97,13 @@ void AUPProjectileBase::PoolEndPlay_Implementation()
 
 void AUPProjectileBase::Explode_Implementation()
 {
-	// Check to make sure we aren't already being destroyed
-	if (ensure(IsValid(this)))
-	{
-		// Auto-managed particle pooling
-		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation(), true, EPSCPoolMethod::AutoRelease);
-		UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
-		UGameplayStatics::PlayWorldCameraShake(this, ImpactShake, GetActorLocation(), ImpactShakeInnerRadius, ImpactShakeOuterRadius);
+	// Auto-managed particle pooling
+	UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation(), true, EPSCPoolMethod::AutoRelease);
+	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation());
+	UGameplayStatics::PlayWorldCameraShake(this, ImpactShake, GetActorLocation(), ImpactShakeInnerRadius, ImpactShakeOuterRadius);
 
-		//Destroy();
-		// Release back to pool instead of destroying
-		UUPActorPoolingSubsystem* PoolingSubsystem = GetWorld()->GetSubsystem<UUPActorPoolingSubsystem>();
-		PoolingSubsystem->ReleaseToPool(this);
-	}
+	//Destroy();
+	// Release back to pool instead of destroying
+	UUPActorPoolingSubsystem* PoolingSubsystem = GetWorld()->GetSubsystem<UUPActorPoolingSubsystem>();
+	PoolingSubsystem->ReleaseToPool(this);
 }

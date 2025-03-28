@@ -45,14 +45,13 @@ void UUPActionEffect::StopAction_Implementation(AActor* Instigator)
 	GetWorld()->GetTimerManager().ClearTimer(PeriodHandle);
 	GetWorld()->GetTimerManager().ClearTimer(DurationHandle);
 
-	if (UUPActionComponent* Comp = GetOwningComponent())
-	{
-		Comp->RemoveAction(this);
-	}
+	UUPActionComponent* Comp = GetOwningComponent();
+	Comp->RemoveAction(this);
 }
 
 float UUPActionEffect::GetTimeRemaining() const
 {
+	// Possibly nullptr early on if joining as a client in multiplayer (server spawns GameState and replicates the actor instance to clients)
 	if (const AGameStateBase* GS = GetWorld()->GetGameState<AGameStateBase>())
 	{
 		const float EndTime = TimeStarted + Duration;
@@ -62,7 +61,4 @@ float UUPActionEffect::GetTimeRemaining() const
 	return Duration;
 }
 
-void UUPActionEffect::ExecutePeriodicEffect_Implementation(AActor* Instigator)
-{
-
-}
+void UUPActionEffect::ExecutePeriodicEffect_Implementation(AActor* Instigator) {}

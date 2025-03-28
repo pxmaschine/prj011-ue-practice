@@ -57,20 +57,24 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Action")
 	void StopAction(AActor* Instigator);
 
+	UFUNCTION(BlueprintPure)
+	FGameplayTag GetActivationTag() const
+	{
+		return ActivationTag;
+	}
+
+	UFUNCTION(BlueprintPure)
+	bool IsAutoStart() const
+	{
+		return bAutoStart;
+	}
+
 protected:
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	UUPActionComponent* GetOwningComponent() const;
 	
 	UFUNCTION()
 	void OnRep_RepData();
-
-public:
-	UPROPERTY(EditDefaultsOnly, Category = "Action")
-	FGameplayTag ActivationTag;
-
-	// Start immediately when added to an action component
-	UPROPERTY(EditDefaultsOnly, Category = "Action")
-	bool bAutoStart;
 
 protected:
 	UPROPERTY(Replicated)
@@ -92,4 +96,11 @@ protected:
 
 	UPROPERTY(Replicated)
 	float TimeStarted;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Action")
+	FGameplayTag ActivationTag;
+
+	// Start immediately when added to an action component
+	UPROPERTY(EditDefaultsOnly, Category = "Action")
+	bool bAutoStart;
 };

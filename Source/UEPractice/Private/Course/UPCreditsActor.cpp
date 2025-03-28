@@ -13,11 +13,6 @@ void AUPCreditsActor::Interact_Implementation(APawn* InstigatorPawn)
 {
 	Super::Interact_Implementation(InstigatorPawn);
 
-	if (!ensure(InstigatorPawn))
-	{
-		return;
-	}
-
 	if (AUPPlayerState* PS = InstigatorPawn->GetPlayerState<AUPPlayerState>())
 	{
 		PS->AddCredits(CreditsAmount);

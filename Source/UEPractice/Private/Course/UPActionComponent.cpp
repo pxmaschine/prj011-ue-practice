@@ -41,10 +41,11 @@ void UUPActionComponent::BeginPlay()
 
 void UUPActionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	TArray ActionsCopy(Actions);
+	// Stop all
+	TArray<UUPAction*> ActionsCopy = Actions;
 	for (UUPAction* Action : ActionsCopy)
 	{
-		if (Action && Action->IsRunning())
+		if (Action->IsRunning())
 		{
 			Action->StopAction(GetOwner());
 		}
@@ -60,13 +61,13 @@ void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	//const FString DebugMsg = GetNameSafe(GetOwner()) + " : " + ActiveGameplayTags.ToStringSimple( );
 	//GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
 
-	// Draw all actions
-	for (const UUPAction* Action : Actions)
-	{
-		const FColor TextColor = Action->IsRunning() ? FColor::Blue : FColor::White;
-		FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s"), *GetNameSafe(GetOwner()), *GetNameSafe(Action));
-		LogOnScreen(this, ActionMsg, TextColor, 0.0f);
-	}
+	//// Draw all actions
+	//for (const UUPAction* Action : Actions)
+	//{
+	//	const FColor TextColor = Action->IsRunning() ? FColor::Blue : FColor::White;
+	//	FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s"), *GetNameSafe(GetOwner()), *GetNameSafe(Action));
+	//	LogOnScreen(this, ActionMsg, TextColor, 0.0f);
+	//}
 }
 
 bool UUPActionComponent::ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags)
@@ -99,16 +100,15 @@ void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> Ac
 	}
 
 	UUPAction* NewAction = NewObject<UUPAction>(GetOwner(), ActionClass);
-	if (ensure(NewAction))
+	check(NewAction);
+
+	NewAction->Initialize(this);
+
+	Actions.Add(NewAction);
+
+	if (NewAction->IsAutoStart() && ensure(NewAction->CanStart(Instigator)))
 	{
-		NewAction->Initialize(this);
-
-		Actions.Add(NewAction);
-
-		if (NewAction->bAutoStart && ensure(NewAction->CanStart(Instigator)))
-		{
-			NewAction->StartAction(Instigator);
-		}
+		NewAction->StartAction(Instigator);
 	}
 }
 
@@ -126,7 +126,7 @@ UUPAction* UUPActionComponent::GetAction(TSubclassOf<UUPAction> ActionClass) con
 {
 	for (UUPAction* Action : Actions)
 	{
- 		if (Action && Action->IsA(ActionClass))
+		if (Action->IsA(ActionClass))
  		{
  			return Action;
  		}
@@ -141,7 +141,7 @@ bool UUPActionComponent::StartActionByName(AActor* Instigator, FGameplayTag Acti
 
 	for (UUPAction* Action : Actions)
 	{
-		if (Action && Action->ActivationTag == ActionName)
+		if (Action->GetActivationTag() == ActionName)
 		{
 			if (!Action->CanStart(Instigator))
 			{
@@ -171,7 +171,7 @@ bool UUPActionComponent::StopActionByName(AActor* Instigator, FGameplayTag Actio
 {
 	for (UUPAction* Action : Actions)
 	{
-		if (Action && Action->ActivationTag == ActionName)
+		if (Action->GetActivationTag() == ActionName)
 		{
 			if (Action->IsRunning())
 			{

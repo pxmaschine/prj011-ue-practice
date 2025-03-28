@@ -5,21 +5,26 @@
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Course/AI/UPAICharacter.h"
+#include "Course/UPAttributeComponent.h"
 
+
+UUPBTService_CheckHealth::UUPBTService_CheckHealth()
+{
+	LowHealthFraction = 0.3f;
+}
 
 void UUPBTService_CheckHealth::TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickNode(OwnerComp, NodeMemory, DeltaSeconds);
 
-	if (UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent(); ensure(BlackboardComponent))
+	const APawn* AIPawn = OwnerComp.GetAIOwner()->GetPawn();
+
+	UUPAttributeComponent* AttributeComp = UUPAttributeComponent::GetAttributes(AIPawn);
+	if (ensure(AttributeComp))
 	{
-		if (const AAIController* AIController = OwnerComp.GetAIOwner(); ensure(AIController))
-		{
-			if (const AUPAICharacter* AICharacter = Cast<AUPAICharacter>(AIController->GetCharacter()); ensure(AICharacter))
-			{
-				BlackboardComponent->SetValueAsBool(LowHealthKey.SelectedKeyName, AICharacter->HasLowHealth());
-			}
-		}
+		const bool bLowHealth = (AttributeComp->GetCurrentHealth() / AttributeComp->GetMaxHealth()) < LowHealthFraction;
+
+		UBlackboardComponent* BlackBoardComp = OwnerComp.GetBlackboardComponent();
+		BlackBoardComp->SetValueAsBool(LowHealthKey.SelectedKeyName, bLowHealth);
 	}
 }

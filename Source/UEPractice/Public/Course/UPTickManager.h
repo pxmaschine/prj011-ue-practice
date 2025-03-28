@@ -19,6 +19,8 @@ struct FTickablesTickFunction : public FTickFunction
 	UUPTickManager* Target = nullptr;
 
 	virtual void ExecuteTick(float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent) override;
+
+	virtual FString DiagnosticMessage() override {return TEXT("FAggregateTickFunction"); }
 };
 
 template <>
@@ -44,7 +46,7 @@ public:
 	void UnregisterComponent(FActorComponentTickFunction* TickFunction);
 	
 	void ExecuteTick(ETickingGroup TickGroup, float DeltaTime, ELevelTick TickType, ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent);
-
+	
 protected:
 	TArray<FActorComponentTickFunction*> TickableComponents;
 

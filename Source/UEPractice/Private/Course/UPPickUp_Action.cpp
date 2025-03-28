@@ -8,25 +8,24 @@ void AUPPickUp_Action::Interact_Implementation(APawn* InstigatorPawn)
 {
 	Super::Interact_Implementation(InstigatorPawn);
 
-	// Make sure we have instigator & that action class was set up
- 	if (!ensure(InstigatorPawn && ActionToGrant))
+	// Make sure an action class was set up
+	if (!ensureAlways(ActionToGrant))
  	{
  		return;
  	}
  
- 	UUPActionComponent* ActionComp = Cast<UUPActionComponent>(InstigatorPawn->GetComponentByClass(UUPActionComponent::StaticClass()));
+	UUPActionComponent* ActionComp = InstigatorPawn->FindComponentByClass<UUPActionComponent>();
+	check(ActionComp);
+
  	// Check if Player already has action class
- 	if (ActionComp)
+	if (ActionComp->GetAction(ActionToGrant))
  	{
- 		if (ActionComp->GetAction(ActionToGrant))
- 		{
- 			FString DebugMsg = FString::Printf(TEXT("Action '%s' already known."), *GetNameSafe(ActionToGrant));
- 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, DebugMsg);
- 			return;
- 		}
- 
- 		// Give new Ability
- 		ActionComp->AddAction(InstigatorPawn, ActionToGrant);	
- 		HideAndCooldownPickUp();
+		const FString DebugMsg = FString::Printf(TEXT("Action '%s' already known."), *GetNameSafe(ActionToGrant));
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, DebugMsg);
+		return;
  	}
+
+	// Give new Ability
+	ActionComp->AddAction(InstigatorPawn, ActionToGrant);	
+	HideAndCooldownPickUp();
 }

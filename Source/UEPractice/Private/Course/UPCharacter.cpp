@@ -63,20 +63,6 @@ void AUPCharacter::PostInitializeComponents()
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &AUPCharacter::OnHealthChanged);
 }
 
-// Called when the game starts or when spawned
-void AUPCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
-}
-
 void AUPCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -190,7 +176,8 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 	// Died
 	if (NewValue <= 0.0f && Delta < 0.0f)
 	{
-		APlayerController* PC = Cast<APlayerController>(GetController());
+		APlayerController* PC = GetController<AUPPlayerController>();
+
 		DisableInput(PC);
 
 		SetLifeSpan(5.0f);
@@ -200,7 +187,7 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 void AUPCharacter::FindCrosshairTarget()
 {
 	// Ignore if not using GamePad
-	AUPPlayerController* PC = Cast<AUPPlayerController>(GetController());
+	AUPPlayerController* PC = GetController<AUPPlayerController>();
 
 	// Only use aim assist when currently controlled and using gamepad
 	// Note: you *may* always want to line trace if using this result for other things like coloring crosshair or re-using this hit data for aim adjusting during projectile attacks
@@ -247,27 +234,37 @@ void AUPCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
-	{
-		// General
-		EnhancedInputComponent->BindAction(Input_Move, ETriggerEvent::Triggered, this, &AUPCharacter::Move);
-		EnhancedInputComponent->BindAction(Input_Jump, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(Input_Interact, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryInteract);
+	const APlayerController* PC = GetController<APlayerController>();
+	const ULocalPlayer* LP = PC->GetLocalPlayer();
+	
+	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
+	check(Subsystem);
 
-		// MKB
-		EnhancedInputComponent->BindAction(Input_LookMouse, ETriggerEvent::Triggered, this, &AUPCharacter::LookMouse);
-		// Gamepad
-		EnhancedInputComponent->BindAction(Input_LookStick, ETriggerEvent::Triggered, this, &AUPCharacter::LookStick);
+	Subsystem->ClearAllMappings();
 
-		// Sprint while key is held
-		EnhancedInputComponent->BindAction(Input_Sprint, ETriggerEvent::Started, this, &AUPCharacter::SprintStart);
-		EnhancedInputComponent->BindAction(Input_Sprint, ETriggerEvent::Completed, this, &AUPCharacter::SprintStop);
+	// Add mappings for our game, more complex games may have multiple Contexts that are added/removed at runtime
+	Subsystem->AddMappingContext(DefaultMappingContext, 0);
 
-		// Abilities
-		EnhancedInputComponent->BindAction(Input_PrimaryAttack, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryAttack);
-		EnhancedInputComponent->BindAction(Input_SecondaryAttack, ETriggerEvent::Triggered, this, &AUPCharacter::SecondaryAttack);
-		EnhancedInputComponent->BindAction(Input_Dash, ETriggerEvent::Triggered, this, &AUPCharacter::Dash);
-	}
+	UEnhancedInputComponent* InputComp = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+
+	// General
+	InputComp->BindAction(Input_Move, ETriggerEvent::Triggered, this, &AUPCharacter::Move);
+	InputComp->BindAction(Input_Jump, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+	InputComp->BindAction(Input_Interact, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryInteract);
+
+	// MKB
+	InputComp->BindAction(Input_LookMouse, ETriggerEvent::Triggered, this, &AUPCharacter::LookMouse);
+	// Gamepad
+	InputComp->BindAction(Input_LookStick, ETriggerEvent::Triggered, this, &AUPCharacter::LookStick);
+
+	// Sprint while key is held
+	InputComp->BindAction(Input_Sprint, ETriggerEvent::Started, this, &AUPCharacter::SprintStart);
+	InputComp->BindAction(Input_Sprint, ETriggerEvent::Completed, this, &AUPCharacter::SprintStop);
+
+	// Abilities
+	InputComp->BindAction(Input_PrimaryAttack, ETriggerEvent::Triggered, this, &AUPCharacter::PrimaryAttack);
+	InputComp->BindAction(Input_SecondaryAttack, ETriggerEvent::Triggered, this, &AUPCharacter::SecondaryAttack);
+	InputComp->BindAction(Input_Dash, ETriggerEvent::Triggered, this, &AUPCharacter::Dash);
 }
 
 void AUPCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const

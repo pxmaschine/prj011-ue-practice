@@ -33,15 +33,9 @@ AUPAICharacter::AUPAICharacter()
 	// Ensures we receive a controlled when spawned in the level by our gamemode
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
-	LowHealthThreshold = 30.0f;
 	//TimeToHitParamName = "TimeToHit";
 	HitFlash_CustomPrimitiveIndex = 0;
 	TargetActorKey = "TargetActor";
-}
-
-bool AUPAICharacter::HasLowHealth() const
-{
-	return AttributeComponent->GetCurrentHealth() < LowHealthThreshold;
 }
 
 void AUPAICharacter::PostInitializeComponents()
@@ -54,20 +48,14 @@ void AUPAICharacter::PostInitializeComponents()
 
 void AUPAICharacter::SetTargetActor(AActor* NewTarget)
 {
-	if (AAIController* AIC = Cast<AAIController>(GetController()))
-	{
-		AIC->GetBlackboardComponent()->SetValueAsObject(TargetActorKey, NewTarget);
-	}
+	AAIController* AIC = GetController<AAIController>();
+	AIC->GetBlackboardComponent()->SetValueAsObject(TargetActorKey, NewTarget);
 }
 
 AActor* AUPAICharacter::GetTargetActor() const
 {
-	if (AAIController* AIC = Cast<AAIController>(GetController()))
-	{
-		return Cast<AActor>(AIC->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
-	}
-
-	return nullptr;
+	AAIController* AIC = GetController<AAIController>();
+	return Cast<AActor>(AIC->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
 }
 
 void AUPAICharacter::OnPawnSeen(APawn* Pawn)
@@ -86,6 +74,8 @@ void AUPAICharacter::OnPawnSeen(APawn* Pawn)
 void AUPAICharacter::MulticastPawnSeen_Implementation()
 {
 	UUPWorldUserWidget* NewWidget = CreateWidget<UUPWorldUserWidget>(GetWorld(), SpottedWidgetClass);
+
+	// Can be nullptr if we didnt specify a class to use in Blueprint
 	if (NewWidget)
 	{
  		NewWidget->AttachedActor = this;
@@ -115,6 +105,7 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 			}
 		}
 
+		// Old way via MaterialInstanceDynamic, below implementation uses CustomPrimitiveData instead
 		//GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
 
 		// Replaces the above "old" method of requiring unique material instances for every mesh element on the player 
@@ -125,11 +116,8 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 		if (NewHealth <= 0.0f)
 		{
 			// Stop behavior tree
-			AAIController* AIC = Cast<AAIController>(GetController());
-			if (AIC)
-			{
-				AIC->GetBrainComponent()->StopLogic("Killed");
-			}
+			const AAIController* AIC = GetController<AAIController>();
+			AIC->GetBrainComponent()->StopLogic("Killed");
 
 			// Enable ragdoll
 			GetMesh()->SetAllBodiesSimulatePhysics(true);

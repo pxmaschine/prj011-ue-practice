@@ -29,23 +29,13 @@ void AUPMagicProjectile::PostInitializeComponents()
 void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
                                         UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	//if (OtherActor && OtherActor != GetInstigator())
-	//{
-	//	if (UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(OtherActor->GetComponentByClass(UUPAttributeComponent::StaticClass())))
-	//	{
-	//		AttributeComp->ApplyHealthChange(GetInstigator(), -DamageAmount);
-	//	}
-	//	Explode_Implementation();
-	//}
-
 	if (!OtherActor || OtherActor == GetInstigator())
 	{
 		return;
 	}
 
-	// static FGameplayTag Tag = FGameplayTag::RequestGameplayTag("Status.Parrying");
-
-	UUPActionComponent* ActionComp = Cast<UUPActionComponent>(OtherActor->GetComponentByClass(UUPActionComponent::StaticClass()));
+	// Parry Ability (GameplayTag Example)
+	UUPActionComponent* ActionComp = OtherActor->FindComponentByClass<UUPActionComponent>();
 	if (ActionComp && ActionComp->ActiveGameplayTags.HasTag(ParryTag))
 	{
 		MovementComp->Velocity = -MovementComp->Velocity;

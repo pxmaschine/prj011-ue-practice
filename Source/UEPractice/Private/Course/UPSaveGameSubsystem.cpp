@@ -58,7 +58,7 @@ bool UUPSaveGameSubsystem::OverrideSpawnTransform(AController* NewPlayer)
 			MyPawn->SetActorRotation(FoundData->Rotation);
 
 			// PlayerState owner is a (Player)Controller
-			AController* PC = Cast<AController>(PS->GetOwner());
+			AController* PC = CastChecked<AController>(PS->GetOwner());
 			// Set control rotation to change camera direction, setting Pawn rotation is not enough
 			PC->SetControlRotation(FoundData->Rotation);
 			
@@ -96,11 +96,11 @@ void UUPSaveGameSubsystem::WriteSaveGame()
 	// Iterate all player states, we don't have proper ID to match yet (requires Steam or EOS)
 	for (int32 i = 0; i < GS->PlayerArray.Num(); i++)
 	{
-		AUPPlayerState* PS = Cast<AUPPlayerState>(GS->PlayerArray[i]);
+		AUPPlayerState* PS = CastChecked<AUPPlayerState>(GS->PlayerArray[i]);
 		if (PS)
 		{
 			PS->SavePlayerState(CurrentSaveGame);
-			break; // single player only at this point
+			break; // only single player supported at this point
 		}
 	}
 
@@ -143,7 +143,7 @@ void UUPSaveGameSubsystem::LoadSaveGame(FString InSlotName)
 	
 	if (UGameplayStatics::DoesSaveGameExist(CurrentSlotName, 0))
 	{
-		CurrentSaveGame = Cast<UUPSaveGame>(UGameplayStatics::LoadGameFromSlot(CurrentSlotName, 0));
+		CurrentSaveGame = CastChecked<UUPSaveGame>(UGameplayStatics::LoadGameFromSlot(CurrentSlotName, 0));
 		if (CurrentSaveGame == nullptr)
 		{
 			UE_LOGFMT(LogGame, Warning, "Failed to load SaveGame Data.");
@@ -154,7 +154,7 @@ void UUPSaveGameSubsystem::LoadSaveGame(FString InSlotName)
 	}
 	else
 	{
-		CurrentSaveGame = Cast<UUPSaveGame>(UGameplayStatics::CreateSaveGameObject(UUPSaveGame::StaticClass()));
+		CurrentSaveGame = CastChecked<UUPSaveGame>(UGameplayStatics::CreateSaveGameObject(UUPSaveGame::StaticClass()));
 
 		UE_LOGFMT(LogGame, Log, "Created New SaveGame Data.");
 	}
