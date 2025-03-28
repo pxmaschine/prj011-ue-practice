@@ -15,12 +15,12 @@ AUPExplosiveBarrel::AUPExplosiveBarrel()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>("StaticMesh");
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetSimulatePhysics(true);
 	StaticMesh->SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
 	RootComponent = StaticMesh;
 
-	RadialForce = CreateDefaultSubobject<URadialForceComponent>("RadialForce");
+	RadialForce = CreateDefaultSubobject<URadialForceComponent>(TEXT("RadialForce"));
 	RadialForce->Radius = 700.0f;
 	RadialForce->ImpulseStrength = 2500.0f;
 	RadialForce->bImpulseVelChange = true;

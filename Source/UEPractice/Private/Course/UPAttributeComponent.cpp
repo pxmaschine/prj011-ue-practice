@@ -64,7 +64,7 @@ bool UUPAttributeComponent::IsAlive() const
 
 bool UUPAttributeComponent::IsFullHealth() const
 {
-	return !(Health < MaxHealth);
+	return FMath::IsNearlyEqual(Health, MaxHealth);
 }
 
 bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Delta)
@@ -77,15 +77,15 @@ bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Del
 	if (Delta < 0.0f)
 	{
 		const float DamageMultiplier = CVarDamageMultiplier.GetValueOnGameThread();
-
 		Delta *= DamageMultiplier;
 	}
 
 	const float OldHealth = Health;
 	const float NewHealth = FMath::Clamp(Health + Delta, 0.0f, MaxHealth);
-	const float ActualDelta = -(OldHealth - NewHealth);
 
-	// Only server
+	const float ActualDelta = NewHealth - OldHealth;
+
+	// Is Server?
 	if (GetOwner()->HasAuthority())
 	{
 		Health = NewHealth;
@@ -96,7 +96,7 @@ bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Del
 		}
 
 		// Died
-		if (ActualDelta < 0.0f && Health == 0.0f)
+		if (ActualDelta < 0.0f && FMath::IsNearlyZero(Health))
 		{
 			if (AUPGameModeBase* GM = GetWorld()->GetAuthGameMode<AUPGameModeBase>())
 			{
@@ -105,7 +105,7 @@ bool UUPAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Del
 		}
 	}
 
-	return ActualDelta != 0;
+	return !FMath::IsNearlyZero(ActualDelta);
 }
 
 bool UUPAttributeComponent::ApplyRageChange(AActor* InstigatorActor, float Delta)

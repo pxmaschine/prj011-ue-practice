@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "UPAICharacter.generated.h"
 
+class UUPSignificanceComponent;
 class UUPActionComponent;
 class UUPWorldUserWidget;
 class UPawnSensingComponent;
@@ -40,6 +41,9 @@ protected:
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
 
+	UFUNCTION()
+	void OnSignificanceChanged(ESignificanceValue Significance);
+
 protected:
 	UPROPERTY()
 	UUPWorldUserWidget* ActiveHealthBar;
@@ -72,4 +76,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPActionComponent* ActionComponent;
+
+	/* Handle fidelity for AI as they are off-screen or at far distances */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UUPSignificanceComponent> SigManComp;
 };

@@ -18,7 +18,8 @@ public class UEPractice : ModuleRules
 			"GameplayTags", 
 			"OnlineSubsystem", 
 			"SignificanceManager", 
-			"Niagara"
+			"Niagara",
+			"CoreOnline"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

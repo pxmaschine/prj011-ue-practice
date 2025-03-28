@@ -6,10 +6,10 @@
 // Sets default values
 AUPTargetDummy::AUPTargetDummy()
 {
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>("MeshComp");
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	RootComponent = MeshComp;
 
-	AttributeComp = CreateDefaultSubobject<UUPAttributeComponent>("AttributeComp");
+	AttributeComp = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
 }
 
 void AUPTargetDummy::PostInitializeComponents()

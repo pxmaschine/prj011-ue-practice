@@ -10,12 +10,12 @@
 // Sets default values
 AUPPickUpActor::AUPPickUpActor()
 {
-	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
+	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	SphereComp->SetCollisionProfileName("PickUp");
 	SphereComp->SetSphereRadius(100.0f);
 	RootComponent = SphereComp;
 
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>("MeshComp");
+	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
 	// Disable collision, instead we use SphereComp to handle interaction queries
 	MeshComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MeshComp->SetupAttachment(RootComponent);

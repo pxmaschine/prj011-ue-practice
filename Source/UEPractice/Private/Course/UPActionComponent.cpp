@@ -16,6 +16,9 @@ UUPActionComponent::UUPActionComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	SetIsReplicatedByDefault(true);
+
+	// See GDefaultUseSubObjectReplicationList for CVAR to enable by default project-wide
+	bReplicateUsingRegisteredSubObjectList = true;
 }
 
 void UUPActionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -70,21 +73,6 @@ void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	//}
 }
 
-bool UUPActionComponent::ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags)
-{
-	bool WroteSomething = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
-
-	for (UUPAction* Action : Actions)
-	{
-		if (Action)
-		{
-			WroteSomething |= Channel->ReplicateSubobject(Action, *Bunch, *RepFlags);
-		}
-	}
-
-	return WroteSomething;
-}
-
 void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> ActionClass)
 {
 	if (!ensure(ActionClass))
@@ -105,6 +93,9 @@ void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> Ac
 	NewAction->Initialize(this);
 
 	Actions.Add(NewAction);
+
+	// New Replicated Objects list (for networking)
+	AddReplicatedSubObject(NewAction);
 
 	if (NewAction->IsAutoStart() && ensure(NewAction->CanStart(Instigator)))
 	{

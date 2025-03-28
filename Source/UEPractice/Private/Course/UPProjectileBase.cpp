@@ -14,21 +14,21 @@
 // Sets default values
 AUPProjectileBase::AUPProjectileBase()
 {
-	SphereComp = CreateDefaultSubobject<USphereComponent>("SphereComp");
-	SphereComp->SetCollisionProfileName("Projectile");
+	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	SphereComp->SetCollisionProfileName(TEXT("Projectile"));
 	// Don't bother telling the nav system whenever we move
 	SphereComp->SetCanEverAffectNavigation(false);
 	RootComponent = SphereComp;
 
-	NiagaraLoopComp = CreateDefaultSubobject<UNiagaraComponent>("EffectComp");
+	NiagaraLoopComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("EffectComp"));
 	//NiagaraLoopComp->PoolingMethod = ENCPoolMethod::AutoRelease;
 	NiagaraLoopComp->SetupAttachment(RootComponent);
 
-	AudioComp = CreateDefaultSubobject<UAudioComponent>("AudioComp");
+	AudioComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComp"));
 	AudioComp->SetupAttachment(RootComponent);
 
 	// Custom Projectile Component (for tick management & better homing)
-	MovementComp = CreateDefaultSubobject<UUPProjectileMovementComponent>("MovementComp");
+	MovementComp = CreateDefaultSubobject<UUPProjectileMovementComponent>(TEXT("MovementComp"));
 	MovementComp->InitialSpeed = 8000.0f;
 	MovementComp->bRotationFollowsVelocity = true;
 	MovementComp->bInitialVelocityInLocalSpace = true;

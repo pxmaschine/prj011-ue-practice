@@ -1,8 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Course/UPSignificanceComponent.h"
+
+#include "NiagaraComponent.h"
 #include "Course/UPSignificanceInterface.h"
-#include "UEPractice/UEPractice.h"
 
 #include "ParticleHelper.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -22,8 +23,10 @@ UUPSignificanceComponent::UUPSignificanceComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 	bWaitOneFrame = true;
 	bManageSignificance = true;
+	bHasImplementedInterface = false;
 	bInsignificantWhenOwnerIsHidden = true;
 	bManageOwnerParticleSignificance = true;
+	CurrentSignificance = ESignificanceValue::Invalid;
 
 	// Adding 0.0/Lowest is optional, anything beyond last entry distance will fallback to Lowest significance
 	Thresholds.Emplace(ESignificanceValue::Highest, 5000.f);
@@ -49,13 +52,14 @@ void UUPSignificanceComponent::BeginPlay()
 			RegisterWithManager();
 		}
 
-		// Manage Cascade (deprecated) particle components
+		// Manage particle components
 		if (bManageOwnerParticleSignificance)
 		{
-			TArray<UParticleSystemComponent*> Particles;
-			GetOwner()->GetComponents<UParticleSystemComponent>(Particles);
+			// Cascade (deprecated)
+			TArray<UParticleSystemComponent*> CascadeParticles;
+			GetOwner()->GetComponents<UParticleSystemComponent>(CascadeParticles);
 
-			for (UParticleSystemComponent* Comp : Particles)
+			for (UParticleSystemComponent* Comp : CascadeParticles)
 			{
 				Comp->SetManagingSignificance(true);
 			}
@@ -92,8 +96,10 @@ void UUPSignificanceComponent::RegisterWithManager()
 		};
 
 		// Register
-		FName Tag = GetOwner()->GetClass()->GetFName();
-		SignificanceManager->RegisterObject(this, Tag, SignificanceFunc, USignificanceManager::EPostSignificanceType::Sequential, PostSignificanceFunc);
+		// for 'EPostSignificanceType::Concurrent' you need 'thread safe' post significance function
+		// our sigman update runs during the game viewport update tick, so it should *probably* be ok so long as no other non-GT logic is interacting with the objects.
+		const FName Tag = GetOwner()->GetClass()->GetFName();
+		SignificanceManager->RegisterObject(this, Tag, SignificanceFunc, USignificanceManager::EPostSignificanceType::Concurrent, PostSignificanceFunc);
 	}
 }
 
@@ -139,18 +145,22 @@ void UUPSignificanceComponent::PostSignificanceUpdate(USignificanceManager::FMan
 {
 	if (OldSignificance == Significance)
 	{
+		// disabled to run cascade update every frame (for now)
 		//return;
 	}
 
-	if (Significance != OldSignificance)
+	if (Significance != OldSignificance || CurrentSignificance == ESignificanceValue::Invalid)
 	{
 		CurrentSignificance = static_cast<ESignificanceValue>(Significance);
 		UE_LOG(LogTemp, Log, TEXT("Significance for %s changed to %s"), *GetNameSafe(GetOwner()), *UEnum::GetValueAsString(CurrentSignificance));
 		OnSignificanceChanged.Broadcast(CurrentSignificance);
 	}
 
-	// Running this every frame for now as otherwise we can't properly cull the cascade VFX (to be re-worked later)
-	UpdateParticleSignificance(Significance);
+	// Running this every frame for now (commented out the above early out) as otherwise we can't properly cull the cascade VFX (to be re-worked later)
+	if (!bManageOwnerParticleSignificance)
+	{
+		UpdateParticleSignificance(Significance);
+	}
 }
 
 float UUPSignificanceComponent::GetSignificanceByDistance(float DistanceSqrd) const
@@ -183,11 +193,22 @@ float UUPSignificanceComponent::GetSignificanceByDistance(float DistanceSqrd) co
 
 void UUPSignificanceComponent::UpdateParticleSignificance(float NewSignificance)
 {
-	// @TODO: Activate/Play resets significance, meaning we can't set the significance if things like the muzzle aren't yet playing.
-	
-	// Push new required significance to Cascade particles (Niagara to be added later...maybe)
-	if (bManageOwnerParticleSignificance)
+	// Niagara Particle Systems
+	TArray<UNiagaraComponent*> NiagaraSystems;
+	GetOwner()->GetComponents<UNiagaraComponent>(NiagaraSystems);
+
+	for (UNiagaraComponent* Comp : NiagaraSystems)
 	{
+		// Niagara uses 'int32 index' to set significance, you should map this with the input "float NewSignificance" (eg. not something between 0.0-1.0 as it gets rounded)
+		
+		Comp->SetSystemSignificanceIndex(NewSignificance);
+	}
+
+	// Push new required significance to Cascade particles
+	// This is just here since the project still has some old Cascade components...
+	{
+		// @TODO: Activate/Play resets significance, meaning we can't set the significance if things like the muzzle aren't yet playing.
+
 		// "Low" significance particles are culled first
 		EParticleSignificanceLevel CurrSignificance;
 		if (NewSignificance == static_cast<float>(ESignificanceValue::Highest))

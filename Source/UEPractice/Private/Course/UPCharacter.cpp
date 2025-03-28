@@ -22,7 +22,7 @@ AUPCharacter::AUPCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>("SpringArmComp");
+	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComp"));
 	SpringArmComp->bUsePawnControlRotation = true;
 	SpringArmComp->SetupAttachment(RootComponent);
 	// We control the rotation of spring arm with pawn control rotation already, this disables a subtle side effect
@@ -30,14 +30,14 @@ AUPCharacter::AUPCharacter()
 	// This may cause unwanted effects when using CameraLocation during Tick as it may be slightly offset from our final camera position.
 	SpringArmComp->SetUsingAbsoluteRotation(true);
 
-	CameraComp = CreateDefaultSubobject<UCameraComponent>("CameraComp");
+	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
 
-	InteractionComp = CreateDefaultSubobject<UUPInteractionComponent>("InteractionComp");
+	InteractionComp = CreateDefaultSubobject<UUPInteractionComponent>(TEXT("InteractionComp"));
 
-	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>("AttributeComp");
+	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
 
-	ActionComponent = CreateDefaultSubobject<UUPActionComponent>("ActionComp");
+	ActionComponent = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;

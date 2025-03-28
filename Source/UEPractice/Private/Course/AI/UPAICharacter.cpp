@@ -5,6 +5,7 @@
 #include "Course/UPAttributeComponent.h"
 #include "Course/UPWorldUserWidget.h"
 #include "Course/UPActionComponent.h"
+#include "Course/UPSignificanceComponent.h"
 
 #include "AIController.h"
 #include "BrainComponent.h"
@@ -17,9 +18,12 @@
 
 AUPAICharacter::AUPAICharacter()
 {
-	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComp");
-	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>("AttributeComp");
-	ActionComponent = CreateDefaultSubobject<UUPActionComponent>("ActionComp");
+	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
+	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
+	ActionComponent = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
+
+	// Make sure to configure the distance values in Blueprint
+	SigManComp = CreateDefaultSubobject<UUPSignificanceComponent>(TEXT("SigManComp"));
 
 	// Enabled on mesh to react to incoming projectiles
 	USkeletalMeshComponent* SkelMesh = GetMesh();
@@ -44,6 +48,8 @@ void AUPAICharacter::PostInitializeComponents()
 
 	PawnSensingComp->OnSeePawn.AddDynamic(this, &AUPAICharacter::OnPawnSeen);
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &AUPAICharacter::OnHealthChanged);
+
+	SigManComp->OnSignificanceChanged.AddDynamic(this, &AUPAICharacter::OnSignificanceChanged);
 }
 
 void AUPAICharacter::SetTargetActor(AActor* NewTarget)
@@ -131,4 +137,42 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 			SetLifeSpan(10.0f);
 		}
 	}
+}
+
+void AUPAICharacter::OnSignificanceChanged(ESignificanceValue Significance)
+{
+	// @todo: this may not work perfectly with falling and similar movement modes. (We don't support this on the AI character anyway)
+	// NavMesh based walking instead of using world geo
+	if (Significance <= ESignificanceValue::Medium)
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_NavWalking);
+	}
+	else
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+	
+	// Set as 'dormant' if actor is hidden, otherwise we continue ticking the entire character
+	const bool bHiddenSignificance = Significance == ESignificanceValue::Hidden;
+	SetActorTickEnabled(!bHiddenSignificance);
+	GetCharacterMovement()->SetComponentTickEnabled(!bHiddenSignificance);
+
+
+	EVisibilityBasedAnimTickOption AnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
+	switch (Significance)
+	{
+		// Example, force to always tick pose when really nearby. might need the pose even while offscreen
+		case ESignificanceValue::Highest:
+			AnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+			break;
+		case ESignificanceValue::Medium:
+			AnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPose;
+			break;
+		case ESignificanceValue::Lowest:
+		case ESignificanceValue::Hidden:
+		case ESignificanceValue::Invalid:
+			AnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
+	}
+	
+	GetMesh()->VisibilityBasedAnimTickOption = AnimTickOption;
 }

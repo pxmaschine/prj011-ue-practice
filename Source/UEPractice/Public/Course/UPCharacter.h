@@ -28,7 +28,7 @@ public:
 	// Sets default values for this character's properties
 	AUPCharacter();
 
-protected:
+public:
 	virtual void PostInitializeComponents() override;
 
 	virtual void Tick(float DeltaTime) override;
