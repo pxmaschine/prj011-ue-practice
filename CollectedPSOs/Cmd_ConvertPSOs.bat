@@ -1,0 +1,4 @@
+:: commandlet to convert all the gathered PSOs (can be multiple files across multiple runs) from a cooked build and inject it into the game to be included the next time its cooked.
+:: using full paths here on my local machine...ofc update this to your own paths (was having some issues with relative paths so just used full paths for now)
+:: Copy the generated PSO_ActionRoguelike_PCD3D_SM6.spc file to /Build/Windows/PipelineCaches/ so it can be used by the cooker the next time the game is packaged.
+"C:\Program Files\Epic Games\UE_5.5\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" -run=ShaderPipelineCacheTools expand "C:\Users\johannes\source\prj011-ue-practice\CollectedPSOs\*.rec.upipelinecache" "C:\Users\johannes\source\prj011-ue-practice\CollectedPSOs\*.shk" "C:\Users\johannes\source\prj011-ue-practice\CollectedPSOs\PSO_ActionRoguelike_PCD3D_SM6.spc"

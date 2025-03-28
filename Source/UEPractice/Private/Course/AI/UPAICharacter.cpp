@@ -104,7 +104,8 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 			SetTargetActor(InstigatorActor);
 		}
 
-		if (ActiveHealthBar == nullptr)
+		// Create once, and skip creating if it's an instant kill
+		if (ActiveHealthBar == nullptr && NewHealth > 0.0)
 		{
 			ActiveHealthBar = CreateWidget<UUPWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
 			if (ActiveHealthBar)

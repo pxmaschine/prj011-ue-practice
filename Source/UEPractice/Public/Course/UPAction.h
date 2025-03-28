@@ -18,6 +18,7 @@ struct FActionRepData
 	FActionRepData()
 	{
 		bIsRunning = false;
+		Instigator = nullptr;
 	}
 
 public:

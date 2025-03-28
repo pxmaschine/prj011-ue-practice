@@ -2,6 +2,8 @@
 
 
 #include "Course/UPGameplayFunctionLibrary.h"
+
+#include "ShaderPipelineCache.h"
 #include "Course/UPAttributeComponent.h"
 
 
@@ -32,4 +34,10 @@ bool UUPGameplayFunctionLibrary::ApplyDirectionalDamage(AActor* DamageInstigator
 	}
 
 	return false;
+}
+
+int32 UUPGameplayFunctionLibrary::GetRemainingBundledPSOs()
+{
+	// Counts Bundled PSOs remaining, exposed for UI access
+	return FShaderPipelineCache::NumPrecompilesRemaining();
 }
