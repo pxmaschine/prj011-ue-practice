@@ -31,39 +31,24 @@ AUPExplosiveBarrel::AUPExplosiveBarrel()
 	RadialForce->AddCollisionChannelToAffect(ECC_WorldDynamic);
 }
 
-void AUPExplosiveBarrel::PostInitializeComponents()
+float AUPExplosiveBarrel::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
+	AActor* DamageCauser)
 {
-	Super::PostInitializeComponents();
+	// Could safely skip the base logic...
+	//DamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
-	/*
-	 * TODO: This fails Ensure condition. Why?
-	 *   Ensure condition failed: InvocationList[ CurFunctionIndex ] != InDelegate 
-	 */
-	//StaticMesh->OnComponentHit.AddDynamic(this, &AUPExplosiveBarrel::OnHitCallback);
-
-	// AddUniqueDynamic is used here, because we previously had it in the constructor and it was built into the blueprint asset as such
-	// That's why it throws an error on startup
-	StaticMesh->OnComponentHit.AddUniqueDynamic(this, &AUPExplosiveBarrel::OnHitCallback);
-}
-
-void AUPExplosiveBarrel::OnHitCallback(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
 	RadialForce->FireImpulse();
+
+	// @todo: cause damage to other stuff around it
 
 	UE_LOGFMT(LogGame, Log, "OnActorHit in Explosive Barrel");
 
 	// Warnings as structed logs even show up in the "Message Log" window of UnrealEd
-	UE_LOGFMT(LogGame, Warning, "OnActorHit, OtherActor: {name}, at game time: {timeseconds}", GetNameSafe(OtherActor), GetWorld()->TimeSeconds);
 
-	FString CombinedString = FString::Printf(TEXT("Hit at location: %s"), *Hit.ImpactPoint.ToString());
-	DrawDebugString(GetWorld(), Hit.ImpactPoint, CombinedString, nullptr, FColor::Green, 2.0f, true);
+	UE_LOGFMT(LogGame, Warning, "OnActorHit, OtherActor: {name}, at game time: {timeseconds}", GetNameSafe(DamageCauser), GetWorld()->TimeSeconds);
 
-	if (OtherActor)
-	{
-		UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(OtherActor->GetComponentByClass(UUPAttributeComponent::StaticClass()));
-		if (AttributeComp)
-		{
-			AttributeComp->ApplyHealthChange(this, -50.0f);
-		}
-	}
+	//FString CombinedString = FString::Printf(TEXT("Hit at location: %s"), *Hit.ImpactPoint.ToString());
+	//DrawDebugString(GetWorld(), Hit.ImpactPoint, CombinedString, nullptr, FColor::Green, 2.0f, true);
+
+	return DamageAmount;
 }

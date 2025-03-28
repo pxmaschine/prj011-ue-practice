@@ -20,9 +20,6 @@
 #include "Kismet/GameplayStatics.h"
 
 
-static TAutoConsoleVariable<bool> CVarSpawnBots(TEXT("up.SpawnBots"), true, TEXT("Enable spawning of bots via timer."), ECVF_Cheat);
-
-
 AUPGameModeBase::AUPGameModeBase()
 {
 	SpawnTimerInterval = 2.0f;
@@ -34,11 +31,6 @@ AUPGameModeBase::AUPGameModeBase()
 	DesiredPowerupCount = 10;
 	RequiredPowerupDistance = 2000;
 	InitialSpawnCredit = 50;
-
-	// We start spawning as the player walks on a button instead for convenient testing w/o bots.
-	bAutoStartBotSpawning = false;
-
-	bAutoRespawnPlayer = false;
 
 	PlayerStateClass = AUPPlayerState::StaticClass();
 }
@@ -77,10 +69,7 @@ void AUPGameModeBase::StartPlay()
 
 	AvailableSpawnCredit = InitialSpawnCredit;
 
-	if (bAutoStartBotSpawning)
-	{
-		StartSpawningBots();
-	}
+	StartSpawningBots();
 	
 	// Make sure we have assigned at least one power-up class
 	if (ensure(PowerupClasses.Num() > 0))
@@ -153,17 +142,22 @@ void AUPGameModeBase::StartSpawningBots()
 	}
 	
 	// Continuous timer to spawn in more bots.
-	// Actual amount of bots and whether its allowed to spawn determined by spawn logic later in the chain...
+	// Actual amount of bots and whether it's allowed to spawn determined by spawn logic later in the chain...
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &AUPGameModeBase::SpawnBotTimerElapsed, SpawnTimerInterval, true);
 }
 
 void AUPGameModeBase::SpawnBotTimerElapsed()
 {
-	if (CVarSpawnBots.GetValueOnGameThread() == false)
+	/*
+#if WITH_EDITOR
+    // disabled as we now use big button in level for debugging, but in normal gameplay something like this is useful
+    // does require some code update on how it handles this as 'override' currently not properly set up.
+	if (!DevelopmentOnly::bSpawnBotsOverride)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Bot spawning disabled via cvar 'CVarSpawnBots'."));
 		return;
 	}
+	#endif*/
 
 	// Give points to spend
 	if (SpawnCreditCurve)

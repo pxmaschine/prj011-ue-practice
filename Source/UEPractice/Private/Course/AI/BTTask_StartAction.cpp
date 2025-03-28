@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Course/BTTask_StartAction.h"
+#include "Course/AI/BTTask_StartAction.h"
 #include "Course/UPActionComponent.h"
 
 #include "AIController.h"
@@ -13,13 +13,11 @@ EBTNodeResult::Type UBTTask_StartAction::ExecuteTask(UBehaviorTreeComponent& Own
 	check(MyPawn);
 	
 	UUPActionComponent* ActionComp = MyPawn->FindComponentByClass<UUPActionComponent>();
-	// If nullptr we haven't properly implemented the enemy with an action component
-	if (ensure(ActionComp))
+	check(ActionComp); // If nullptr we haven't properly implemented the enemy with an action component
+	
+	if (ActionComp->StartActionByName(MyPawn, ActionName))
 	{
-		if (ActionComp->StartActionByName(MyPawn, ActionName))
-		{
-			return EBTNodeResult::Succeeded;
-		}
+		return EBTNodeResult::Succeeded;
 	}
 
 	return EBTNodeResult::Failed;

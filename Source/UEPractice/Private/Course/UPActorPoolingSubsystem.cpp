@@ -8,7 +8,7 @@
 
 
 static TAutoConsoleVariable CVarActorPoolingEnabled(
-	TEXT("game.ActorPooling"),
+	TEXT("up.ActorPooling"),
 	true,
 	TEXT("Enable actor pooling for selected objects."),
 	ECVF_Default);

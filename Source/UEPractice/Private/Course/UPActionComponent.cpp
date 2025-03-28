@@ -5,11 +5,8 @@
 #include "Course/UPAction.h"
 #include "UEPractice/UEPractice.h"
 
-#include "Engine/ActorChannel.h"
 #include "Net/UnrealNetwork.h"
 
-
-DECLARE_CYCLE_STAT(TEXT("StartActionByName"), STAT_StartActionByName, STATGROUP_UEPRACTICE);
 
 UUPActionComponent::UUPActionComponent()
 {
@@ -128,7 +125,10 @@ UUPAction* UUPActionComponent::GetAction(TSubclassOf<UUPAction> ActionClass) con
 
 bool UUPActionComponent::StartActionByName(AActor* Instigator, FGameplayTag ActionName)
 {
-	SCOPE_CYCLE_COUNTER(STAT_StartActionByName);
+	// Visible in Unreal Insights with namedevents enabled
+	SCOPED_NAMED_EVENT(StartActionName, FColor::Green);
+	// Alternative, available when cpu channel is specified
+	//TRACE_CPUPROFILER_EVENT_SCOPE(StartActionByName);
 
 	for (UUPAction* Action : Actions)
 	{

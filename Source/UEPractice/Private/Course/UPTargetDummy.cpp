@@ -6,8 +6,8 @@
 // Sets default values
 AUPTargetDummy::AUPTargetDummy()
 {
-	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComp"));
-	RootComponent = MeshComp;
+	SkelMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
+	RootComponent = SkelMeshComp;
 
 	AttributeComp = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
 }
@@ -23,6 +23,6 @@ void AUPTargetDummy::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 {
 	if (Delta < 0.0f)
 	{
-		MeshComp->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+		SkelMeshComp->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
 	}
 }

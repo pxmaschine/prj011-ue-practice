@@ -5,6 +5,7 @@
 
 #include "ShaderPipelineCache.h"
 #include "Course/UPAttributeComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 bool UUPGameplayFunctionLibrary::ApplyDamage(AActor* DamageInstigator, AActor* TargetActor, float DamageAmount)
@@ -20,6 +21,9 @@ bool UUPGameplayFunctionLibrary::ApplyDamage(AActor* DamageInstigator, AActor* T
 bool UUPGameplayFunctionLibrary::ApplyDirectionalDamage(AActor* DamageInstigator, AActor* TargetActor,
 	float DamageAmount, const FHitResult& HitResult)
 {
+	// Call into Unreals built in logic for early course damaging of explosive barrel
+	UGameplayStatics::ApplyDamage(TargetActor, DamageAmount, nullptr, DamageInstigator, nullptr);
+
 	if (ApplyDamage(DamageInstigator, TargetActor, DamageAmount))
 	{
 		UPrimitiveComponent* HitComp = HitResult.GetComponent();

@@ -6,6 +6,7 @@
 #include "Course/UPWorldUserWidget.h"
 #include "Course/UPActionComponent.h"
 #include "Course/UPSignificanceComponent.h"
+#include "UEPractice/UEPractice.h"
 
 #include "AIController.h"
 #include "BrainComponent.h"
@@ -100,7 +101,7 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 			SetTargetActor(InstigatorActor);
 		}
 
-		// Create once, and skip creating if it's an instant kill
+		// Create once, and skip on instant kill
 		if (ActiveHealthBar == nullptr && NewHealth > 0.0)
 		{
 			ActiveHealthBar = CreateWidget<UUPWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
@@ -127,7 +128,7 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 
 			// Enable ragdoll
 			GetMesh()->SetAllBodiesSimulatePhysics(true);
-			GetMesh()->SetCollisionProfileName("Ragdoll");
+			GetMesh()->SetCollisionProfileName(Collision::Ragdoll_ProfileName);
 
 			// Disable colliders & movement
 			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

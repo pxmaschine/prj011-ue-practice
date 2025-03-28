@@ -18,10 +18,7 @@ public:
 	AUPExplosiveBarrel();
 
 protected:
-	virtual void PostInitializeComponents() override;
-
-	UFUNCTION()
-	void OnHitCallback(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere)

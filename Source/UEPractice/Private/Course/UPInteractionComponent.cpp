@@ -8,13 +8,19 @@
 #include "Blueprint/UserWidget.h"
 
 
-static TAutoConsoleVariable<bool> CVarDebugDrawInteraction(TEXT("up.InteractionDebugDraw"), false, TEXT("Enable debug drawing of interaction component."), ECVF_Cheat);
-
+namespace DebugDrawing
+{
+	static bool bDrawInteractionVisualize = false;
+	static FAutoConsoleVariableRef CVarDebugDrawInteraction(TEXT("up.InteractionDebugDraw"),
+		bDrawInteractionVisualize,
+		TEXT("Enable Debug Lines for Interaction Component."),
+		ECVF_Cheat);
+}
 
 UUPInteractionComponent::UUPInteractionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-	// Since we use Camera info in Tick we want the most up to date camera position for tracing
+	// Since we use Camera info in Tick we want the most up-to-date camera position for tracing
 	PrimaryComponentTick.TickGroup = TG_PostUpdateWork;
 
 	TraceRadius = 30.0f;
@@ -55,8 +61,6 @@ void UUPInteractionComponent::ServerInteract_Implementation(AActor* InFocus)
 
 void UUPInteractionComponent::FindBestInteractable()
 {
-	const bool bIsDebugDraw = CVarDebugDrawInteraction.GetValueOnGameThread();
-
 	FCollisionObjectQueryParams ObjectQueryParams;
 	ObjectQueryParams.AddObjectTypesToQuery(CollisionChannel);
 
@@ -64,16 +68,13 @@ void UUPInteractionComponent::FindBestInteractable()
 	FRotator EyeRotation;
 	GetOwner()->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
-	const FVector End = EyeLocation + (EyeRotation.Vector() * TraceDistance);
-
-	//FHitResult Hit;
-	//bool bBlockingHit = GetWorld()->LineTraceSingleByObjectType(Hit, EyeLocation, End, ObjectQueryParams);
+	const FVector TraceEnd = EyeLocation + (EyeRotation.Vector() * TraceDistance);
 
 	FCollisionShape Shape;
 	Shape.SetSphere(TraceRadius);
 
 	TArray<FHitResult> Hits;
-	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, End, FQuat::Identity, ObjectQueryParams, Shape);
+	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, TraceEnd, FQuat::Identity, ObjectQueryParams, Shape);
 
 	FColor DebugColor = bBlockingHit ? FColor::Green : FColor::Red;
 
@@ -82,17 +83,16 @@ void UUPInteractionComponent::FindBestInteractable()
 
 	for (const FHitResult& Hit : Hits)
 	{
+		if (DebugDrawing::bDrawInteractionVisualize)
+		{
+			DrawDebugSphere(GetWorld(), Hit.ImpactPoint, TraceRadius, 32, DebugColor, false, 2.0f);
+		}
+
 		if (AActor* HitActor = Hit.GetActor())
 		{
 			if (HitActor->Implements<UUPGameplayInterface>())
 			{
 				FocusedActor = HitActor;
-
-				if (bIsDebugDraw)
-				{
-					DrawDebugSphere(GetWorld(), Hit.ImpactPoint, TraceRadius, 32, DebugColor, false, 2.0f);
-				}
-
 				break;
 			}
 		}
@@ -123,8 +123,8 @@ void UUPInteractionComponent::FindBestInteractable()
 		}
 	}
 
-	if (bIsDebugDraw)
+	if (DebugDrawing::bDrawInteractionVisualize)
 	{
-		DrawDebugLine(GetWorld(), EyeLocation, End, DebugColor, false, 2.0f, 0, 2.0f);
+		DrawDebugLine(GetWorld(), EyeLocation, TraceEnd, DebugColor, false, 2.0f, 0, 0.0f);
 	}
 }

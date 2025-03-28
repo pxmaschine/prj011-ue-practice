@@ -4,6 +4,7 @@
 #include "Course/UPProjectileBase.h"
 #include "Course/UPProjectileMovementComponent.h"
 #include "Course/UPActorPoolingSubsystem.h"
+#include "UEPractice/UEPractice.h"
 
 #include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
@@ -15,7 +16,7 @@
 AUPProjectileBase::AUPProjectileBase()
 {
 	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
-	SphereComp->SetCollisionProfileName(TEXT("Projectile"));
+	SphereComp->SetCollisionProfileName(Collision::Projectile_ProfileName);
 	// Don't bother telling the nav system whenever we move
 	SphereComp->SetCanEverAffectNavigation(false);
 	RootComponent = SphereComp;

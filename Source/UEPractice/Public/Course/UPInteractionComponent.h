@@ -33,7 +33,7 @@ protected:
 	void FindBestInteractable();
 
 protected:
-	UPROPERTY()
+	UPROPERTY(Transient)
 	AActor* FocusedActor;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Trace")
@@ -48,6 +48,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUPWorldUserWidget> DefaultWidgetClass;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	UUPWorldUserWidget* DefaultWidgetInstance;
 };

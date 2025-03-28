@@ -9,7 +9,7 @@
 class UUPAttributeComponent;
 
 UCLASS()
-class UEPRACTICE_API AUPTargetDummy : public AActor
+class UEPRACTICE_API AUPTargetDummy : public APawn
 {
 	GENERATED_BODY()
 	
@@ -24,7 +24,7 @@ protected:
 	UUPAttributeComponent* AttributeComp;
 
 	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* MeshComp;
+	TObjectPtr<USkeletalMeshComponent> SkelMeshComp;
 
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);

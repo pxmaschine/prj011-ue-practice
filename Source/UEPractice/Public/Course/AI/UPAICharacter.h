@@ -25,13 +25,14 @@ public:
 protected:
 	virtual void PostInitializeComponents() override;
 
-protected:
- 	UFUNCTION(BlueprintCallable, Category = "AI")
+public:
+	UFUNCTION(BlueprintCallable, Category = "AI")
 	void SetTargetActor(AActor* NewTarget);
 
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	AActor* GetTargetActor() const;
 
+protected:
 	UFUNCTION()
 	void OnPawnSeen(APawn* Pawn);
 

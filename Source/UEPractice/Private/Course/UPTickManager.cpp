@@ -6,7 +6,7 @@
 
 
 static TAutoConsoleVariable CVarAggregateTicks(
-	TEXT("game.AggregateTicks"),
+	TEXT("up.AggregateTicks"),
 	true,
 	TEXT("Enable aggregate ticking for selected objects. Takes effect on next level load."),
 	ECVF_Default);
@@ -61,8 +61,7 @@ void UUPTickManager::UnregisterComponent(FActorComponentTickFunction* TickFuncti
 void UUPTickManager::ExecuteTick(ETickingGroup TickGroup, float DeltaTime, ELevelTick TickType,
 	ENamedThreads::Type CurrentThread, const FGraphEventRef& MyCompletionGraphEvent)
 {
-	// "Old" Stats system
-	DECLARE_SCOPE_CYCLE_COUNTER(TEXT("AggregateComponentTick"), AggregateComponentTick, STATGROUP_UEPRACTICE)
+	TRACE_CPUPROFILER_EVENT_SCOPE(AggregateComponentTick)
 
 	{
 		SCOPED_NAMED_EVENT(TickManagedComponents, FColor::Orange);
