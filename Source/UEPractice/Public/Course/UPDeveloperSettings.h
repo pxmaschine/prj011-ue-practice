@@ -7,26 +7,18 @@
 #include "UPDeveloperSettings.generated.h"
 
 
-namespace DevelopmentOnly
-{
-	static bool bSpawnBotsOverride = false;
-	static FAutoConsoleVariableRef CVarSpawnBotsOverride(
-	TEXT("up.SpawnBotsOverride"),
-	bSpawnBotsOverride,
-	TEXT("Enable spawning of bots via timer."));
-
-}
-
 UCLASS(Config=EditorPerProjectUserSettings)
 class UEPRACTICE_API UUPDeveloperSettings : public UDeveloperSettingsBackedByCVars
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(config, EditDefaultsOnly, Category = ActionRoguelike, meta = (ConsoleVariable = "up.SpawnBotsOverride"))
-	bool bSpawnBotsOverride = false;
+	UPROPERTY(config, EditDefaultsOnly, Category = UEPractice, meta = (ConsoleVariable = "up.DisableBotSpawning"))
+	bool bDisableSpawnBotsOverride = false;
 
 	//~UDeveloperSettings interface
+	virtual void PostInitProperties() override;
+
 	virtual FName GetCategoryName() const override;
 	//~End of UDeveloperSettings interface
 };

@@ -21,9 +21,12 @@ protected:
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category = Components)
 	UStaticMeshComponent* StaticMesh{ nullptr };
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, Category = Components)
 	URadialForceComponent* RadialForce{ nullptr };
+
+	UPROPERTY(VisibleAnywhere, Category = Components)
+	TObjectPtr<UParticleSystemComponent> ExplosionComp;
 };

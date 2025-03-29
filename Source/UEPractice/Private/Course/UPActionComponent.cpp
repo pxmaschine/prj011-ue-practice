@@ -108,6 +108,8 @@ void UUPActionComponent::RemoveAction(UUPAction* Action)
 		return;
 	}
 
+	RemoveReplicatedSubObject(Action);
+
 	Actions.Remove(Action);
 }
 

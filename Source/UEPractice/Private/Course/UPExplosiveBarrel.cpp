@@ -2,9 +2,9 @@
 
 
 #include "Course/UPExplosiveBarrel.h"
-#include "Course/UPAttributeComponent.h"
 #include "UEPractice/UEPractice.h"
 
+#include "Particles/ParticleSystemComponent.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UPExplosiveBarrel)
@@ -29,6 +29,10 @@ AUPExplosiveBarrel::AUPExplosiveBarrel()
 	// Leaving this on applies small constant force via component 'tick'
 	RadialForce->SetAutoActivate(false);
 	RadialForce->AddCollisionChannelToAffect(ECC_WorldDynamic);
+
+	ExplosionComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ExplosionComp"));
+	ExplosionComp->bAutoActivate = false;
+	ExplosionComp->SetupAttachment(StaticMesh);
 }
 
 float AUPExplosiveBarrel::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
@@ -38,6 +42,8 @@ float AUPExplosiveBarrel::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 	//DamageAmount = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	RadialForce->FireImpulse();
+
+	ExplosionComp->Activate();
 
 	// @todo: cause damage to other stuff around it
 

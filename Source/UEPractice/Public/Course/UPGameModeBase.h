@@ -69,7 +69,6 @@ public:
 	virtual void OnActorKilled(AActor* VictimActor, AActor* KillerActor);
 
 protected:
-	UFUNCTION(BlueprintCallable)
 	void StartSpawningBots();
 
 	void SpawnBotTimerElapsed();
