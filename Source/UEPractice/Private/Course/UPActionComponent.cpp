@@ -3,6 +3,7 @@
 
 #include "Course/UPActionComponent.h"
 #include "Course/UPAction.h"
+#include "Course/UPGameplayInterface.h"
 #include "UEPractice/UEPractice.h"
 
 #include "Net/UnrealNetwork.h"
@@ -189,4 +190,22 @@ void UUPActionComponent::ServerStartAction_Implementation(AActor* Instigator, FG
 void UUPActionComponent::ServerStopAction_Implementation(AActor* Instigator, FGameplayTag ActionName)
 {
 	StopActionByName(Instigator, ActionName);
+}
+
+UUPActionComponent* UUPActionComponent::GetComponent(AActor* InActor)
+{
+	if (InActor && InActor->Implements<UUPGameplayInterface>())
+	{
+		UUPActionComponent* ActionComp = nullptr;
+		if (IUPGameplayInterface::Execute_GetActionComponent(InActor, ActionComp))
+		{
+			return ActionComp;
+		}
+	}
+
+	// @todo: log warn about interface not implemented yet
+
+	// Iterate over all components anyway if not implemented. But warn about this
+
+	return InActor->GetComponentByClass<UUPActionComponent>();
 }

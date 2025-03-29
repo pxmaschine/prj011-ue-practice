@@ -37,4 +37,7 @@ protected:
 
 	UPROPERTY(ReplicatedUsing="OnRep_LipOpened", BlueprintReadOnly, SaveGame)  // RepNotify
 	bool bLidOpened;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Animation")
+	UCurveFloat* LidAnimCurve;
 };

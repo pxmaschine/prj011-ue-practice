@@ -13,9 +13,9 @@ class UUPGameplayInterface : public UInterface
 	GENERATED_BODY()
 };
 
-/**
- * 
- */
+
+class UUPActionComponent;
+
 class UEPRACTICE_API IUPGameplayInterface
 {
 	GENERATED_BODY()
@@ -31,4 +31,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Interact(APawn* InstigatorPawn);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	bool GetActionComponent(UUPActionComponent*& OutActionComp) const;
 };

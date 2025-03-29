@@ -7,6 +7,8 @@
 AUPCreditsActor::AUPCreditsActor()
 {
 	CreditsAmount = 80;
+
+	bCanAutoPickup = true;
 }
 
 void AUPCreditsActor::Interact_Implementation(APawn* InstigatorPawn)

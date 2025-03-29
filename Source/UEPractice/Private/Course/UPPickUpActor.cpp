@@ -2,6 +2,7 @@
 
 
 #include "Course/UPPickUpActor.h"
+#include "UEPractice/UEPractice.h"
 
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -11,7 +12,7 @@
 AUPPickUpActor::AUPPickUpActor()
 {
 	SphereComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
-	SphereComp->SetCollisionProfileName("PickUp");
+	SphereComp->SetCollisionProfileName(Collision::Pickup_ProfileName);
 	SphereComp->SetSphereRadius(100.0f);
 	RootComponent = SphereComp;
 
@@ -26,6 +27,17 @@ AUPPickUpActor::AUPPickUpActor()
 	bReplicates = true;
 }
 
+void AUPPickUpActor::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// Some pickups should auto pickup on overlap rather than a choice through player input
+	if (bCanAutoPickup)
+	{
+		SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSphereOverlap);
+	}
+}
+
 void AUPPickUpActor::Interact_Implementation(APawn* InstigatorPawn)
 {
 	// Implemented in derived classes
@@ -34,6 +46,13 @@ void AUPPickUpActor::Interact_Implementation(APawn* InstigatorPawn)
 FText AUPPickUpActor::GetInteractText_Implementation(APawn* InstigatorPawn)
 {
 	return FText::GetEmpty();
+}
+
+void AUPPickUpActor::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// @todo: prevent minions from pickup coins. GameplayTags or collision channel.
+	Execute_Interact(this, CastChecked<APawn>(OtherActor));
 }
 
 void AUPPickUpActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

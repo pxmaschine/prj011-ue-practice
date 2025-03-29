@@ -20,10 +20,16 @@ public:
 	AUPPickUpActor();
 
 public:
+	virtual void PostInitializeComponents() override;
+
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
 
 	virtual FText GetInteractText_Implementation(APawn* InstigatorPawn) override;
 
+	UFUNCTION()
+	void OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	
 protected:
 	void ShowPickUp();
 
@@ -35,15 +41,19 @@ protected:
 	void OnRep_PickedUp();
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "PickUp")
+	UPROPERTY(EditAnywhere, Category = PickUp)
 	float RespawnTime;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, Category = Components)
 	USphereComponent* SphereComp;
 
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, Category = Components)
 	UStaticMeshComponent* MeshComp;
 
-	UPROPERTY(ReplicatedUsing="OnRep_PickedUp")
+	UPROPERTY(ReplicatedUsing= OnRep_PickedUp)
 	bool bIsPickedUp;
+
+	/* Overlap sphere to automatically pickup on walkover */
+	UPROPERTY(EditDefaultsOnly, Category = PickUp)
+	bool bCanAutoPickup = false;
 };

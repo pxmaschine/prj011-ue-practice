@@ -2,6 +2,7 @@
 
 
 #include "Course/UPItemChest.h"
+#include "Course/UPTweenSubsystem.h"
 
 #include "Net/UnrealNetwork.h"
 
@@ -36,11 +37,18 @@ void AUPItemChest::Interact_Implementation(APawn* InstigatorPawn)
 {
 	bLidOpened = !bLidOpened;
 
+	// @todo: kinda ugly, instead call "OpenChest()" function
 	OnRep_LipOpened();
 }
 
 void AUPItemChest::OnRep_LipOpened()
 {
-	const float CurrentPitch = bLidOpened ? TargetPitch : 0.0f;
-	LidMesh->SetRelativeRotation(FRotator(CurrentPitch, 0.0, 0.0));
+	//const float CurrentPitch = bLidOpened ? TargetPitch : 0.0f;
+	//LidMesh->SetRelativeRotation(FRotator(CurrentPitch, 0.0, 0.0));
+
+	UUPTweenSubsystem* AnimSubsystem = GetWorld()->GetSubsystem<UUPTweenSubsystem>();
+	AnimSubsystem->PlayTween(LidAnimCurve, 1.0f, [&](const float CurrValue)
+	{
+		LidMesh->SetRelativeRotation(FRotator(CurrValue, 0, 0));
+	});
 }

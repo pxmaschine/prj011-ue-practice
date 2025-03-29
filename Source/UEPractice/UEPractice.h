@@ -16,6 +16,7 @@ namespace Collision
 {
 	static FName Ragdoll_ProfileName = FName(TEXT("Ragdoll"));
 	static FName Projectile_ProfileName = FName(TEXT("Projectile"));
+	static FName Pickup_ProfileName = FName(TEXT("Pickup"));
 }
 
 namespace MeshSockets
