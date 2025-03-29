@@ -22,7 +22,7 @@ AUPPickUpActor::AUPPickUpActor()
 	MeshComp->SetupAttachment(RootComponent);
 
 	RespawnTime = 10.0f;
-	bIsPickedUp = false;
+	bIsActive = true;
 
 	bReplicates = true;
 }
@@ -36,6 +36,13 @@ void AUPPickUpActor::PostInitializeComponents()
 	{
 		SphereComp->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSphereOverlap);
 	}
+}
+
+void AUPPickUpActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	GetWorldTimerManager().ClearAllTimersForObject(this);
 }
 
 void AUPPickUpActor::Interact_Implementation(APawn* InstigatorPawn)
@@ -59,33 +66,33 @@ void AUPPickUpActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AUPPickUpActor, bIsPickedUp);
+	DOREPLIFETIME(AUPPickUpActor, bIsActive);
 }
 
 void AUPPickUpActor::ShowPickUp()
 {
-	SetPickUpState(true);
+	SetPowerupState(true);
 }
 
 void AUPPickUpActor::HideAndCooldownPickUp()
 {
-	SetPickUpState(false);
+	SetPowerupState(false);
 
 	FTimerHandle TimerHandle_RespawnTimer;
 	GetWorldTimerManager().SetTimer(TimerHandle_RespawnTimer, this, &AUPPickUpActor::ShowPickUp, RespawnTime);
 }
 
-void AUPPickUpActor::SetPickUpState(bool bNewIsActive)
+void AUPPickUpActor::SetPowerupState(bool bNewIsActive)
 {
-	bIsPickedUp = !bNewIsActive;
+	bIsActive = bNewIsActive;
 
 	OnRep_PickedUp();
 }
 
 void AUPPickUpActor::OnRep_PickedUp()
 {
-	SetActorEnableCollision(!bIsPickedUp);
+	SetActorEnableCollision(bIsActive);
 
 	// Set visibility on root and all children
-	RootComponent->SetVisibility(!bIsPickedUp, true);
+	RootComponent->SetVisibility(bIsActive, true);
 }

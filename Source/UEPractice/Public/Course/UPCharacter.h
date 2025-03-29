@@ -73,10 +73,6 @@ protected:
 	void CrosshairTraceComplete(const FTraceHandle& InTraceHandle, FTraceDatum& InTraceDatum);
 
 protected:
-	/* VisibleAnywhere = read-only, still useful to view in-editor and enforce a convention. */
-	//UPROPERTY(VisibleAnywhere, Category = "Effects")
-	//FName TimeToHitParamName;
-
 	/* Index must match the CustomPrimitiveData index used in the Overlay material */
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	int32 HitFlash_CustomPrimitiveIndex;
@@ -95,8 +91,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPActionComponent* ActionComponent;
-
-	FTraceHandle TraceHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputMappingContext* DefaultMappingContext;
@@ -130,4 +124,6 @@ protected:
 
 private:
 	bool bHasPawnTarget;
+
+	FTraceHandle TraceHandle;
 };

@@ -18,9 +18,9 @@ protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	UPROPERTY(Transient, EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	bool bIsStunned;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Animation")
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Animation")
 	UUPActionComponent* ActionComp;
 };

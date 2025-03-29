@@ -63,7 +63,7 @@ void AUPDashProjectile::TeleportInstigator()
 	// Controller can be nullptr if we died (and detached the pawn) just after launching the dash projectile
 	if (PC && PC->IsLocalController())
 	{
-		PC->ClientStartCameraShake(ImpactShake);
+		PC->PlayerCameraManager->StartCameraShake(ImpactShake);
 	}
 
 	// Now we're ready to destroy self

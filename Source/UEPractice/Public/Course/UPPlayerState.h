@@ -50,9 +50,9 @@ public:
 	FOnRecordTimeChanged OnRecordTimeChanged;
 
 protected:
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(Transient, BlueprintReadOnly)
 	float PersonalRecordTime;
 
-	UPROPERTY(EditDefaultsOnly, ReplicatedUsing="OnRep_Credits", Category = "Credits")
+	UPROPERTY(Transient, EditDefaultsOnly, ReplicatedUsing="OnRep_Credits", Category = "Credits")
 	int32 Credits;
 };

@@ -22,6 +22,8 @@ public:
 public:
 	virtual void PostInitializeComponents() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
 
 	virtual FText GetInteractText_Implementation(APawn* InstigatorPawn) override;
@@ -35,7 +37,7 @@ protected:
 
 	void HideAndCooldownPickUp();
 
-	void SetPickUpState(bool bNewIsActive);
+	void SetPowerupState(bool bNewIsActive);
 
 	UFUNCTION()
 	void OnRep_PickedUp();
@@ -50,8 +52,8 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Components)
 	UStaticMeshComponent* MeshComp;
 
-	UPROPERTY(ReplicatedUsing= OnRep_PickedUp)
-	bool bIsPickedUp;
+	UPROPERTY(Transient, ReplicatedUsing = OnRep_PickedUp)
+	bool bIsActive;
 
 	/* Overlap sphere to automatically pickup on walkover */
 	UPROPERTY(EditDefaultsOnly, Category = PickUp)

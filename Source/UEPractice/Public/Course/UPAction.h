@@ -77,7 +77,7 @@ protected:
 	void OnRep_RepData();
 
 protected:
-	UPROPERTY(Replicated)
+	UPROPERTY(Transient, Replicated)
 	UUPActionComponent* ActionComp;
 
 	// Tags added to OwningActor when activated, removed when action stops
@@ -88,13 +88,13 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTagContainer BlockedTags;
 
-	UPROPERTY(ReplicatedUsing="OnRep_RepData")
+	UPROPERTY(Transient, ReplicatedUsing="OnRep_RepData")
 	FActionRepData RepData;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSoftObjectPtr<UTexture2D> Icon;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(Transient, Replicated)
 	float TimeStarted;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Action")

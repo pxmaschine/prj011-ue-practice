@@ -46,7 +46,7 @@ protected:
 	void OnSignificanceChanged(ESignificanceValue Significance);
 
 protected:
-	UPROPERTY()
+	UPROPERTY(Transient)
 	UUPWorldUserWidget* ActiveHealthBar;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
@@ -59,9 +59,6 @@ protected:
  	UPROPERTY(VisibleAnywhere, Category = "Effects")
  	FName TargetActorKey;
 
-	//UPROPERTY(VisibleAnywhere, Category = "Effects")
-	//FName TimeToHitParamName;
-	
 	/* Index must match the CustomPrimitiveData index used in the Overlay material */
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	int32 HitFlash_CustomPrimitiveIndex;

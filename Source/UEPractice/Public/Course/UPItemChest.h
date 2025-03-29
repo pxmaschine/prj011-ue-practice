@@ -23,7 +23,9 @@ public:
 
 protected:
 	UFUNCTION()
-	void OnRep_LipOpened();
+	void OnRep_LidOpened();
+
+	void OpenChest();
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -32,10 +34,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* LidMesh{ nullptr };
 
-	UPROPERTY(EditAnywhere)
-	float TargetPitch;
-
-	UPROPERTY(ReplicatedUsing="OnRep_LipOpened", BlueprintReadOnly, SaveGame)  // RepNotify
+	UPROPERTY(ReplicatedUsing="OnRep_LidOpened", BlueprintReadOnly, SaveGame)
 	bool bLidOpened;
 
 	UPROPERTY(EditDefaultsOnly, Category= "Animation")

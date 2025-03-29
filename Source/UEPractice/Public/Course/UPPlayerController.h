@@ -51,7 +51,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> PauseMenuClass;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	UUserWidget* PauseMenuInstance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))

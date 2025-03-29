@@ -55,7 +55,7 @@ protected:
 	void ServerStopAction(AActor* Instigator, FGameplayTag ActionName);
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tags")
+	UPROPERTY(Transient, EditAnywhere, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer ActiveGameplayTags;
 
 	UPROPERTY(BlueprintAssignable)
@@ -68,6 +68,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Actions")
 	TArray<TSubclassOf<UUPAction>> DefaultActions;
 
-	UPROPERTY(BlueprintReadOnly, Replicated)
+	UPROPERTY(Transient, BlueprintReadOnly, Replicated)
 	TArray<UUPAction*> Actions;
 };

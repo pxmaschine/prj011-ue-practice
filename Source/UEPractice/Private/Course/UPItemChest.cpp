@@ -15,7 +15,6 @@ AUPItemChest::AUPItemChest()
 	LidMesh = CreateDefaultSubobject<UStaticMeshComponent>("LidMesh");
 	LidMesh->SetupAttachment(BaseMesh);
 
-	TargetPitch = 110.0f;
 	bLidOpened = false;
 
 	bReplicates = true;
@@ -23,7 +22,10 @@ AUPItemChest::AUPItemChest()
 
 void AUPItemChest::OnActorLoaded_Implementation()
 {
-	OnRep_LipOpened();
+	if (bLidOpened)
+	{
+		OpenChest();
+	}
 }
 
 void AUPItemChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -35,20 +37,28 @@ void AUPItemChest::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 void AUPItemChest::Interact_Implementation(APawn* InstigatorPawn)
 {
-	bLidOpened = !bLidOpened;
+	bLidOpened = true;
 
-	// @todo: kinda ugly, instead call "OpenChest()" function
-	OnRep_LipOpened();
+	if (bLidOpened)
+	{
+		OpenChest();
+	}
 }
 
-void AUPItemChest::OnRep_LipOpened()
+void AUPItemChest::OpenChest()
 {
-	//const float CurrentPitch = bLidOpened ? TargetPitch : 0.0f;
-	//LidMesh->SetRelativeRotation(FRotator(CurrentPitch, 0.0, 0.0));
-
+	// @todo: lidmesh still as replicated relative rotation?
 	UUPTweenSubsystem* AnimSubsystem = GetWorld()->GetSubsystem<UUPTweenSubsystem>();
-	AnimSubsystem->PlayTween(LidAnimCurve, 1.0f, [&](const float CurrValue)
+	AnimSubsystem->PlayTween(LidAnimCurve, 1.0f, [&](float CurrValue)
 	{
 		LidMesh->SetRelativeRotation(FRotator(CurrValue, 0, 0));
 	});
+}
+
+void AUPItemChest::OnRep_LidOpened()
+{
+	if (bLidOpened)
+	{
+		OpenChest();
+	}
 }
