@@ -37,9 +37,6 @@ protected:
 	AActor* FocusedActor;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Trace")
-	float TraceDistance;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Trace")
 	float TraceRadius;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Trace")

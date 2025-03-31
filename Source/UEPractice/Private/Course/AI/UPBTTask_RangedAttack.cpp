@@ -9,7 +9,7 @@
 #include "GameFramework/Character.h"
 
 
-UUPBTTask_RangedAttack::UUPBTTask_RangedAttack()
+UDEPRECATED_UUPBTTask_RangedAttack::UDEPRECATED_UUPBTTask_RangedAttack()
 {
 	MuzzleSocket = "Muzzle_01";
 	MaxBulletSpread = 2.0f;
@@ -17,7 +17,7 @@ UUPBTTask_RangedAttack::UUPBTTask_RangedAttack()
 	TargetActorKey.SelectedKeyName = "TargetActor";
 }
 
-EBTNodeResult::Type UUPBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
+EBTNodeResult::Type UDEPRECATED_UUPBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	ACharacter* MyPawn = CastChecked<ACharacter>(OwnerComp.GetAIOwner()->GetPawn());
 

@@ -7,15 +7,15 @@
 #include "UPBTTask_RangedAttack.generated.h"
 
 /**
- * 
+ * Original Ranged Attack class for AI. Replaced with Action System variant
  */
-UCLASS()
-class UEPRACTICE_API UUPBTTask_RangedAttack : public UBTTaskNode
+UCLASS(Deprecated) // 
+class UEPRACTICE_API UDEPRECATED_UUPBTTask_RangedAttack : public UBTTaskNode
 {
 	GENERATED_BODY()
 
 public:
-	UUPBTTask_RangedAttack();
+	UDEPRECATED_UUPBTTask_RangedAttack();
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
