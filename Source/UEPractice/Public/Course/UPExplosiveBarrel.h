@@ -8,6 +8,7 @@
 
 class UStaticMeshComponent;
 class URadialForceComponent;
+class UNiagaraComponent;
 
 UCLASS()
 class UEPRACTICE_API AUPExplosiveBarrel : public AActor
@@ -28,5 +29,5 @@ protected:
 	URadialForceComponent* RadialForce{ nullptr };
 
 	UPROPERTY(VisibleAnywhere, Category = Components)
-	TObjectPtr<UParticleSystemComponent> ExplosionComp;
+	TObjectPtr<UNiagaraComponent> ExplosionComp;
 };

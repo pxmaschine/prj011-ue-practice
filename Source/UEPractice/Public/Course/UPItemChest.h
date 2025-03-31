@@ -7,6 +7,9 @@
 #include "GameFramework/Actor.h"
 #include "UPItemChest.generated.h"
 
+
+class UNiagaraComponent;
+
 UCLASS()
 class UEPRACTICE_API AUPItemChest : public AActor, public IUPGameplayInterface
 {
@@ -29,10 +32,13 @@ protected:
 
 protected:
 	UPROPERTY(VisibleAnywhere)
-	UStaticMeshComponent* BaseMesh{ nullptr };
+	UStaticMeshComponent* BaseMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* LidMesh{ nullptr };
+	UStaticMeshComponent* LidMesh;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UNiagaraComponent> OpenChestEffect;
 
 	UPROPERTY(ReplicatedUsing="OnRep_LidOpened", BlueprintReadOnly, SaveGame)
 	bool bLidOpened;

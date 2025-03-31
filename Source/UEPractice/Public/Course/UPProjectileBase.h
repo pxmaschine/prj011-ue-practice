@@ -10,6 +10,7 @@
 class USphereComponent;
 class UUPProjectileMovementComponent;
 class UNiagaraComponent;
+class UNiagaraSystem;
 class UCameraShakeBase;
 class USoundCue;
 
@@ -54,13 +55,10 @@ protected:
 	float ImpactShakeOuterRadius;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
-	UParticleSystem* ImpactVFX;
+	UNiagaraSystem* ImpactVFX;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	USoundCue* ImpactSound;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Effects")
-	USoundCue* LoopSound;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USphereComponent* SphereComp;

@@ -4,6 +4,7 @@
 #include "Course/UPItemChest.h"
 #include "Course/UPTweenSubsystem.h"
 
+#include "NiagaraComponent.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -14,6 +15,13 @@ AUPItemChest::AUPItemChest()
 
 	LidMesh = CreateDefaultSubobject<UStaticMeshComponent>("LidMesh");
 	LidMesh->SetupAttachment(BaseMesh);
+
+	OpenChestEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("OpeningEffectComp"));
+	OpenChestEffect->SetupAttachment(RootComponent);
+	OpenChestEffect->bAutoActivate = false;
+	// only attach while playing the VFX, this skips transform updates when the chests moves around the world
+	// while the VFX is not active
+	OpenChestEffect->bAutoManageAttachment = true;
 
 	bLidOpened = false;
 
@@ -53,6 +61,8 @@ void AUPItemChest::OpenChest()
 	{
 		LidMesh->SetRelativeRotation(FRotator(CurrValue, 0, 0));
 	});
+
+	OpenChestEffect->Activate(true);
 }
 
 void AUPItemChest::OnRep_LidOpened()

@@ -4,7 +4,7 @@
 #include "Course/UPExplosiveBarrel.h"
 #include "UEPractice/UEPractice.h"
 
-#include "Particles/ParticleSystemComponent.h"
+#include "NiagaraComponent.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UPExplosiveBarrel)
@@ -12,9 +12,6 @@
 // Sets default values
 AUPExplosiveBarrel::AUPExplosiveBarrel()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetSimulatePhysics(true);
 	StaticMesh->SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
@@ -30,7 +27,7 @@ AUPExplosiveBarrel::AUPExplosiveBarrel()
 	RadialForce->SetAutoActivate(false);
 	RadialForce->AddCollisionChannelToAffect(ECC_WorldDynamic);
 
-	ExplosionComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ExplosionComp"));
+	ExplosionComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ExplosionComp"));
 	ExplosionComp->bAutoActivate = false;
 	ExplosionComp->SetupAttachment(StaticMesh);
 }

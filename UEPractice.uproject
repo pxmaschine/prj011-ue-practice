@@ -136,10 +136,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "Metasound",
-			"Enabled": false
-		},
-		{
 			"Name": "Synthesis",
 			"Enabled": false
 		},
@@ -397,6 +393,10 @@
 		},
 		{
 			"Name": "StateTree",
+			"Enabled": true
+		},
+		{
+			"Name": "SlateInsights",
 			"Enabled": true
 		}
 	],

@@ -5,6 +5,8 @@
 #include "Course/UPActorPoolingSubsystem.h"
 #include "UEPractice/UEPractice.h"
 
+#include "NiagaraComponentPoolMethodEnum.h"
+#include "NiagaraFunctionLibrary.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -26,8 +28,8 @@ void UUPAction_ProjectileAttack::StartAction_Implementation(AActor* Instigator)
 	Character->PlayAnimMontage(AttackAnim);
 
 	// Auto-released particle pooling
-	UGameplayStatics::SpawnEmitterAttached(CastVFX, Character->GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator,
-		EAttachLocation::SnapToTarget, true, EPSCPoolMethod::AutoRelease);
+	UNiagaraFunctionLibrary::SpawnSystemAttached(CastVFX, Character->GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator,
+		EAttachLocation::SnapToTarget, true, true, ENCPoolMethod::AutoRelease);
 
 	UGameplayStatics::SpawnSoundAttached(CastingSound, Character->GetMesh());
 

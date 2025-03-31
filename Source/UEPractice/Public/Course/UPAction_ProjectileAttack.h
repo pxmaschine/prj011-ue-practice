@@ -7,7 +7,7 @@
 #include "UPAction_ProjectileAttack.generated.h"
 
 class UAnimMontage;
-class UParticleSystem;
+class UNiagaraSystem;
 
 UCLASS()
 class UEPRACTICE_API UUPAction_ProjectileAttack : public UUPAction
@@ -46,7 +46,7 @@ protected:
 	UAnimMontage* AttackAnim;
 
 	UPROPERTY(EditAnywhere, Category = "Attack")
-	UParticleSystem* CastVFX;
+	UNiagaraSystem* CastVFX;
 
 	/* Sound Effect to play (Can be Wave or Cue) */
 	UPROPERTY(EditAnywhere, Category = "Attack")
