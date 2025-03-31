@@ -33,3 +33,8 @@ FName UUPDeveloperSettings::GetCategoryName() const
 {
 	return FApp::GetProjectName();
 }
+
+bool UUPDeveloperSettings::DisableSpawnBotsOverride()
+{
+	return DevelopmentOnly::bDisableSpawnBotsOverride;
+}

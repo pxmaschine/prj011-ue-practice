@@ -86,9 +86,7 @@ void AUPAICharacter::MulticastPawnSeen_Implementation()
 	if (NewWidget)
 	{
  		NewWidget->AttachedActor = this;
- 		// Index of 10 (or anything higher than default of 0) places this on top of any other widget.
- 		// May end up behind the minion health bar otherwise.
- 		NewWidget->AddToViewport(10);
+		UUPWorldUserWidget::AddToRootCanvasPanel(NewWidget);
 	}
 }
 
@@ -108,7 +106,7 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 			if (ActiveHealthBar)
 			{
 				ActiveHealthBar->AttachedActor = this;
-				ActiveHealthBar->AddToViewport();
+				UUPWorldUserWidget::AddToRootCanvasPanel(ActiveHealthBar);
 			}
 		}
 

@@ -152,7 +152,8 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 #if !UE_BUILD_SHIPPING
     // disabled as we now use big button in level for debugging, but in normal gameplay something like this is useful
     // does require some code update on how it handles this as 'override' currently not properly set up.
-	if (GetDefault<UUPDeveloperSettings>()->bDisableSpawnBotsOverride)
+	const UUPDeveloperSettings* DevSettings = GetDefault<UUPDeveloperSettings>();
+	if (DevSettings->DisableSpawnBotsOverride())
 	{
 		return;
 	}

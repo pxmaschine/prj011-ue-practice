@@ -74,9 +74,9 @@ void UUPInteractionComponent::FindBestInteractable()
 	Shape.SetSphere(TraceRadius);
 
 	TArray<FHitResult> Hits;
-	bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, TraceEnd, FQuat::Identity, ObjectQueryParams, Shape);
+	const bool bBlockingHit = GetWorld()->SweepMultiByObjectType(Hits, EyeLocation, TraceEnd, FQuat::Identity, ObjectQueryParams, Shape);
 
-	FColor DebugColor = bBlockingHit ? FColor::Green : FColor::Red;
+	const FColor DebugColor = bBlockingHit ? FColor::Green : FColor::Red;
 
 	// Clear ref before trying to fill
 	FocusedActor = nullptr;
@@ -100,26 +100,26 @@ void UUPInteractionComponent::FindBestInteractable()
 
 	if (FocusedActor)
 	{
-		if (!DefaultWidgetInstance && ensure(DefaultWidgetClass))
+		if (WidgetInst == nullptr && ensure(DefaultWidgetClass))
 		{
-			DefaultWidgetInstance = CreateWidget<UUPWorldUserWidget>(GetWorld(), DefaultWidgetClass);
+			WidgetInst = CreateWidget<UUPWorldUserWidget>(GetWorld(), DefaultWidgetClass);
 		}
 
-		if (DefaultWidgetInstance)
+		if (WidgetInst)
 		{
-			DefaultWidgetInstance->AttachedActor = FocusedActor;
+			WidgetInst->AttachedActor = FocusedActor;
 
-			if (!DefaultWidgetInstance->IsInViewport())
+			if (!WidgetInst->GetParent())
 			{
-				DefaultWidgetInstance->AddToViewport();
+				UUPWorldUserWidget::AddToRootCanvasPanel(WidgetInst);
 			}
 		}
 	}
 	else
 	{
-		if (DefaultWidgetInstance)
+		if (WidgetInst)
 		{
-			DefaultWidgetInstance->RemoveFromParent();
+			WidgetInst->RemoveFromParent();
 		}
 	}
 

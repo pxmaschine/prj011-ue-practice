@@ -13,8 +13,10 @@ class UEPRACTICE_API UUPDeveloperSettings : public UDeveloperSettingsBackedByCVa
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(config, EditDefaultsOnly, Category = UEPractice, meta = (ConsoleVariable = "up.DisableBotSpawning"))
-	bool bDisableSpawnBotsOverride = false;
+	//UPROPERTY(config, EditDefaultsOnly, Category = UEPractice, meta = (ConsoleVariable = "up.DisableBotSpawning"))
+	//bool bDisableSpawnBotsOverride = false;
+
+	static bool DisableSpawnBotsOverride();
 
 	//~UDeveloperSettings interface
 	virtual void PostInitProperties() override;

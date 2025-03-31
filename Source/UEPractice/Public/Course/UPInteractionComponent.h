@@ -49,5 +49,5 @@ protected:
 	TSubclassOf<UUPWorldUserWidget> DefaultWidgetClass;
 
 	UPROPERTY(Transient)
-	UUPWorldUserWidget* DefaultWidgetInstance;
+	TObjectPtr<UUPWorldUserWidget> WidgetInst;
 };
