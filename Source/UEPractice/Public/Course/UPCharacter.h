@@ -7,6 +7,7 @@
 #include "UPCharacter.generated.h"
 
 
+class UAIPerceptionStimuliSourceComponent;
 class UUPActionComponent;
 class USpringArmComponent;
 class UCameraComponent;
@@ -91,6 +92,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPActionComponent* ActionComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UAIPerceptionStimuliSourceComponent> PerceptionStimuliComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputMappingContext* DefaultMappingContext;

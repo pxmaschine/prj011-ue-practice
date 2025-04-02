@@ -3,6 +3,13 @@
 
 #include "Course/AI/UPAIController.h"
 
+#include "Perception/AIPerceptionComponent.h"
+
+
+AUPAIController::AUPAIController()
+{
+	PerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("PerceptionComp"));
+}
 
 void AUPAIController::BeginPlay()
 {

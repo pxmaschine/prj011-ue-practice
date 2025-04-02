@@ -14,12 +14,11 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Perception/PawnSensingComponent.h"
+#include "Perception/AISense_Damage.h"
 
 
 AUPAICharacter::AUPAICharacter()
 {
-	PawnSensingComp = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComp"));
 	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
 	ActionComponent = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
 
@@ -47,35 +46,15 @@ void AUPAICharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	PawnSensingComp->OnSeePawn.AddDynamic(this, &AUPAICharacter::OnPawnSeen);
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &AUPAICharacter::OnHealthChanged);
 
 	SigManComp->OnSignificanceChanged.AddDynamic(this, &AUPAICharacter::OnSignificanceChanged);
-}
-
-void AUPAICharacter::SetTargetActor(AActor* NewTarget)
-{
-	AAIController* AIC = GetController<AAIController>();
-	AIC->GetBlackboardComponent()->SetValueAsObject(TargetActorKey, NewTarget);
 }
 
 AActor* AUPAICharacter::GetTargetActor() const
 {
 	AAIController* AIC = GetController<AAIController>();
 	return Cast<AActor>(AIC->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
-}
-
-void AUPAICharacter::OnPawnSeen(APawn* Pawn)
-{
-	// Ignore if target already set
-	if (GetTargetActor() != Pawn)
-	{
-		SetTargetActor(Pawn);
-
-		MulticastPawnSeen();
-	}
-
-	//DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::White, 4.0f, true);
 }
 
 void AUPAICharacter::MulticastPawnSeen_Implementation()
@@ -94,11 +73,6 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 {
 	if (Delta < 0.0f)
 	{
-		if (InstigatorActor != this)
-		{
-			SetTargetActor(InstigatorActor);
-		}
-
 		// Create once, and skip on instant kill
 		if (ActiveHealthBar == nullptr && NewHealth > 0.0)
 		{
@@ -110,12 +84,8 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 			}
 		}
 
-		// Old way via MaterialInstanceDynamic, below implementation uses CustomPrimitiveData instead
-		//GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
-
 		// Replaces the above "old" method of requiring unique material instances for every mesh element on the player 
 		GetMesh()->SetCustomPrimitiveDataFloat(HitFlash_CustomPrimitiveIndex, GetWorld()->TimeSeconds);
-
 
 		// Died
 		if (NewHealth <= 0.0f)
@@ -134,6 +104,11 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 
 			// Set lifespan
 			SetLifeSpan(10.0f);
+		}
+		else
+		{
+			UAISense_Damage::ReportDamageEvent(this, this, InstigatorActor, FMath::Abs(Delta),
+				InstigatorActor->GetActorLocation(), GetActorLocation());
 		}
 	}
 }

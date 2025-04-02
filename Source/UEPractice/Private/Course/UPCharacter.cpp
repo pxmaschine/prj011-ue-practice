@@ -14,6 +14,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
 
 
 // Sets default values
@@ -38,6 +39,8 @@ AUPCharacter::AUPCharacter()
 	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
 
 	ActionComponent = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
+
+	PerceptionStimuliComp = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("PerceptionStimuliComp"));
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
@@ -163,8 +166,6 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 	// Damaged
 	if (Delta < 0.0f)
 	{
-		//GetMesh()->SetScalarParameterValueOnMaterials(TimeToHitParamName, GetWorld()->TimeSeconds);
-
 		// Replaces the above "old" method of requiring unique material instances for every mesh element on the player 
 		GetMesh()->SetCustomPrimitiveDataFloat(HitFlash_CustomPrimitiveIndex, GetWorld()->TimeSeconds);
 
@@ -181,6 +182,9 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 		DisableInput(PC);
 
 		SetLifeSpan(5.0f);
+
+		// Prevent bots from seeing us as a threat
+		PerceptionStimuliComp->UnregisterFromPerceptionSystem();
 	}
 }
 
