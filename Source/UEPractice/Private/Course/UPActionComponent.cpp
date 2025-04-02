@@ -71,6 +71,169 @@ void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	//}
 }
 
+bool UUPActionComponent::GetAttribute(FGameplayTag InAttributeTag, FUPAttribute& OutAttribute)
+{
+		// Split the tag to only the attribute name, eg. "Health"
+	FName PropertyName;
+	if (GetAttributeName(InAttributeTag, PropertyName))
+	{
+		// With Unreal Property/Reflection system we can find and get all data so long as members are marked with UPROPERTY()
+		FStructProperty* AttributeProp = CastField<FStructProperty>(AttributeSet.GetScriptStruct()->FindPropertyByName(PropertyName));
+		if (AttributeProp)
+		{
+			// Convert the found container data to our attribute struct
+			const FUPAttribute* FoundAttribute = AttributeProp->ContainerPtrToValuePtr<FUPAttribute>(AttributeSet.GetMemory());
+			OutAttribute = *FoundAttribute;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UUPActionComponent::K2_GetAttribute(FGameplayTag InAttributeTag, float& CurrentValue, float& Base, float& Delta)
+{
+	FUPAttribute FoundAttribute;
+	if (GetAttribute(InAttributeTag, FoundAttribute))
+	{
+		CurrentValue = FoundAttribute.GetValue();
+		Base = FoundAttribute.Base;
+		Delta = FoundAttribute.Delta;
+	}
+
+	return false;
+}
+
+bool UUPActionComponent::ApplyAttributeChange(FGameplayTag InAttributeTag, FAttributeModification Modification)
+{
+	FUPAttribute Attribute;
+	GetAttribute(InAttributeTag, Attribute);
+
+	switch (Modification.ModifyType)
+	{
+		case EAttributeModifyType::AddBase:
+			{
+				Attribute.Base += Modification.Magnitude;
+				break;
+			}
+		case EAttributeModifyType::AddDelta:
+			{
+				Attribute.Delta += Modification.Magnitude;
+				break;
+			}
+		case EAttributeModifyType::OverrideBase:
+			{
+				Attribute.Base = Modification.Magnitude;
+				break;
+			}
+		default:
+			// Always fail here so we can address it
+			check(false);
+	}
+
+	BroadcastAttributeListener(InAttributeTag, Attribute.GetValue(), Modification);
+	
+	return true;
+}
+
+void UUPActionComponent::BroadcastAttributeListener(FGameplayTag AttributeTag, float NewValue,
+	const FAttributeModification& AppliedMod)
+{
+	if (FOnAttributeChangedList* DelegateList = AttributeListeners.Find(AttributeTag))
+	{
+		for (FOnAttributeChangedNonDynamic& Delegate : DelegateList->Delegates)
+		{
+			Delegate.Execute(NewValue, AppliedMod);
+		}
+	}
+}
+
+void UUPActionComponent::K2_AddAttributeListener(FGameplayTag AttributeTag, const FOnAttributeChangedDynamic& Event)
+{
+	//FAttributeDelegateHandle Wrapper;
+	//Wrapper.DynamicDelegate = Event;
+	//AttributeListeners.Add(TPair<FGameplayTag, FAttributeDelegateHandle>(AttributeTag, Wrapper));
+
+
+	if (TArray<FAttributeDelegateHandle>* Handles = Listeners.Find(AttributeTag))
+	{
+		Handles->Add(FAttributeDelegateHandle(Event));
+	}
+}
+
+FDelegateHandle UUPActionComponent::AddAttributeListener(FGameplayTag AttributeTag,
+	const FOnAttributeChangedNonDynamic& Func)
+{
+	//FAttributeDelegateHandle Wrapper;
+	//Wrapper.Delegate = Func;
+	//AttributeListeners.Add(TPair<FGameplayTag, FAttributeDelegateHandle>(AttributeTag, Wrapper));
+
+	if (FOnAttributeChangedList* DelegateList = AttributeListeners.Find(AttributeTag))
+	{
+		// Append delegate to exist list for specific tag
+		DelegateList->Delegates.Add(Func);
+	}
+	else
+	{
+		// Did not find any for this tag, create a fresh list
+		FOnAttributeChangedList NewList;
+		NewList.Delegates.Add(Func);
+		AttributeListeners.Add(AttributeTag, NewList);
+	}
+
+	return Func.GetHandle();
+}
+
+void UUPActionComponent::RemoveAttributeListener(FGameplayTag AttributeTag, FDelegateHandle Handle)
+{
+	if (FOnAttributeChangedList* DelegateList = AttributeListeners.Find(AttributeTag))
+	{
+		for (int32 i = 0; i < DelegateList->Delegates.Num(); i++)
+		{
+			if (Handle == DelegateList->Delegates[i].GetHandle())
+			{
+				// Clear
+				DelegateList->Delegates[i] = nullptr;
+				break;
+			}
+		}
+	}
+}
+
+void UUPActionComponent::RemoveAttributeListener(FGameplayTag AttributeTag, FAttributeDelegateHandle Handle)
+{
+	TArray<FAttributeDelegateHandle> DelegateList = *Listeners.Find(AttributeTag);
+	check(DelegateList.Num() > 0);
+	
+	for (int32 i = 0; i < DelegateList.Num(); i++)
+	{
+		if (Handle == DelegateList[i])
+		{
+			// Clear
+			DelegateList.RemoveAt(i);
+			break;
+		}
+	}
+}
+
+bool UUPActionComponent::GetAttributeName(const FGameplayTag InTag, FName& OutAttributeName)
+{
+	// Attribute names should reflect the Tag name in project. eg. Grab "Health" (property name) from "Attribute.Health" GameplayTag
+	FString LeftStr;
+	FString RightStr;
+	InTag.ToString().Split(".", &LeftStr, &RightStr, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+#if !UE_BUILD_SHIPPING
+	if (RightStr.IsEmpty())
+	{
+		UE_LOG(LogGame, Warning, TEXT("Failed to split GameplayTag (%s) in GetAttribute."), *InTag.ToString());
+		return false;
+	}
+#endif
+
+	OutAttributeName = FName(*RightStr);
+	return true;
+}
+
 void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> ActionClass)
 {
 	if (!ensure(ActionClass))

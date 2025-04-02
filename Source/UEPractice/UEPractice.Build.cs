@@ -19,7 +19,8 @@ public class UEPractice : ModuleRules
 			"OnlineSubsystem", 
 			"SignificanceManager", 
 			"Niagara",
-			"CoreOnline"
+			"CoreOnline", 
+			"StructUtils"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

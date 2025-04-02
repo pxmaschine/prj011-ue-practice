@@ -99,7 +99,6 @@ void AUPPlayerState::LoadPlayerState_Implementation(UUPSaveGame* SaveGame)
 		const FPlayerSaveData* FoundData = SaveGame->GetPlayerData(this);
 		if (FoundData)
 		{
-			//Credits = SaveObject->Credits;
 			// Makes sure we trigger credits changed event
 			AddCredits(FoundData->Credits);
 

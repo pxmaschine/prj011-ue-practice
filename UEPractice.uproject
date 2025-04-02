@@ -398,6 +398,10 @@
 		{
 			"Name": "SlateInsights",
 			"Enabled": true
+		},
+		{
+			"Name": "EditorSysConfigAssistant",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

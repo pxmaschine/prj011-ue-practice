@@ -8,6 +8,7 @@
 #include "Course/UPActionEffect.h"
 
 #include "Components/SphereComponent.h"
+#include "Course/UPExplosiveBarrel.h"
 
 
 AUPMagicProjectile::AUPMagicProjectile()
@@ -26,8 +27,7 @@ void AUPMagicProjectile::PostInitializeComponents()
 	SphereComp->OnComponentBeginOverlap.AddDynamic(this, &AUPMagicProjectile::OnActorOverlap);
 }
 
-void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-                                        UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (!OtherActor || OtherActor == GetInstigator())
 	{
@@ -40,6 +40,7 @@ void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent
 	{
 		MovementComp->Velocity = -MovementComp->Velocity;
 
+		// The reflector now becomes the 'instigator' of the damage from the reflected projectile
 		SetInstigator(Cast<APawn>(OtherActor));
 
 		return;
@@ -53,5 +54,11 @@ void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent
 		{
 			ActionComp->AddAction(GetInstigator(), BurningActionClass);
 		}
+	}
+
+	// todo: hacky way to handle barrel
+	if (OtherActor->IsA(AUPExplosiveBarrel::StaticClass()))
+	{
+		Explode();
 	}
 }
