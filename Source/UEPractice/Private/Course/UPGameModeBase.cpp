@@ -14,6 +14,7 @@
 #include "UEPractice/UEPractice.h"
 
 #include "EngineUtils.h"
+#include "Course/UPHUD.h"
 #include "Engine/AssetManager.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
@@ -34,6 +35,7 @@ AUPGameModeBase::AUPGameModeBase()
 	InitialSpawnCredit = 50;
 
 	PlayerStateClass = AUPPlayerState::StaticClass();
+	HUDClass = AUPHUD::StaticClass();
 }
 
 void AUPGameModeBase::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
@@ -78,18 +80,6 @@ void AUPGameModeBase::StartPlay()
 		// Skip the Blueprint wrapper and use the direct C++ option which the Wrapper uses as well
 		FEnvQueryRequest Request(PowerupSpawnQuery, this);
 		Request.Execute(EEnvQueryRunMode::AllMatching, this, &AUPGameModeBase::OnPowerupSpawnQueryCompleted);
-	}
-}
-
-void AUPGameModeBase::KillAll()
-{
-	for (const AUPAICharacter* Bot : TActorRange<AUPAICharacter>(GetWorld()))
-	{
-		UUPAttributeComponent* AttributeComp = UUPAttributeComponent::GetAttributes(Bot);
-		if (ensure(AttributeComp) && AttributeComp->IsAlive())
-		{
-			AttributeComp->Kill(this);
-		}
 	}
 }
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/Character.h"
 #include "UPAICharacter.generated.h"
 
@@ -14,7 +15,7 @@ class UPAttributeComponent;
 class UUserWidget;
 
 UCLASS()
-class UEPRACTICE_API AUPAICharacter : public ACharacter
+class UEPRACTICE_API AUPAICharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -22,8 +23,10 @@ public:
 	// Sets default values for this character's properties
 	AUPAICharacter();
 
-protected:
+public:
 	virtual void PostInitializeComponents() override;
+
+	virtual FGenericTeamId GetGenericTeamId() const;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "AI")

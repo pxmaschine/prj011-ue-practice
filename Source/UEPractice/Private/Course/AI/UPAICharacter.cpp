@@ -51,10 +51,20 @@ void AUPAICharacter::PostInitializeComponents()
 	SigManComp->OnSignificanceChanged.AddDynamic(this, &AUPAICharacter::OnSignificanceChanged);
 }
 
+FGenericTeamId AUPAICharacter::GetGenericTeamId() const
+{
+	// Fetch from the AI Controller who has built-in TeamId
+	return FGenericTeamId::GetTeamIdentifier(GetController());
+}
+
 AActor* AUPAICharacter::GetTargetActor() const
 {
-	AAIController* AIC = GetController<AAIController>();
-	return Cast<AActor>(AIC->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
+	// Not guaranteed to be possessed (as we may use this in the AnimBP)
+	if (AAIController* AIC = GetController<AAIController>())
+	{
+		return Cast<AActor>(AIC->GetBlackboardComponent()->GetValueAsObject(TargetActorKey));
+	}
+	return nullptr;
 }
 
 void AUPAICharacter::MulticastPawnSeen_Implementation()

@@ -40,7 +40,7 @@ protected:
 	float TraceRadius;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Trace")
-	TEnumAsByte<ECollisionChannel> CollisionChannel;
+	TEnumAsByte<ECollisionChannel> TraceChannel;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUPWorldUserWidget> DefaultWidgetClass;

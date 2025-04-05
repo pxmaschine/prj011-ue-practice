@@ -4,6 +4,7 @@
 #include "Course/UPInteractionComponent.h"
 #include "Course/UPGameplayInterface.h"
 #include "Course/UPWorldUserWidget.h"
+#include "UEPractice/UEPractice.h"
 
 #include "Blueprint/UserWidget.h"
 #include "Engine/OverlapResult.h"
@@ -25,7 +26,7 @@ UUPInteractionComponent::UUPInteractionComponent()
 	PrimaryComponentTick.TickGroup = TG_PostUpdateWork;
 
 	TraceRadius = 250.f;
-	CollisionChannel = ECC_WorldDynamic;
+	TraceChannel = TRACE_INTERACT;
 }
 
 void UUPInteractionComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -71,7 +72,7 @@ void UUPInteractionComponent::FindBestInteractable()
 		Overlaps,
 		TraceOrigin,
 		FQuat::Identity,
-		CollisionChannel,
+		TraceChannel,
 		FCollisionShape::MakeSphere(TraceRadius));
 
 	const FColor LineColor = FColor::Green;

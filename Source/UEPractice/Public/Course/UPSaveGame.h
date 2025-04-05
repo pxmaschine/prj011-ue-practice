@@ -80,5 +80,5 @@ public:
 
 	/* Actors stored from a level (currently does not support a specific level and just assumes the demo map) */
 	UPROPERTY()
-	TArray<FActorSaveData> SavedActors;
+	TMap<FName, FActorSaveData> SavedActorMap;
 };

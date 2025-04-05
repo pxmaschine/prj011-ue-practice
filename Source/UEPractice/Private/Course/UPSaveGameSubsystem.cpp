@@ -84,7 +84,7 @@ void UUPSaveGameSubsystem::WriteSaveGame()
 {
 	// Clear arrays, may contain data from previously loaded SaveGame
 	CurrentSaveGame->SavedPlayers.Empty();
-	CurrentSaveGame->SavedActors.Empty();
+	CurrentSaveGame->SavedActorMap.Empty();
 
 	AGameStateBase* GS = GetWorld()->GetGameState();
 	if (GS == nullptr)
@@ -127,7 +127,7 @@ void UUPSaveGameSubsystem::WriteSaveGame()
 		// Converts Actor's SaveGame UPROPERTIES into binary array
 		Actor->Serialize(Ar);
 
-		CurrentSaveGame->SavedActors.Add(ActorData);
+		CurrentSaveGame->SavedActorMap.Add(Actor->GetFName(), ActorData);
 	}
 
 	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, CurrentSlotName, 0);
@@ -137,6 +137,8 @@ void UUPSaveGameSubsystem::WriteSaveGame()
 
 void UUPSaveGameSubsystem::LoadSaveGame(FString InSlotName)
 {
+	TRACE_CPUPROFILER_EVENT_SCOPE(LoadSaveGame);
+
 	// Update slot name first if specified, otherwise keeps default name
 	SetSlotName(InSlotName);
 	
@@ -161,7 +163,7 @@ void UUPSaveGameSubsystem::LoadSaveGame(FString InSlotName)
 
 void UUPSaveGameSubsystem::ApplyLoadedSaveGame() const
 {
-	if (CurrentSaveGame->SavedActors.Num() == 0)
+	if (CurrentSaveGame->SavedActorMap.Num() == 0)
 	{
 		return;
 	}
@@ -176,24 +178,18 @@ void UUPSaveGameSubsystem::ApplyLoadedSaveGame() const
 			continue;
 		}
 
-		for (const FActorSaveData& ActorData : CurrentSaveGame->SavedActors)
+		if (FActorSaveData* FoundData = CurrentSaveGame->SavedActorMap.Find(Actor->GetFName()))
 		{
-			if (ActorData.ActorName == Actor->GetFName())
-			{
-				Actor->SetActorTransform(ActorData.Transform);
+			Actor->SetActorTransform(FoundData->Transform);
 
-				FMemoryReader MemReader(ActorData.ByteData);
+			FMemoryReader MemReader(FoundData->ByteData);
 
-				FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
-				// Find only variables with UPROPERTY(SaveGame)
-				Ar.ArIsSaveGame = true;
-				// Converts binary array into Actor's PROPERTIES 
-				Actor->Serialize(Ar);
+			FObjectAndNameAsStringProxyArchive Ar(MemReader, true);
+			Ar.ArIsSaveGame = true;
+			// Convert binary array back into actor's variables
+			Actor->Serialize(Ar);
 
-				IUPGameplayInterface::Execute_OnActorLoaded(Actor);
-
-				break;
-			}
+			IUPGameplayInterface::Execute_OnActorLoaded(Actor);
 		}
 	}
 

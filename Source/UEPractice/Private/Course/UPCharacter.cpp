@@ -7,6 +7,7 @@
 #include "Course/UPActionComponent.h"
 #include "Course/SharedGameplayTags.h"
 #include "Course/UPPlayerController.h"
+#include "UEPractice/UEPractice.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -42,8 +43,14 @@ AUPCharacter::AUPCharacter()
 
 	PerceptionStimuliComp = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("PerceptionStimuliComp"));
 
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	UCharacterMovementComponent* CharMoveComp = GetCharacterMovement();
+	CharMoveComp->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
+
+	// Attempt to make the jump feel less floaty
+	CharMoveComp->JumpZVelocity = 550;
+	CharMoveComp->GravityScale = 1.35f;
+	CharMoveComp->BrakingDecelerationFalling = 200.f;
 
 	// Enabled on mesh to react to incoming projectiles
 	GetMesh()->SetGenerateOverlapEvents(true);
@@ -289,8 +296,8 @@ FVector AUPCharacter::GetPawnViewLocation() const
 	return CameraComp->GetComponentLocation();
 }
 
-void AUPCharacter::HealSelf(float Amount /* = 100.0f */)
+FGenericTeamId AUPCharacter::GetGenericTeamId() const
 {
-	AttributeComponent->ApplyHealthChange(this, Amount);
+	// We have no team switching support during gameplay
+	return FGenericTeamId(TEAM_ID_PLAYERS);
 }
-

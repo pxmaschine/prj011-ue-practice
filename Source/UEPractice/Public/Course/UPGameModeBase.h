@@ -63,9 +63,6 @@ public:
 	virtual void StartPlay() override;
 
 public:
-	UFUNCTION(Exec)
-	void KillAll();
-
 	virtual void OnActorKilled(AActor* VictimActor, AActor* KillerActor);
 
 protected:

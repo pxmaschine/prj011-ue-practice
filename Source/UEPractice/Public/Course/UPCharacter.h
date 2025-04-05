@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/Character.h"
 #include "UPCharacter.generated.h"
 
@@ -21,7 +22,7 @@ struct FInputActionValue;
 struct FTimerHandle;
 
 UCLASS()
-class UEPRACTICE_API AUPCharacter : public ACharacter
+class UEPRACTICE_API AUPCharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -41,11 +42,7 @@ public:
 
 	virtual FVector GetPawnViewLocation() const override;
 
-public:
-	// Exec works for certain classes - PlayerController, GameMode, CheatManager
-	// Adds function automatic to console commands
-	UFUNCTION(Exec)
-	void HealSelf(float Amount = 100.0f);
+	virtual FGenericTeamId GetGenericTeamId() const override;
 
 protected:
 	void Move(const FInputActionValue& Value);

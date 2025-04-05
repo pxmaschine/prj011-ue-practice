@@ -17,6 +17,9 @@ class UEPRACTICE_API AUPPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 
+public:
+	AUPPlayerController();
+
 protected:
 	// Called when player controller is ready to begin playing, good moment to initialize things like UI which might be too early in BeginPlay
 	// (esp. in multiplayer clients where not all data such as PlayerState may have been received yet)
@@ -37,22 +40,15 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void BlueprintBeginPlayingState();
 
-	UFUNCTION(BlueprintCallable)
-	void TogglePauseMenu();
-
 	void AnyKeyInput(FKey PressedKey);
+
+	void HandleToggleMenu();
 
 protected:
 	// Listen for incoming PlayerState (for clients this may be nullptr when initially joining the game,
 	// afterwards player state will no longer change again as PlayerControllers maintain the same player state throughout the level)
 	UPROPERTY(BlueprintAssignable)
 	FOnPlayerStateChanged OnPlayerStateReceived;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> PauseMenuClass;
-
-	UPROPERTY(Transient)
-	UUserWidget* PauseMenuInstance;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	UInputAction* InputAction_ToggleMenu;

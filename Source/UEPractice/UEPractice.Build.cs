@@ -20,7 +20,8 @@ public class UEPractice : ModuleRules
 			"SignificanceManager", 
 			"Niagara",
 			"CoreOnline", 
-			"StructUtils"
+			"StructUtils",
+			"AIModule"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

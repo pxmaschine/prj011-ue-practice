@@ -2,10 +2,16 @@
 
 
 #include "Course/UPPlayerController.h"
+#include "Course/UPCheatManager.h"
+#include "Course/UPHUD.h"
 
 #include "EnhancedInputComponent.h"
-#include "Blueprint/UserWidget.h"
-#include "Kismet/GameplayStatics.h"
+
+AUPPlayerController::AUPPlayerController()
+{
+	CheatClass = UUPCheatManager::StaticClass();
+	bIsUsingGamepad = false;
+}
 
 void AUPPlayerController::BeginPlayingState()
 {
@@ -25,48 +31,18 @@ void AUPPlayerController::SetupInputComponent()
 
 	if (UEnhancedInputComponent* InputComp = Cast<UEnhancedInputComponent>(InputComponent))
 	{
-		InputComp->BindAction(InputAction_ToggleMenu, ETriggerEvent::Started, this, &AUPPlayerController::TogglePauseMenu);
+		InputComp->BindAction(InputAction_ToggleMenu, ETriggerEvent::Started, this, &AUPPlayerController::HandleToggleMenu);
 	}
 
 	// Keeping as 'old' input for now until we figure out how to do this easily in Enhanced input
 	InputComponent->BindAction("AnyKey", IE_Pressed, this, &AUPPlayerController::AnyKeyInput);
 }
 
-void AUPPlayerController::TogglePauseMenu()
+void AUPPlayerController::HandleToggleMenu()
 {
-	if (PauseMenuInstance && PauseMenuInstance->IsInViewport())
-	{
-		PauseMenuInstance->RemoveFromParent();
-		PauseMenuInstance = nullptr;
-
-		SetShowMouseCursor(false);
-		SetInputMode(FInputModeGameOnly());
-
-		// Single-player only
-		if (GetWorld()->IsNetMode(NM_Standalone))
-		{
-			UGameplayStatics::SetGamePaused(this, false);
-		}
-
-		return;
-	}
-
-	PauseMenuInstance = CreateWidget<UUserWidget>(this, PauseMenuClass);
-
-	if (PauseMenuInstance)
-	{
-		PauseMenuInstance->AddToViewport(100);
-
-		SetShowMouseCursor(true);
-		SetInputMode(FInputModeUIOnly());
-
-		// Single-player only
-		if (GetWorld()->IsNetMode(NM_Standalone))
-		{
-			UGameplayStatics::SetGamePaused(this, false);
-		}
-	}
+	Cast<AUPHUD>(GetHUD())->TogglePauseMenu();
 }
+
 
 void AUPPlayerController::AnyKeyInput(FKey PressedKey)
 {
