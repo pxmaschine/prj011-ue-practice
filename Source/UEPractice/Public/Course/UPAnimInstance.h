@@ -8,6 +8,9 @@
 
 class UUPActionComponent;
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAnimNofify_MeleeOverlap, const TArray<FOverlapResult>&);
+
+
 UCLASS()
 class UEPRACTICE_API UUPAnimInstance : public UAnimInstance
 {
@@ -16,6 +19,10 @@ class UEPRACTICE_API UUPAnimInstance : public UAnimInstance
 protected:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+public:
+	/* Broadcast by AnimNotify_Melee anytime a melee successfully finds overlaps  */
+	FOnAnimNofify_MeleeOverlap OnMeleeOverlap;
 
 protected:
 	UPROPERTY(Transient, EditAnywhere, BlueprintReadOnly, Category = "Animation")

@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class UEPRACTICE_API UUPAction_MinionRangedAttack : public UUPAction
 {
 	GENERATED_BODY()

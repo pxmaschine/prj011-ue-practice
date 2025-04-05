@@ -36,4 +36,6 @@ void UUPAction_MinionRangedAttack::StartAction_Implementation(AActor* Instigator
 	Params.Instigator = MyPawn;
 
 	GetWorld()->SpawnActor<AActor>(ProjectileClass, MuzzleLocation, MuzzleRotation, Params);
+
+	// @todo: no StopAction required??
 }

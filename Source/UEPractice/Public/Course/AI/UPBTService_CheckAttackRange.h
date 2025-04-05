@@ -21,6 +21,11 @@ protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 
 protected:
+//#if WITH_EDITORONLY_DATA
+	UPROPERTY(EditAnywhere, Category = Debug)
+	FColor DebugColor = FColor::Green;
+//#endif
+
 	UPROPERTY(EditAnywhere, Category = "AI")
 	FBlackboardKeySelector AttackRangeKey;
 

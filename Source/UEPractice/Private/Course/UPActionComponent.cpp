@@ -314,9 +314,15 @@ bool UUPActionComponent::StartActionByName(AActor* Instigator, FGameplayTag Acti
 			}
 
 			// Bookmark for Unreal Insights
-			TRACE_BOOKMARK(TEXT("StartAction::%s"), *GetNameSafe(Action))
+			//TRACE_BOOKMARK(TEXT("StartAction::%s"), *GetNameSafe(Action))
 
-			Action->StartAction(Instigator);
+			{
+				// Scoped within the curly braces. the _FSTRING variant adds additional tracing overhead due to grabbing the class name every time
+				SCOPED_NAMED_EVENT_FSTRING(Action->GetClass()->GetName(), FColor::White);
+
+				Action->StartAction(Instigator);
+			}
+
 			return true;
 		}
 	}

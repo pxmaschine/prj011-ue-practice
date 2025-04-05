@@ -402,6 +402,10 @@
 		{
 			"Name": "EditorSysConfigAssistant",
 			"Enabled": true
+		},
+		{
+			"Name": "StructUtils",
+			"Enabled": true
 		}
 	],
 	"TargetPlatforms": [

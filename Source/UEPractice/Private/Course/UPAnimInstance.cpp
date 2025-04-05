@@ -23,6 +23,6 @@ void UUPAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if (ActionComp)
 	{
-		bIsStunned = ActionComp->ActiveGameplayTags.HasTag(SharedGameplayTags::Action_Stunned);
+		bIsStunned = ActionComp->ActiveGameplayTags.HasTag(SharedGameplayTags::Status_Stunned);
 	}
 }

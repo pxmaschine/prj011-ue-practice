@@ -11,7 +11,7 @@ class UAudioComponent;
 class USoundCue;
 class UUPActionEffect;
 
-UCLASS()
+UCLASS(Abstract)
 class UEPRACTICE_API AUPMagicProjectile : public AUPProjectileBase
 {
 	GENERATED_BODY()
