@@ -10,8 +10,10 @@
 
 #include "AIController.h"
 #include "BrainComponent.h"
+#include "NiagaraComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Blueprint/UserWidget.h"
+#include "Components/AudioComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AISense_Damage.h"
@@ -21,6 +23,19 @@ AUPAICharacter::AUPAICharacter()
 {
 	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
 	ActionComponent = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
+
+	AttackSoundComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AttackAudioComp"));
+	AttackSoundComp->SetupAttachment(RootComponent);
+	AttackSoundComp->bAutoManageAttachment = true;
+	AttackSoundComp->SetAutoActivate(false);
+
+	// Default set up for the MinionRanged
+	AttackFX_Socket = "Muzzle_Front";
+
+	AttackParticleComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AttackParticleComp"));
+	AttackParticleComp->SetupAttachment(GetMesh(), AttackFX_Socket);
+	AttackParticleComp->bAutoManageAttachment = true;
+	AttackParticleComp->SetAutoActivate(false);
 
 	// Make sure to configure the distance values in Blueprint
 	SigManComp = CreateDefaultSubobject<UUPSignificanceComponent>(TEXT("SigManComp"));
@@ -47,8 +62,11 @@ void AUPAICharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &AUPAICharacter::OnHealthChanged);
-
 	SigManComp->OnSignificanceChanged.AddDynamic(this, &AUPAICharacter::OnSignificanceChanged);
+
+	// Cheap trick to disable until we need it in the health event
+	CachedOverlayMaxDistance = GetMesh()->OverlayMaterialMaxDrawDistance;
+	GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
 }
 
 FGenericTeamId AUPAICharacter::GetGenericTeamId() const
@@ -67,16 +85,13 @@ AActor* AUPAICharacter::GetTargetActor() const
 	return nullptr;
 }
 
-void AUPAICharacter::MulticastPawnSeen_Implementation()
+void AUPAICharacter::MulticastPlayAttackFX_Implementation()
 {
-	UUPWorldUserWidget* NewWidget = CreateWidget<UUPWorldUserWidget>(GetWorld(), SpottedWidgetClass);
+	AttackSoundComp->Play();
 
-	// Can be nullptr if we didnt specify a class to use in Blueprint
-	if (NewWidget)
-	{
- 		NewWidget->AttachedActor = this;
-		UUPWorldUserWidget::AddToRootCanvasPanel(NewWidget);
-	}
+	AttackParticleComp->Activate(true);
+	
+	PlayAnimMontage(AttackMontage);
 }
 
 void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta)
@@ -97,12 +112,26 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 		// Replaces the above "old" method of requiring unique material instances for every mesh element on the player 
 		GetMesh()->SetCustomPrimitiveDataFloat(HitFlash_CustomPrimitiveIndex, GetWorld()->TimeSeconds);
 
+		// We can skip rendering this at a distance
+		GetMesh()->SetOverlayMaterialMaxDrawDistance(CachedOverlayMaxDistance);
+
+		// After 1.0seconds we should be finished with the hitflash (re-use the handle to reset timer if we get hit again)
+		GetWorldTimerManager().SetTimer(OverlayTimerHandle, [this]()
+		{
+			// Cheap trick to skip rendering this all the time unless we are actively hit flashing
+			GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
+		}, 1.0f, false);
+
+
 		// Died
 		if (NewHealth <= 0.0f)
 		{
 			// Stop behavior tree
-			const AAIController* AIC = GetController<AAIController>();
-			AIC->GetBrainComponent()->StopLogic("Killed");
+			if (HasAuthority())
+			{
+				const AAIController* AIC = GetController<AAIController>();
+				AIC->GetBrainComponent()->StopLogic("Killed");
+			}
 
 			// Enable ragdoll
 			GetMesh()->SetAllBodiesSimulatePhysics(true);

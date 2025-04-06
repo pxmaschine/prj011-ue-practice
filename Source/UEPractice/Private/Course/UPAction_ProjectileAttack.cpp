@@ -7,6 +7,7 @@
 
 #include "NiagaraComponentPoolMethodEnum.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Course/UPCharacter.h"
 #include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -24,14 +25,17 @@ void UUPAction_ProjectileAttack::StartAction_Implementation(AActor* Instigator)
 {
 	Super::StartAction_Implementation(Instigator);
 
-	ACharacter* Character = CastChecked<ACharacter>(Instigator);
+	AUPCharacter* Character = CastChecked<AUPCharacter>(Instigator);
 	Character->PlayAnimMontage(AttackAnim);
 
 	// Auto-released particle pooling
 	UNiagaraFunctionLibrary::SpawnSystemAttached(CastVFX, Character->GetMesh(), HandSocketName, FVector::ZeroVector, FRotator::ZeroRotator,
 		EAttachLocation::SnapToTarget, true, true, ENCPoolMethod::AutoRelease);
 
-	UGameplayStatics::SpawnSoundAttached(CastingSound, Character->GetMesh());
+	//UGameplayStatics::SpawnSoundAttached(CastingSound, Character->GetMesh());
+	// Alternative to spawning fresh instances for short-lived attacks every time (via SpawnSoundAttached above)
+	// we use a single audio component on the player, which uses AutoManageAttachment to detach itself when not active
+	Character->PlayAttackSound(CastingSound);
 
 	// Only on server
 	if (Character->HasAuthority())
@@ -44,7 +48,7 @@ void UUPAction_ProjectileAttack::StartAction_Implementation(AActor* Instigator)
 	}
 }
 
-void UUPAction_ProjectileAttack::AttackDelay_Elapsed(ACharacter* InstigatorCharacter)
+void UUPAction_ProjectileAttack::AttackDelay_Elapsed(AUPCharacter* InstigatorCharacter)
 {
 	// Blueprint has not been properly configured yet if this fails
 	if (ensureAlways(ProjectileClass))

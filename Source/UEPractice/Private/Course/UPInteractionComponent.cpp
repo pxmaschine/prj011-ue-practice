@@ -103,13 +103,13 @@ void UUPInteractionComponent::FindBestInteractable()
 			{
 				// When not recently rendered, the player is unlikely to want to interact with this object
 				// it might be hidden behind walls (shadow rendering might mess with this boolean)
-				if (!HitActor->WasRecentlyRendered(0.0f))
-				{
-					// Won't work for Nanite meshes which don't report this recently rendered
-					// - Extra: if recently rendered, then perform line trace from camera to obj pivot
-					//				to know if we are actually behind some type of wall
-					continue;
-				}
+				//if (!HitActor->WasRecentlyRendered(0.0f))
+				//{
+				//	// Won't work for Nanite meshes which don't report this recently rendered
+				//	// - Extra: if recently rendered, then perform line trace from camera to obj pivot
+				//	//				to know if we are actually behind some type of wall
+				//	continue;
+				//}
 
 				FVector ObjectDir = (HitActor->GetActorLocation() - TraceOrigin).GetUnsafeNormal();
 

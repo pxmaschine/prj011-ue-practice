@@ -10,7 +10,6 @@
 #include "Course/UPSaveGameSubsystem.h"
 #include "Course/UPActorPoolingSubsystem.h"
 #include "Course/UPDeveloperSettings.h"
-
 #include "UEPractice/UEPractice.h"
 
 #include "EngineUtils.h"
@@ -289,12 +288,16 @@ void AUPGameModeBase::OnMonsterLoaded(FPrimaryAssetId LoadedId, FVector SpawnLoc
 
 void AUPGameModeBase::OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> Result)
 {
-	FEnvQueryResult* QueryResult = Result.Get();
+	TRACE_CPUPROFILER_EVENT_SCOPE(OnPowerupSpawnQueryCompleted);
+
+	const FEnvQueryResult* QueryResult = Result.Get();
 	if (!QueryResult->IsSuccessful())
 	{
 		UE_LOGFMT(LogGame, Warning, "Spawn bot EQS Query Failed!");
 		return;
 	}
+
+	const uint32 CyclesStart = FWindowsPlatformTime::Cycles();
 
 	// Retrieve all possible locations that passed the query
 	TArray<FVector> Locations;
@@ -312,7 +315,7 @@ void AUPGameModeBase::OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> R
 		FVector PickedLocation = Locations[RandomLocationIndex];
 
 		// Remove to avoid picking again
-		Locations.RemoveAt(RandomLocationIndex);
+		Locations.RemoveAtSwap(RandomLocationIndex);
 
 		// Check minimum distance requirement
 		bool bValidLocation = true;
@@ -345,6 +348,10 @@ void AUPGameModeBase::OnPowerupSpawnQueryCompleted(TSharedPtr<FEnvQueryResult> R
 		UsedLocations.Add(PickedLocation);
 		SpawnCounter++;
 	}
+
+	const uint32 CyclesEnd = FWindowsPlatformTime::Cycles();
+
+	UE_LOG(LogGame, Log, TEXT("OnPowerupSpawnQueryCompleted: %i Cycles"), (CyclesEnd - CyclesStart));
 }
 
 void AUPGameModeBase::RespawnPlayerElapsed(AController* Controller)

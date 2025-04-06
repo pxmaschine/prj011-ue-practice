@@ -7,14 +7,19 @@
 #include "Course/UPActionComponent.h"
 #include "Course/SharedGameplayTags.h"
 #include "Course/UPPlayerController.h"
+#include "Course/UPWorldUserWidget.h"
+#include "Course/AI/UPAICharacter.h"
 #include "UEPractice/UEPractice.h"
 
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/UserWidget.h"
+#include "Components/AudioComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 
 
@@ -42,6 +47,12 @@ AUPCharacter::AUPCharacter()
 	ActionComponent = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
 
 	PerceptionStimuliComp = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("PerceptionStimuliComp"));
+
+	AttackSoundsComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AttackSoundsComp"));
+	AttackSoundsComp->SetupAttachment(RootComponent);
+	AttackSoundsComp->bAutoActivate = false;
+	// Don't follow player unless actively playing a sound
+	AttackSoundsComp->bAutoManageAttachment = true;
 
 	UCharacterMovementComponent* CharMoveComp = GetCharacterMovement();
 	CharMoveComp->bOrientRotationToMovement = true;
@@ -71,6 +82,10 @@ void AUPCharacter::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	AttributeComponent->OnHealthChanged.AddDynamic(this, &AUPCharacter::OnHealthChanged);
+
+	// Cheap trick to disable until we need it in the health event
+	CachedOverlayMaxDistance = GetMesh()->OverlayMaterialMaxDrawDistance;
+	GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
 }
 
 void AUPCharacter::Tick(float DeltaTime)
@@ -78,6 +93,13 @@ void AUPCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	FindCrosshairTarget();
+}
+
+void AUPCharacter::PlayAttackSound(USoundBase* InSound)
+{
+	// This may interrupt previously playing sounds, so you'd want to test for this
+	AttackSoundsComp->SetSound(InSound);
+	AttackSoundsComp->Play();
 }
 
 void AUPCharacter::Move(const FInputActionValue& Value)
@@ -173,25 +195,45 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 	// Damaged
 	if (Delta < 0.0f)
 	{
-		// Replaces the above "old" method of requiring unique material instances for every mesh element on the player 
+		// Materials, including the mesh "OverlayMaterial" can get their data via the component
 		GetMesh()->SetCustomPrimitiveDataFloat(HitFlash_CustomPrimitiveIndex, GetWorld()->TimeSeconds);
+
+		// Activate, we can skip rendering this at a distance
+		GetMesh()->SetOverlayMaterialMaxDrawDistance(CachedOverlayMaxDistance);
+
+		// After 1.0seconds we should be finished with the hitflash (re-use the handle to reset timer if we get hit again)
+		GetWorldTimerManager().SetTimer(OverlayTimerHandle, [this]()
+		{
+			// Cheap trick to skip rendering this all the time unless we are actively hit flashing
+			GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
+		}, 1.0f, false);
 
 		// Rage added equal to damage received (Abs to turn into positive rage number)
 		const float RageDelta = FMath::Abs(Delta);
-		OwningComp->ApplyRageChange(InstigatorActor, RageDelta);
+		AttributeComponent->ApplyRageChange(InstigatorActor, RageDelta);
+
+		//UGameplayStatics::PlaySoundAtLocation(this, TakeDamageVOSound, GetActorLocation(), FRotator::ZeroRotator);
 	}
 
 	// Died
 	if (NewValue <= 0.0f && Delta < 0.0f)
 	{
-		APlayerController* PC = GetController<AUPPlayerController>();
+		//UGameplayStatics::PlaySoundAtLocation(this, DeathVOSound, GetActorLocation(), FRotator::ZeroRotator);
 
-		DisableInput(PC);
+		PlayAnimMontage(DeathMontage);
 
 		SetLifeSpan(5.0f);
 
 		// Prevent bots from seeing us as a threat
 		PerceptionStimuliComp->UnregisterFromPerceptionSystem();
+
+		APlayerController* PC = GetController<AUPPlayerController>();
+		if (PC && PC->IsLocalController())
+		{
+			//UGameplayStatics::PlaySound2D(this, DeathUISound);
+
+			DisableInput(PC);
+		}
 	}
 }
 
@@ -300,4 +342,14 @@ FGenericTeamId AUPCharacter::GetGenericTeamId() const
 {
 	// We have no team switching support during gameplay
 	return FGenericTeamId(TEAM_ID_PLAYERS);
+}
+
+void AUPCharacter::ClientOnSeenBy_Implementation(AUPAICharacter* SeenByPawn)
+{
+	// Can be nullptr if we do not specify a class to use in Blueprint
+	if (UUPWorldUserWidget* NewWidget = CreateWidget<UUPWorldUserWidget>(GetWorld(), SpottedWidgetClass))
+	{
+		NewWidget->AttachedActor = SeenByPawn;
+		UUPWorldUserWidget::AddToRootCanvasPanel(NewWidget);
+	}
 }

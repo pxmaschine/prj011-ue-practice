@@ -5,29 +5,30 @@
 
 void UUPTweenSubsystem::Tick(float DeltaTime)
 {
-	if (CurrentAnimation.Curve == nullptr)
-	{
-		// for now skip until we assigned a curve
-		return;
-	}
+	TRACE_CPUPROFILER_EVENT_SCOPE(CurveAnimationsTick)
 	
-	CurrentAnimation.CurrentTime += DeltaTime;
-
-	float CurrentValue = CurrentAnimation.Curve->GetFloatValue(CurrentAnimation.CurrentTime);
-
-	CurrentAnimation.Callback(CurrentValue);
-
-	// Check if animation has completed
-		// Remove on complete
-		// if this was only anim playing, disable tick
-
-	if (CurrentAnimation.CurrentTime >= CurrentAnimation.MaxTime)
+	// Curve Based Anims - Reverse to easily remove completed anims during iteration
+	for (int i = ActiveAnims.Num() - 1; i >= 0; --i)
 	{
-		// Mark as "Finished"
-		CurrentAnimation.Curve = nullptr;
+		ActiveAnims[i].Tick(DeltaTime);
 
-		// Remove from array
+		if (ActiveAnims[i].IsFinished())
+		{
+			ActiveAnims.RemoveAtSwap(i);
+		}
 	}
+
+	// Easing Functions
+	for (int i = ActiveEasingFuncs.Num() - 1; i >= 0; --i)
+	{
+		ActiveEasingFuncs[i].Tick(DeltaTime);
+
+		if (ActiveEasingFuncs[i].IsFinished())
+		{
+			ActiveEasingFuncs.RemoveAtSwap(i);
+		}
+	}
+
 }
 
 TStatId UUPTweenSubsystem::GetStatId() const
@@ -35,10 +36,18 @@ TStatId UUPTweenSubsystem::GetStatId() const
 	RETURN_QUICK_DECLARE_CYCLE_STAT(RogueTweenSubsystem, STATGROUP_Tickables);
 }
 
-void UUPTweenSubsystem::PlayTween(UCurveFloat* InCurveAsset, float InPlayRate, TFunction<void(float)> Func)
+void UUPTweenSubsystem::PlayTween(UCurveFloat* InCurveAsset, float InPlayRate, const TFunction<void(float)>& Func)
 {
-	// @todo: if valid, pass into array and start playing.
-	CurrentAnimation = FActiveTweenData(InCurveAsset, Func, InPlayRate);
+	check(InCurveAsset);
 
-	// @todo: activate tick if this was first entry into the array
+	ActiveAnims.Add(FActiveTweenData(InCurveAsset, Func, InPlayRate));
+}
+
+void UUPTweenSubsystem::PlayEasingFunc(EEasingFunc::Type EasingType, float EasingExp, float InPlayRate,
+	const TFunction<void(float)>& Func)
+{
+	// In prototype only supporting this one type...
+	check(EasingType == EEasingFunc::EaseInOut);
+
+	ActiveEasingFuncs.Add(FActiveEasingFunc(EasingExp, InPlayRate, Func));
 }

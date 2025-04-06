@@ -2,6 +2,7 @@
 
 
 #include "Course/UPExplosiveBarrel.h"
+#include "Course/UPAttributeComponent.h"
 #include "UEPractice/UEPractice.h"
 
 #include "NiagaraComponent.h"
@@ -12,6 +13,9 @@
 // Sets default values
 AUPExplosiveBarrel::AUPExplosiveBarrel()
 {
+	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
+	AttributeComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnHealthChanged);
+	
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetSimulatePhysics(true);
 	StaticMesh->SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
@@ -38,21 +42,21 @@ AUPExplosiveBarrel::AUPExplosiveBarrel()
 	ExplosionDelayTime = 2.0f;
 }
 
-float AUPExplosiveBarrel::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
-	AActor* DamageCauser)
+void AUPExplosiveBarrel::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth,
+	float Delta)
 {
 	if (bExploded)
 	{
-		return 0.0f;
+		return;
 	}
 	
 	// Either use a hit counter or 'hitpoints' (For early assignment, we don't have any kind of attributes yet)
 	HitCounter++;
 
-	FlamesFXComp->Activate(true);
-
 	if (HitCounter == 1)
 	{
+		FlamesFXComp->Activate(true);
+
 		GetWorldTimerManager().SetTimer(DelayedExplosionHandle, this, &ThisClass::Explode, ExplosionDelayTime);
 	}
 	else if (HitCounter == 2)
@@ -66,10 +70,17 @@ float AUPExplosiveBarrel::TakeDamage(float DamageAmount, FDamageEvent const& Dam
 	// Structured Logging Example
 	UE_LOGFMT(LogGame, Log, "OnActorHit in Explosive Barrel");
 	// Warnings as structured logs even show up in the "Message Log" window of UnrealEd
-	UE_LOGFMT(LogGame, Warning, "OnActorHit, OtherActor: {name}, at game time: {timeseconds}", GetNameSafe(DamageCauser), GetWorld()->TimeSeconds);
+	UE_LOGFMT(LogGame, Warning, "OnActorHit, OtherActor: {name}, at game time: {timeseconds}", GetNameSafe(InstigatorActor), GetWorld()->TimeSeconds);
+}
 
+/*
+float AUPExplosiveBarrel::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
+                                     AActor* DamageCauser)
+{
+	
 	return DamageAmount;
 }
+*/
 
 void AUPExplosiveBarrel::Explode()
 {
@@ -80,6 +91,8 @@ void AUPExplosiveBarrel::Explode()
 	}
 
 	bExploded = true;
+
+	FlamesFXComp->Deactivate();
 
 	RadialForce->FireImpulse();
 

@@ -7,12 +7,15 @@
 #include "GameFramework/Character.h"
 #include "UPAICharacter.generated.h"
 
+class UNiagaraComponent;
+class UUPAttributeComponent;
 class UUPSignificanceComponent;
 class UUPActionComponent;
 class UUPWorldUserWidget;
 class UPawnSensingComponent;
 class UPAttributeComponent;
 class UUserWidget;
+struct FTimerHandle;
 
 UCLASS()
 class UEPRACTICE_API AUPAICharacter : public ACharacter, public IGenericTeamAgentInterface
@@ -26,16 +29,16 @@ public:
 public:
 	virtual void PostInitializeComponents() override;
 
-	virtual FGenericTeamId GetGenericTeamId() const;
+	virtual FGenericTeamId GetGenericTeamId() const override;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	AActor* GetTargetActor() const;
 
-protected:
 	UFUNCTION(NetMulticast, Unreliable)
- 	void MulticastPawnSeen();
+	void MulticastPlayAttackFX();
 
+protected:
 	UFUNCTION()
 	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
 
@@ -43,14 +46,23 @@ protected:
 	void OnSignificanceChanged(ESignificanceValue Significance);
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category="Effects")
+	FName AttackFX_Socket;
+
+	UPROPERTY(EditDefaultsOnly, Category="Effects")
+	TObjectPtr<UAnimMontage> AttackMontage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UNiagaraComponent> AttackParticleComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	TObjectPtr<UAudioComponent> AttackSoundComp;
+
 	UPROPERTY(Transient)
 	TObjectPtr<UUPWorldUserWidget> ActiveHealthBar;
 
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UUserWidget> HealthBarWidgetClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "UI")
-	TSubclassOf<UUserWidget> SpottedWidgetClass;
 
 	/* Index must match the CustomPrimitiveData index used in the Overlay material */
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
@@ -69,4 +81,8 @@ protected:
 	/* Key for AI Blackboard 'TargetActor' */
  	UPROPERTY(VisibleAnywhere, Category = "Effects")
  	FName TargetActorKey;
+
+	float CachedOverlayMaxDistance;
+
+	FTimerHandle OverlayTimerHandle;
 };

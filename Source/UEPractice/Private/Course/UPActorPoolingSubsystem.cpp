@@ -9,7 +9,7 @@
 
 static TAutoConsoleVariable CVarActorPoolingEnabled(
 	TEXT("up.ActorPooling"),
-	true,
+	false, // Disabled by default in sample project. Has some issues to work out (such as properly resetting all VFX like the black hole projectile)
 	TEXT("Enable actor pooling for selected objects."),
 	ECVF_Default);
 
@@ -107,7 +107,7 @@ AActor* UUPActorPoolingSubsystem::AcquireFromPool_Internal(TSubclassOf<AActor> A
 		AcquiredActor = ActorPool->FreeActors[0];
 
 		// Remove from pool
-		ActorPool->FreeActors.RemoveAt(0, 1, false);
+		ActorPool->FreeActors.RemoveAtSwap(0, 1, EAllowShrinking::No);
 	}
 
 	// Failed to find actor

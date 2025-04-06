@@ -8,6 +8,7 @@
 
 class UAnimMontage;
 class UNiagaraSystem;
+class AUPCharacter;
 
 UCLASS()
 class UEPRACTICE_API UUPAction_ProjectileAttack : public UUPAction
@@ -21,7 +22,7 @@ public:
 	virtual void StartAction_Implementation(AActor* Instigator) override;
 	
 protected:
-	void AttackDelay_Elapsed(ACharacter* InstigatorCharacter);
+	void AttackDelay_Elapsed(class AUPCharacter* InstigatorCharacter);
 
 protected:
 	/* Sphere radius of the sweep to find desired target under crosshair. Adjusts final projectile direction */

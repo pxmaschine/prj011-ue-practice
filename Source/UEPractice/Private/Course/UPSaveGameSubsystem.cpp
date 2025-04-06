@@ -38,17 +38,11 @@ void UUPSaveGameSubsystem::HandleStartingNewPlayer(AController* NewPlayer)
 
 bool UUPSaveGameSubsystem::OverrideSpawnTransform(AController* NewPlayer)
 {
-	if (NewPlayer == nullptr || NewPlayer->IsPendingKillPending())
-	{
-		return false;
-	}
+	check(NewPlayer);
 
 	APlayerState* PS = NewPlayer->GetPlayerState<APlayerState>();
-	if (PS == nullptr)
-	{
-		return false;
-	}
-	
+	check(PS);
+
 	if (APawn* MyPawn = PS->GetPawn())
 	{
 		FPlayerSaveData* FoundData = CurrentSaveGame->GetPlayerData(PS);
@@ -87,11 +81,7 @@ void UUPSaveGameSubsystem::WriteSaveGame()
 	CurrentSaveGame->SavedActorMap.Empty();
 
 	AGameStateBase* GS = GetWorld()->GetGameState();
-	if (GS == nullptr)
-	{
-		// Warn about failure to save?
-		return;
-	}
+	check(GS);
 	
 	// Iterate all player states, we don't have proper ID to match yet (requires Steam or EOS)
 	for (int32 i = 0; i < GS->PlayerArray.Num(); i++)

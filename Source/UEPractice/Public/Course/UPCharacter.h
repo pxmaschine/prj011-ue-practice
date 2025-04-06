@@ -8,6 +8,7 @@
 #include "UPCharacter.generated.h"
 
 
+class AUPAICharacter;
 class UAIPerceptionStimuliSourceComponent;
 class UUPActionComponent;
 class USpringArmComponent;
@@ -44,6 +45,12 @@ public:
 
 	virtual FGenericTeamId GetGenericTeamId() const override;
 
+public:
+	UFUNCTION(Client, Unreliable)
+	void ClientOnSeenBy(AUPAICharacter* SeenByPawn);
+
+	void PlayAttackSound(USoundBase* InSound);
+
 protected:
 	void Move(const FInputActionValue& Value);
 
@@ -72,26 +79,50 @@ protected:
 
 protected:
 	/* Index must match the CustomPrimitiveData index used in the Overlay material */
-	UPROPERTY(VisibleAnywhere, Category = "Effects")
+	UPROPERTY(VisibleAnywhere, Category=Effects)
 	int32 HitFlash_CustomPrimitiveIndex;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category=Components)
 	USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(VisibleAnywhere)
+	/* Widget to display when bot first sees a player. */
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+	TSubclassOf<UUserWidget> SpottedWidgetClass;
+
+	//UPROPERTY(EditDefaultsOnly, Category= Effects)
+	//TObjectPtr<USoundBase> TakeDamageVOSound;
+	//
+	//UPROPERTY(EditDefaultsOnly, Category= Effects)
+	//TObjectPtr<USoundBase> DeathVOSound;
+
+	//UPROPERTY(EditDefaultsOnly, Category= Effects)
+	//TObjectPtr<USoundBase> DeathUISound;
+
+	//UPROPERTY(EditDefaultsOnly, Category= Effects)
+	//TObjectPtr<USoundBase> FootPlantSound;
+
+	/* Plays on DefaultSlot, make sure the "auto blendout" is disabled on the AnimSequence to keep the final pose  */
+	UPROPERTY(EditDefaultsOnly, Category= Effects)
+	TObjectPtr<UAnimMontage> DeathMontage;
+
+	UPROPERTY(VisibleAnywhere, Category=Components)
 	UCameraComponent* CameraComp;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category=Components)
 	UUPInteractionComponent* InteractionComp;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
 	UUPAttributeComponent* AttributeComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
 	UUPActionComponent* ActionComponent;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category=Components)
 	TObjectPtr<UAIPerceptionStimuliSourceComponent> PerceptionStimuliComp;
+
+	/* Re-usable audio component for all (attached) attack sounds such as casting sound from the magic projectile attack */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
+	TObjectPtr<UAudioComponent> AttackSoundsComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputMappingContext* DefaultMappingContext;
@@ -127,4 +158,8 @@ private:
 	bool bHasPawnTarget;
 
 	FTraceHandle TraceHandle;
+
+	float CachedOverlayMaxDistance;
+
+	FTimerHandle OverlayTimerHandle;
 };

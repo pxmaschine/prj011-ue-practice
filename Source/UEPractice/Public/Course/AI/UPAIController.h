@@ -4,8 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "BehaviorTree/BehaviorTreeTypes.h"
 #include "UPAIController.generated.h"
 
+namespace FBlackboard
+{
+	struct FKey;
+}
 class UBehaviorTree;
 class UAIPerceptionComponent;
 
@@ -19,6 +24,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+protected:
+	EBlackboardNotificationResult OnTargetActorChanged(const UBlackboardComponent& Comp, FBlackboard::FKey KeyID);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "AI")

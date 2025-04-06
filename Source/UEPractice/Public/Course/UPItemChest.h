@@ -22,22 +22,24 @@ public:
 public:
 	virtual void OnActorLoaded_Implementation() override;
 
-	void Interact_Implementation(APawn* InstigatorPawn) override;
+	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	//virtual void Tick(float DeltaSeconds) override;
 
 protected:
 	UFUNCTION()
 	void OnRep_LidOpened();
 
-	void OpenChest();
+	void ConditionalOpenChest();
 
 protected:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category=Components)
 	UStaticMeshComponent* BaseMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
 	UStaticMeshComponent* LidMesh;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category=Components)
 	TObjectPtr<UNiagaraComponent> OpenChestEffect;
 
 	UPROPERTY(ReplicatedUsing="OnRep_LidOpened", BlueprintReadOnly, SaveGame)
@@ -45,4 +47,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category= "Animation")
 	UCurveFloat* LidAnimCurve;
+
+	UPROPERTY(VisibleAnywhere, Category=Components)
+	TObjectPtr<UAudioComponent> OpenChestSound;
+
+	//FActiveCurveAnim* CurveAnimInst;
 };

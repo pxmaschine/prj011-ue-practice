@@ -6,15 +6,3 @@
 #include "GameplayTagContainer.h"
 
 class UUPActionComponent;
-
-UENUM(BlueprintType)
-enum class EAttributeModifyType: uint8
-{
-	AddDelta,
-
-	AddBase,
-
-	OverrideBase,
-
-	Invalid
-};

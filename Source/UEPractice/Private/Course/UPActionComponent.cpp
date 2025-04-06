@@ -12,11 +12,28 @@
 UUPActionComponent::UUPActionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	bWantsInitializeComponent = true;
 
 	SetIsReplicatedByDefault(true);
 
 	// See GDefaultUseSubObjectReplicationList for CVAR to enable by default project-wide
 	bReplicateUsingRegisteredSubObjectList = true;
+}
+
+void UUPActionComponent::InitializeComponent()
+{
+	Super::InitializeComponent();
+
+	for (TFieldIterator<FStructProperty> PropertyIt(AttributeSet.GetScriptStruct()); PropertyIt; ++PropertyIt)
+	{
+		const FUPAttribute* FoundAttribute = PropertyIt->ContainerPtrToValuePtr<FUPAttribute>(AttributeSet.GetMemory());
+
+		// Build the tag "Attribute.Health" where "Health" is the variable name of the RogueAttribute we just iterated
+		FString TagName = TEXT("Attribute." + PropertyIt->GetName());
+		FGameplayTag AttributeTag = FGameplayTag::RequestGameplayTag(FName(TagName));
+
+		AttributeCache.Add(AttributeTag, FoundAttribute);
+	}
 }
 
 void UUPActionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -73,19 +90,10 @@ void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 bool UUPActionComponent::GetAttribute(FGameplayTag InAttributeTag, FUPAttribute& OutAttribute)
 {
-		// Split the tag to only the attribute name, eg. "Health"
-	FName PropertyName;
-	if (GetAttributeName(InAttributeTag, PropertyName))
+	if (const FUPAttribute* FoundAttribute = *AttributeCache.Find(InAttributeTag))
 	{
-		// With Unreal Property/Reflection system we can find and get all data so long as members are marked with UPROPERTY()
-		FStructProperty* AttributeProp = CastField<FStructProperty>(AttributeSet.GetScriptStruct()->FindPropertyByName(PropertyName));
-		if (AttributeProp)
-		{
-			// Convert the found container data to our attribute struct
-			const FUPAttribute* FoundAttribute = AttributeProp->ContainerPtrToValuePtr<FUPAttribute>(AttributeSet.GetMemory());
-			OutAttribute = *FoundAttribute;
-			return true;
-		}
+		OutAttribute = *FoundAttribute;
+		return true;
 	}
 
 	return false;
@@ -214,24 +222,6 @@ void UUPActionComponent::RemoveAttributeListener(FGameplayTag AttributeTag, FAtt
 			break;
 		}
 	}
-}
-
-bool UUPActionComponent::GetAttributeName(const FGameplayTag InTag, FName& OutAttributeName)
-{
-	// Attribute names should reflect the Tag name in project. eg. Grab "Health" (property name) from "Attribute.Health" GameplayTag
-	FString LeftStr;
-	FString RightStr;
-	InTag.ToString().Split(".", &LeftStr, &RightStr, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
-#if !UE_BUILD_SHIPPING
-	if (RightStr.IsEmpty())
-	{
-		UE_LOG(LogGame, Warning, TEXT("Failed to split GameplayTag (%s) in GetAttribute."), *InTag.ToString());
-		return false;
-	}
-#endif
-
-	OutAttributeName = FName(*RightStr);
-	return true;
 }
 
 void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> ActionClass)
