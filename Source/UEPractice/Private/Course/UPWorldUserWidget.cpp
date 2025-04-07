@@ -18,9 +18,13 @@ void UUPWorldUserWidget::AddToRootCanvasPanel(UUserWidget* InNewWidget)
 	// Expect only one main hud, other menus etc. might mess with this and requires slight change (eg. adding a pause menu to the root)
 	//check(Widgets.Num() == 1)
 
-	const UUserWidget* MainHUD = Widgets[0];
-	UCanvasPanel* CanvasPanel = Cast<UCanvasPanel>(MainHUD->GetRootWidget());
-	CanvasPanel->AddChild(InNewWidget);
+	// We might be testing without a HUD...
+	if (Widgets.Num() > 0)
+	{
+		const UUserWidget* MainHUD = Widgets[0];
+		UCanvasPanel* CanvasPanel = Cast<UCanvasPanel>(MainHUD->GetRootWidget());
+		CanvasPanel->AddChild(InNewWidget);
+	}
 }
 
 void UUPWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

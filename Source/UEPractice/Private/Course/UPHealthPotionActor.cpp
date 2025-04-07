@@ -38,7 +38,7 @@ void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
 					ActionComp->GetAttribute(SharedGameplayTags::Attribute_HealthMax)->GetValue(),
 					ActionComp,
 					this,
-					EAttributeModifyType::AddDelta);
+					EAttributeModifyType::AddModifier);
 
 				if (ActionComp->ApplyAttributeChange(AttriMod))
 				{

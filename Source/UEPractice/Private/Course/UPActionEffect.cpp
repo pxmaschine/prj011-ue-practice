@@ -37,12 +37,12 @@ void UUPActionEffect::StartAction_Implementation(AActor* Instigator)
 
 void UUPActionEffect::StopAction_Implementation(AActor* Instigator)
 {
+	Super::StopAction_Implementation(Instigator);
+
 	if (GetWorld()->GetTimerManager().GetTimerRemaining(PeriodHandle) < UE_KINDA_SMALL_NUMBER)
 	{
 		ExecutePeriodicEffect(Instigator);
 	}
-
-	Super::StopAction_Implementation(Instigator);
 
 	GetWorld()->GetTimerManager().ClearTimer(PeriodHandle);
 	GetWorld()->GetTimerManager().ClearTimer(DurationHandle);

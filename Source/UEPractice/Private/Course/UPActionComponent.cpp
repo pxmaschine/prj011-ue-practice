@@ -97,9 +97,9 @@ bool UUPActionComponent::ApplyAttributeChange(const FAttributeModification& Modi
 				Attribute->Base += Modification.Magnitude;
 				break;
 			}
-		case EAttributeModifyType::AddDelta:
+		case EAttributeModifyType::AddModifier:
 			{
-				Attribute->Delta += Modification.Magnitude;
+				Attribute->Modifier += Modification.Magnitude;
 				break;
 			}
 		case EAttributeModifyType::OverrideBase:
@@ -169,7 +169,7 @@ bool UUPActionComponent::K2_GetAttribute(FGameplayTag InAttributeTag, float& Cur
 	{
 		CurrentValue = FoundAttribute->GetValue();
 		Base = FoundAttribute->Base;
-		Delta = FoundAttribute->Delta;
+		Delta = FoundAttribute->Modifier;
 	}
 
 	return false;

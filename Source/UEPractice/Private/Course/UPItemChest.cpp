@@ -63,11 +63,10 @@ void AUPItemChest::ConditionalOpenChest()
 		UUPTweenSubsystem* AnimSubsystem = GetWorld()->GetSubsystem<UUPTweenSubsystem>();
 		
 		// Several ways to trigger and manage these animations (curve-based automatic ticking, manual ticking, and easing functions)
-		/*
 		AnimSubsystem->PlayTween(LidAnimCurve, 1.0f, [&](float CurrValue)
 		{
 			LidMesh->SetRelativeRotation(FRotator(CurrValue, 0, 0));
-		});*/
+		});
 
 		// manually handled variation to tick yourself
 		/*CurveAnimInst = new FActiveCurveAnim(LidAnimCurve, [&](float CurrValue)
@@ -75,10 +74,11 @@ void AUPItemChest::ConditionalOpenChest()
 			LidMesh->SetRelativeRotation(FRotator(CurrValue, 0, 0));
 		}, 1.0f);*/
 
+		/*
 		AnimSubsystem->PlayEasingFunc(EEasingFunc::EaseInOut, 2.0f, 2.0f, [&](float CurrValue)
 		{
 			LidMesh->SetRelativeRotation(FRotator(CurrValue * 100.f, 0, 0));
-		});
+		});*/
 
 		OpenChestEffect->Activate(true);
 

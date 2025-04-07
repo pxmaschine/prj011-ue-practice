@@ -124,7 +124,7 @@ bool UUPGameplayFunctionLibrary::ApplyDamage(AActor* DamageCauser, AActor* Targe
 		-TotalDamage, // Make sure we apply a negative amount to the Health
 		VictimComp,
 		DamageCauser,
-		EAttributeModifyType::AddDelta);
+		EAttributeModifyType::AddModifier);
 	
 	// Could pass through dead enemies
 	return VictimComp->ApplyAttributeChange(AttriMod);

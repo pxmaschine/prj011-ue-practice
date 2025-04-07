@@ -22,7 +22,7 @@ EBTNodeResult::Type UUPBTTask_Heal::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 		HealthMaxAttribute->GetValue(),
 		ActionComp,
 		MyPawn,
-		EAttributeModifyType::AddDelta);
+		EAttributeModifyType::AddModifier);
 
 	ActionComp->ApplyAttributeChange(AttriMod);
 
