@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "UPExplosiveBarrel.generated.h"
 
+class UUPActionComponent;
+struct FAttributeModification;
 class UUPAttributeComponent;
 class UStaticMeshComponent;
 class URadialForceComponent;
@@ -19,18 +21,18 @@ class UEPRACTICE_API AUPExplosiveBarrel : public AActor
 public:
 	AUPExplosiveBarrel();
 
-protected:
-	//virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+public:
+	virtual void PostInitializeComponents() override;
 
-	UFUNCTION()
-	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
+protected:
+	void OnHealthAttributeChanged(float NewValue, const FAttributeModification& AttributeModification);
 
 protected:
 	void Explode();
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = Components)
-	TObjectPtr<UUPAttributeComponent> AttributeComponent;
+	TObjectPtr<UUPActionComponent> ActionComp;
 
 	UPROPERTY(VisibleAnywhere, Category = Components)
 	UStaticMeshComponent* StaticMesh{ nullptr };

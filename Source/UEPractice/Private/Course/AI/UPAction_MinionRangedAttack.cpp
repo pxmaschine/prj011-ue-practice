@@ -3,7 +3,7 @@
 
 #include "Course/AI/UPAction_MinionRangedAttack.h"
 #include "Course/UPActionComponent.h"
-#include "Course/UPAttributeComponent.h"
+#include "Course/UPGameplayFunctionLibrary.h"
 #include "Course/AI/UPAICharacter.h"
 #include "UEPractice/UEPractice.h"
 
@@ -11,13 +11,13 @@ void UUPAction_MinionRangedAttack::StartAction_Implementation(AActor* Instigator
 {
 	AUPAICharacter* MyPawn = CastChecked<AUPAICharacter>(GetOwningComponent()->GetOwner());
 
-	AActor* TargetActor = MyPawn->GetTargetActor();
+	const AActor* TargetActor = MyPawn->GetTargetActor();
 	if (TargetActor == nullptr)
 	{
 		return;
 	}
 
-	if (!UUPAttributeComponent::IsActorAlive(TargetActor))
+	if (!UUPGameplayFunctionLibrary::IsAlive(TargetActor))
 	{
 		return;
 	}

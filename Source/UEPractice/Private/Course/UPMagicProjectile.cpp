@@ -17,7 +17,7 @@ AUPMagicProjectile::AUPMagicProjectile()
 
 	InitialLifeSpan = 8.0f;
 
-	DamageAmount = 20.0f;
+	DamageCoefficient = 100.0f;
 }
 
 void AUPMagicProjectile::PostInitializeComponents()
@@ -35,24 +35,25 @@ void AUPMagicProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent
 	}
 
 	// Parry Ability (GameplayTag Example)
-	UUPActionComponent* ActionComp = OtherActor->FindComponentByClass<UUPActionComponent>();
-	if (ActionComp && ActionComp->ActiveGameplayTags.HasTag(ParryTag))
+	UUPActionComponent* OtherActionComp = OtherActor->FindComponentByClass<UUPActionComponent>();
+	if (OtherActionComp && OtherActionComp->ActiveGameplayTags.HasTag(ParryTag))
 	{
 		MovementComp->Velocity = -MovementComp->Velocity;
 
 		// The reflector now becomes the 'instigator' of the damage from the reflected projectile
 		SetInstigator(Cast<APawn>(OtherActor));
-
 		return;
 	}
 
-	if (UUPGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageAmount, SweepResult))
+	// Apply Damage & Impulse
+	if (UUPGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageCoefficient, SweepResult))
 	{
+		// We only explode if the target can be damaged, it ignores anything it Overlaps that it cannot Damage
 		Explode();
 
-		if (ActionComp && HasAuthority())
+		if (OtherActionComp && BurningActionClass && HasAuthority())
 		{
-			ActionComp->AddAction(GetInstigator(), BurningActionClass);
+			OtherActionComp->AddAction(GetInstigator(), BurningActionClass);
 		}
 	}
 

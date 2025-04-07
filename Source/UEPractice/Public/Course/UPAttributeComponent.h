@@ -23,8 +23,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	static UUPAttributeComponent* GetAttributes(const AActor* FromActor);
 
+	/*
 	UFUNCTION(BlueprintCallable, Category = "Attributes", meta = (DisplayName = "IsAlive"))
 	static bool IsActorAlive(const AActor* FromActor);
+	*/
 	
 public:
 	UFUNCTION(BlueprintCallable, Category = "Attributes")

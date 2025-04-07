@@ -36,12 +36,14 @@ UUPAttributeComponent* UUPAttributeComponent::GetAttributes(const AActor* FromAc
 {
 	if (FromActor)
 	{
+		// @todo: allow "quick access" via interface callback to optionally implement
 		return FromActor->FindComponentByClass<UUPAttributeComponent>();
 	}
 
 	return nullptr;
 }
 
+/*
 bool UUPAttributeComponent::IsActorAlive(const AActor* FromActor)
 {
 	if (const UUPAttributeComponent* Attributes = GetAttributes(FromActor))
@@ -51,6 +53,7 @@ bool UUPAttributeComponent::IsActorAlive(const AActor* FromActor)
 
 	return false;
 }
+*/
 
 bool UUPAttributeComponent::Kill(AActor* InstigatorActor)
 {

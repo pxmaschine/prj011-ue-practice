@@ -32,6 +32,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TSubclassOf<UUPActionEffect> BurningActionClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	float DamageAmount;
+	UPROPERTY(EditDefaultsOnly, Category = "Damage", meta=(Units="Percent"))
+	float DamageCoefficient;
 };

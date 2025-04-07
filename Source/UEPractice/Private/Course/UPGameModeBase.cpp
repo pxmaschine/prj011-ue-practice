@@ -13,6 +13,7 @@
 #include "UEPractice/UEPractice.h"
 
 #include "EngineUtils.h"
+#include "Course/UPGameplayFunctionLibrary.h"
 #include "Course/UPHUD.h"
 #include "Engine/AssetManager.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
@@ -164,11 +165,10 @@ void AUPGameModeBase::SpawnBotTimerElapsed()
 
 	// Count alive bots before spawning
 	int32 NrOfAliveBots = 0;
-	// TActorRange simplifies the code compared to TActorIterator<T>
+	// TActorRange simplifies the code compared to TActorIterator<T> (uses internally cached list of all ARogueAICharacter instances)
 	for (const AUPAICharacter* Bot : TActorRange<AUPAICharacter>(GetWorld()))
 	{
-		const UUPAttributeComponent* AttributeComp = UUPAttributeComponent::GetAttributes(Bot);
-		if (ensure(AttributeComp) && AttributeComp->IsAlive())
+		if (UUPGameplayFunctionLibrary::IsAlive(Bot))
 		{
 			NrOfAliveBots++;
 		}

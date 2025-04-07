@@ -2,8 +2,9 @@
 
 
 #include "Course/UPActionEffect_Thorns.h"
+
+#include "Course/SharedGameplayTags.h"
 #include "Course/UPActionComponent.h"
-#include "Course/UPAttributeComponent.h"
 #include "Course/UPGameplayFunctionLibrary.h"
 
 
@@ -20,10 +21,7 @@ void UUPActionEffect_Thorns::StartAction_Implementation(AActor* Instigator)
 	Super::StartAction_Implementation(Instigator);
 
 	// Start listening
-	if (UUPAttributeComponent* Attributes = UUPAttributeComponent::GetAttributes(GetOwningComponent()->GetOwner()))
- 	{
- 		Attributes->OnHealthChanged.AddDynamic(this, &UUPActionEffect_Thorns::OnHealthChanged);
- 	}
+	AttriChangedHandle = ActionComp->GetAttribute(SharedGameplayTags::Attribute_Health)->OnAttributeChanged.AddUObject(this, &ThisClass::OnHealthChanged);
 }
 
 void UUPActionEffect_Thorns::StopAction_Implementation(AActor* Instigator)
@@ -31,30 +29,31 @@ void UUPActionEffect_Thorns::StopAction_Implementation(AActor* Instigator)
 	Super::StopAction_Implementation(Instigator);
 
 	// Stop listening
-	if (UUPAttributeComponent* Attributes = UUPAttributeComponent::GetAttributes(GetOwningComponent()->GetOwner()))
- 	{
- 		Attributes->OnHealthChanged.RemoveDynamic(this, &UUPActionEffect_Thorns::OnHealthChanged);
- 	}
+	ActionComp->GetAttribute(SharedGameplayTags::Attribute_Health)->OnAttributeChanged.Remove(AttriChangedHandle);
 }
 
-void UUPActionEffect_Thorns::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta)
+void UUPActionEffect_Thorns::OnHealthChanged(float NewValue, const FAttributeModification& AttributeModification)
 {
 	AActor* OwningActor = GetOwningComponent()->GetOwner();
- 
- 	// Damage Only
- 	if (Delta < 0.0f && OwningActor != InstigatorActor)
- 	{
- 		// Round to nearest to avoid 'ugly' damage numbers and tiny reflections
- 		int32 ReflectedAmount = FMath::RoundToInt(Delta * ReflectFraction);
- 		if (ReflectedAmount == 0)
- 		{
- 			return;
- 		}
- 
- 		// Flip to positive, so we don't end up healing ourselves when passed into damage
- 		ReflectedAmount = FMath::Abs(ReflectedAmount);
- 
- 		// Return damage sender...
- 		UUPGameplayFunctionLibrary::ApplyDamage(OwningActor, InstigatorActor, ReflectedAmount);
- 	}
+
+	// Damage Only
+	if (AttributeModification.Magnitude < 0.0f && OwningActor != AttributeModification.Instigator)
+	{
+		/*
+		// Round to nearest to avoid 'ugly' damage numbers and tiny reflections
+		int32 ReflectedAmount = FMath::RoundToInt(AttributeModification.Magnitude * ReflectFraction);
+		if (ReflectedAmount == 0)
+		{
+			return;
+		}
+
+		// Flip to positive, so we don't end up healing ourselves when passed into damage
+		ReflectedAmount = FMath::Abs(ReflectedAmount);*/
+
+		// @todo: maybe thorns can still base DMG on base dmg from hit rather than using player baseDmg attribute as with all normal damage
+		float DmgCoefficient = 5.0f;
+
+		// Return damage to sender...
+		UUPGameplayFunctionLibrary::ApplyDamage(OwningActor, AttributeModification.Instigator.Get(), DmgCoefficient);
+	}
 }

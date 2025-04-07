@@ -3,7 +3,7 @@
 
 #include "Course/UPActionComponent.h"
 #include "Course/UPAction.h"
-#include "Course/UPGameplayInterface.h"
+#include "Course/UPGameplayFunctionLibrary.h"
 #include "UEPractice/UEPractice.h"
 
 #include "Net/UnrealNetwork.h"
@@ -24,15 +24,19 @@ void UUPActionComponent::InitializeComponent()
 {
 	Super::InitializeComponent();
 
-	for (TFieldIterator<FStructProperty> PropertyIt(AttributeSet.GetScriptStruct()); PropertyIt; ++PropertyIt)
 	{
-		const FUPAttribute* FoundAttribute = PropertyIt->ContainerPtrToValuePtr<FUPAttribute>(AttributeSet.GetMemory());
+		TRACE_CPUPROFILER_EVENT_SCOPE(CacheAllAttributes);
 
-		// Build the tag "Attribute.Health" where "Health" is the variable name of the RogueAttribute we just iterated
-		FString TagName = TEXT("Attribute." + PropertyIt->GetName());
-		FGameplayTag AttributeTag = FGameplayTag::RequestGameplayTag(FName(TagName));
+		for (TFieldIterator<FStructProperty> PropertyIt(AttributeSet.GetScriptStruct()); PropertyIt; ++PropertyIt)
+		{
+			const FUPAttribute* FoundAttribute = PropertyIt->ContainerPtrToValuePtr<FUPAttribute>(AttributeSet.GetMemory());
 
-		AttributeCache.Add(AttributeTag, FoundAttribute);
+			// Build the tag "Attribute.Health" where "Health" is the variable name of the RogueAttribute we just iterated
+			FString TagName = TEXT("Attribute." + PropertyIt->GetName());
+			FGameplayTag AttributeTag = FGameplayTag::RequestGameplayTag(FName(TagName));
+
+			AttributeCache.Add(AttributeTag, const_cast<FUPAttribute*>(FoundAttribute));
+		}
 	}
 }
 
@@ -40,7 +44,7 @@ void UUPActionComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UUPActionComponent, Actions);
+	DOREPLIFETIME(UUPActionComponent, AttributeSet);
 }
 
 void UUPActionComponent::BeginPlay()
@@ -60,78 +64,47 @@ void UUPActionComponent::BeginPlay()
 void UUPActionComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	// Stop all
-	TArray<UUPAction*> ActionsCopy = Actions;
-	for (UUPAction* Action : ActionsCopy)
-	{
-		if (Action->IsRunning())
-		{
-			Action->StopAction(GetOwner());
-		}
-	}
+	StopAllActions();
 
 	Super::EndPlay(EndPlayReason);
 }
 
-void UUPActionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+UUPActionComponent* UUPActionComponent::GetActionComponent(AActor* FromActor)
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	//const FString DebugMsg = GetNameSafe(GetOwner()) + " : " + ActiveGameplayTags.ToStringSimple( );
-	//GEngine->AddOnScreenDebugMessage(-1, 0.0f, FColor::White, DebugMsg);
-
-	//// Draw all actions
-	//for (const UUPAction* Action : Actions)
-	//{
-	//	const FColor TextColor = Action->IsRunning() ? FColor::Blue : FColor::White;
-	//	FString ActionMsg = FString::Printf(TEXT("[%s] Action: %s"), *GetNameSafe(GetOwner()), *GetNameSafe(Action));
-	//	LogOnScreen(this, ActionMsg, TextColor, 0.0f);
-	//}
+	return UUPGameplayFunctionLibrary::GetActionComponentFromActor(FromActor);
 }
 
-bool UUPActionComponent::GetAttribute(FGameplayTag InAttributeTag, FUPAttribute& OutAttribute)
+FUPAttribute* UUPActionComponent::GetAttribute(FGameplayTag InAttributeTag)
 {
-	if (const FUPAttribute* FoundAttribute = *AttributeCache.Find(InAttributeTag))
+	if (FUPAttribute** FoundAttribute = AttributeCache.Find(InAttributeTag))
 	{
-		OutAttribute = *FoundAttribute;
-		return true;
+		return *FoundAttribute;
 	}
 
-	return false;
+	return nullptr;
 }
 
-bool UUPActionComponent::K2_GetAttribute(FGameplayTag InAttributeTag, float& CurrentValue, float& Base, float& Delta)
+bool UUPActionComponent::ApplyAttributeChange(const FAttributeModification& Modification)
 {
-	FUPAttribute FoundAttribute;
-	if (GetAttribute(InAttributeTag, FoundAttribute))
-	{
-		CurrentValue = FoundAttribute.GetValue();
-		Base = FoundAttribute.Base;
-		Delta = FoundAttribute.Delta;
-	}
+	FUPAttribute* Attribute = GetAttribute(Modification.AttributeTag);
 
-	return false;
-}
-
-bool UUPActionComponent::ApplyAttributeChange(FGameplayTag InAttributeTag, FAttributeModification Modification)
-{
-	FUPAttribute Attribute;
-	GetAttribute(InAttributeTag, Attribute);
+	float OriginalValue = Attribute->GetValue();
 
 	switch (Modification.ModifyType)
 	{
 		case EAttributeModifyType::AddBase:
 			{
-				Attribute.Base += Modification.Magnitude;
+				Attribute->Base += Modification.Magnitude;
 				break;
 			}
 		case EAttributeModifyType::AddDelta:
 			{
-				Attribute.Delta += Modification.Magnitude;
+				Attribute->Delta += Modification.Magnitude;
 				break;
 			}
 		case EAttributeModifyType::OverrideBase:
 			{
-				Attribute.Base = Modification.Magnitude;
+				Attribute->Base = Modification.Magnitude;
 				break;
 			}
 		default:
@@ -139,89 +112,74 @@ bool UUPActionComponent::ApplyAttributeChange(FGameplayTag InAttributeTag, FAttr
 			check(false);
 	}
 
-	BroadcastAttributeListener(InAttributeTag, Attribute.GetValue(), Modification);
-	
-	return true;
-}
-
-void UUPActionComponent::BroadcastAttributeListener(FGameplayTag AttributeTag, float NewValue,
-	const FAttributeModification& AppliedMod)
-{
-	if (FOnAttributeChangedList* DelegateList = AttributeListeners.Find(AttributeTag))
+	// With clamping inside the attribute (or a zero delta) no real change might have occured
+	if (!FMath::IsNearlyEqual(OriginalValue, Attribute->GetValue()))
 	{
-		for (FOnAttributeChangedNonDynamic& Delegate : DelegateList->Delegates)
-		{
-			Delegate.Execute(NewValue, AppliedMod);
-		}
+		Attribute->OnAttributeChanged.Broadcast(Attribute->GetValue(), Modification);
+		return true;
 	}
+	
+	// no actual change occured
+	return false;
 }
 
-void UUPActionComponent::K2_AddAttributeListener(FGameplayTag AttributeTag, const FOnAttributeChangedDynamic& Event)
+void UUPActionComponent::K2_AddAttributeListener(FGameplayTag AttributeTag, FOnAttributeChangedDynamic Event, bool bCallImmediately /*= false*/)
 {
 	//FAttributeDelegateHandle Wrapper;
 	//Wrapper.DynamicDelegate = Event;
 	//AttributeListeners.Add(TPair<FGameplayTag, FAttributeDelegateHandle>(AttributeTag, Wrapper));
 
-
-	if (TArray<FAttributeDelegateHandle>* Handles = Listeners.Find(AttributeTag))
+	if (!AttributeTag.IsValid())
 	{
-		Handles->Add(FAttributeDelegateHandle(Event));
-	}
-}
-
-FDelegateHandle UUPActionComponent::AddAttributeListener(FGameplayTag AttributeTag,
-	const FOnAttributeChangedNonDynamic& Func)
-{
-	//FAttributeDelegateHandle Wrapper;
-	//Wrapper.Delegate = Func;
-	//AttributeListeners.Add(TPair<FGameplayTag, FAttributeDelegateHandle>(AttributeTag, Wrapper));
-
-	if (FOnAttributeChangedList* DelegateList = AttributeListeners.Find(AttributeTag))
-	{
-		// Append delegate to exist list for specific tag
-		DelegateList->Delegates.Add(Func);
-	}
-	else
-	{
-		// Did not find any for this tag, create a fresh list
-		FOnAttributeChangedList NewList;
-		NewList.Delegates.Add(Func);
-		AttributeListeners.Add(AttributeTag, NewList);
+		UE_LOG(LogGame, Log, TEXT("No valid GameplayTag specified in AddAttributeListener for %s"), *GetNameSafe(GetOwner()));
+		return;
 	}
 
-	return Func.GetHandle();
-}
+	FUPAttribute* FoundAttribute = GetAttribute(AttributeTag);
 
-void UUPActionComponent::RemoveAttributeListener(FGameplayTag AttributeTag, FDelegateHandle Handle)
-{
-	if (FOnAttributeChangedList* DelegateList = AttributeListeners.Find(AttributeTag))
+	// An unusual "Wrapper" to make the binding easier in blueprint (returns handle to unbind from Blueprint if needed)
+	FDelegateHandle Handle = FoundAttribute->OnAttributeChanged.AddLambda([Event, FoundAttribute, this](float NewValue, FAttributeModification AttriMod)
 	{
-		for (int32 i = 0; i < DelegateList->Delegates.Num(); i++)
+		bool bIsBound = Event.ExecuteIfBound(NewValue, AttriMod);
+
+		// We instance was deleted, the event is no longer valid
+		if (!bIsBound)
 		{
-			if (Handle == DelegateList->Delegates[i].GetHandle())
-			{
-				// Clear
-				DelegateList->Delegates[i] = nullptr;
-				break;
-			}
+			FDelegateHandle Handle = *DynamicDelegateHandles.Find(Event);
+			FoundAttribute->OnAttributeChanged.Remove(Handle);
 		}
+	});
+
+	// Keep track so it can be cleaned up if blueprint owning is deleted
+	DynamicDelegateHandles.Add(Event, Handle);
+
+	// Calling immediately is convenient for setting up initial states like in UI
+	if (bCallImmediately)
+	{
+		// @todo: maybe change EAttributeModifyType?
+		const FAttributeModification AttriMod = FAttributeModification(AttributeTag, 0.0f, this, GetOwner(), EAttributeModifyType::Invalid);
+		
+		Event.Execute(FoundAttribute->GetValue(), AttriMod);
 	}
 }
 
-void UUPActionComponent::RemoveAttributeListener(FGameplayTag AttributeTag, FAttributeDelegateHandle Handle)
+bool UUPActionComponent::K2_GetAttribute(FGameplayTag InAttributeTag, float& CurrentValue, float& Base, float& Delta)
 {
-	TArray<FAttributeDelegateHandle> DelegateList = *Listeners.Find(AttributeTag);
-	check(DelegateList.Num() > 0);
+	if (const FUPAttribute* FoundAttribute = GetAttribute(InAttributeTag))
+	{
+		CurrentValue = FoundAttribute->GetValue();
+		Base = FoundAttribute->Base;
+		Delta = FoundAttribute->Delta;
+	}
+
+	return false;
+}
+
+void UUPActionComponent::SetDefaultAttributeSet(UScriptStruct* InDefaultType)
+{
+	// @todo: maybe add safeguards to only allow this during init. We don't want to swap out set during gameplay
 	
-	for (int32 i = 0; i < DelegateList.Num(); i++)
-	{
-		if (Handle == DelegateList[i])
-		{
-			// Clear
-			DelegateList.RemoveAt(i);
-			break;
-		}
-	}
+	AttributeSet = FInstancedStruct(InDefaultType);
 }
 
 void UUPActionComponent::AddAction(AActor* Instigator, TSubclassOf<UUPAction> ActionClass)
@@ -343,6 +301,18 @@ bool UUPActionComponent::StopActionByName(AActor* Instigator, FGameplayTag Actio
 	return false;
 }
 
+void UUPActionComponent::StopAllActions()
+{
+	TArray<UUPAction*> ActionsCopy = Actions;
+	for (UUPAction* Action : ActionsCopy)
+	{
+		if (Action->IsRunning())
+		{
+			Action->StopAction(GetOwner());
+		}
+	}
+}
+
 void UUPActionComponent::ServerStartAction_Implementation(AActor* Instigator, FGameplayTag ActionName)
 {
 	StartActionByName(Instigator, ActionName);
@@ -351,22 +321,4 @@ void UUPActionComponent::ServerStartAction_Implementation(AActor* Instigator, FG
 void UUPActionComponent::ServerStopAction_Implementation(AActor* Instigator, FGameplayTag ActionName)
 {
 	StopActionByName(Instigator, ActionName);
-}
-
-UUPActionComponent* UUPActionComponent::GetComponent(AActor* InActor)
-{
-	if (InActor && InActor->Implements<UUPGameplayInterface>())
-	{
-		UUPActionComponent* ActionComp = nullptr;
-		if (IUPGameplayInterface::Execute_GetActionComponent(InActor, ActionComp))
-		{
-			return ActionComp;
-		}
-	}
-
-	// @todo: log warn about interface not implemented yet
-
-	// Iterate over all components anyway if not implemented. But warn about this
-
-	return InActor->GetComponentByClass<UUPActionComponent>();
 }

@@ -8,6 +8,7 @@
 #include "UPCharacter.generated.h"
 
 
+struct FAttributeModification;
 class AUPAICharacter;
 class UAIPerceptionStimuliSourceComponent;
 class UUPActionComponent;
@@ -71,7 +72,7 @@ protected:
 	void PrimaryInteract();
 
 	UFUNCTION()
-	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
+	void OnHealthAttributeChanged(float NewValue, const FAttributeModification& AttributeModification);
 
 	void FindCrosshairTarget();
 
@@ -110,9 +111,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category=Components)
 	UUPInteractionComponent* InteractionComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
-	UUPAttributeComponent* AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
 	UUPActionComponent* ActionComponent;

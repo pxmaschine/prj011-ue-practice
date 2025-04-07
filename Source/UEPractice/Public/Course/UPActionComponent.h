@@ -28,30 +28,16 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
-public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 public:
-	bool GetAttribute(FGameplayTag InAttributeTag, FUPAttribute& OutAttribute);
+	static UUPActionComponent* GetActionComponent(AActor* FromActor);
 
-	UFUNCTION(BlueprintCallable, Category=Attributes, DisplayName="GetAttribute")
-	bool K2_GetAttribute(FGameplayTag InAttributeTag, float& CurrentValue, float& Base, float& Delta);
+	FUPAttribute* GetAttribute(FGameplayTag InAttributeTag);
 
 	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Attributes, meta = (Keywords = "Add, Set"))
-	bool ApplyAttributeChange(FGameplayTag InAttributeTag, FAttributeModification Modification);
+	bool ApplyAttributeChange(const FAttributeModification& Modification);
 
-	void BroadcastAttributeListener(FGameplayTag AttributeTag, float NewValue, const FAttributeModification& AppliedMod);
-
-	void K2_AddAttributeListener(FGameplayTag AttributeTag, const FOnAttributeChangedDynamic& Event);
-
-	FDelegateHandle AddAttributeListener(FGameplayTag AttributeTag, const FOnAttributeChangedNonDynamic& Func);
-
-	void RemoveAttributeListener(FGameplayTag AttributeTag, FDelegateHandle Handle);
-	
-	void RemoveAttributeListener(FGameplayTag AttributeTag, FAttributeDelegateHandle Handle);
-
-	UFUNCTION(BlueprintCallable)
-	static UUPActionComponent* GetComponent(AActor* InActor);
+	/* Provide a default attribute set type for (base) classes, blueprint can set this via the details panel instead */
+	void SetDefaultAttributeSet(UScriptStruct* InDefaultType);
 
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	void AddAction(AActor* Instigator, TSubclassOf<UUPAction> ActionClass);
@@ -68,6 +54,17 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Action")
 	bool StopActionByName(AActor* Instigator, FGameplayTag ActionName);
+
+	/* Stop every action, for example during death */
+	void StopAllActions();
+
+protected:
+	/* Marked protected, C++ can use direct access to the OnAttributeChanged inside an Attribute */
+	UFUNCTION(BlueprintCallable, DisplayName="AddAttributeListener", meta = (Keywords = "Bind, Delegate", AdvancedDisplay="bCallImmediately"))
+	void K2_AddAttributeListener(FGameplayTag AttributeTag, FOnAttributeChangedDynamic Event, bool bCallImmediately = false);
+
+	UFUNCTION(BlueprintCallable, Category=Attributes, DisplayName="GetAttribute")
+	bool K2_GetAttribute(FGameplayTag InAttributeTag, float& CurrentValue, float& Base, float& Delta);
 
 protected:
 	UFUNCTION(Server, Reliable)
@@ -86,11 +83,6 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnActionStateChanged OnActionStopped;
 
-	// Keep a list of delegates per unique gameplaytag
-	TMap<FGameplayTag, FOnAttributeChangedList> AttributeListeners;
-
-	TMap<FGameplayTag, TArray<FAttributeDelegateHandle>> Listeners;
-
 protected:
 	UPROPERTY(EditAnywhere, Category = "Actions")
 	TArray<TSubclassOf<UUPAction>> DefaultActions;
@@ -99,9 +91,12 @@ protected:
 	TArray<UUPAction*> Actions;
 
 	/* Interchangeable set of attributes such as Health, BaseDamage, Strength, Stamina, MoveSpeed, etc. */
-	UPROPERTY(EditAnywhere, Category=Attributes, meta = (BaseStruct = "/Script/UEPractice.UPAttributeSet", ExcludeBaseStruct))
+	UPROPERTY(Replicated, EditDefaultsOnly, BlueprintReadOnly, Category=Attributes, meta = (BaseStruct = "/Script/UEPractice.UPAttributeSet", ExcludeBaseStruct))
 	FInstancedStruct AttributeSet;
 
 	/* Fetch from properties stored inside the AttributeSet for quick access */
-	TMap<FGameplayTag, const FUPAttribute*> AttributeCache;
+	TMap<FGameplayTag, FUPAttribute*> AttributeCache;
+
+	/* List of delegates that came from Blueprint to ensure we can clean up "dead" hooks */
+	TMap<FOnAttributeChangedDynamic, FDelegateHandle> DynamicDelegateHandles;
 };

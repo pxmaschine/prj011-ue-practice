@@ -30,89 +30,42 @@ struct FAttributeModification
 {
 	GENERATED_BODY()
 
-	FAttributeModification():
-		Magnitude(0),
-		ModifyType(EAttributeModifyType::AddDelta)
-	{
-	}
+	FAttributeModification() {}
 
-	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UUPActionComponent> OwningComp;
+	FAttributeModification(const FGameplayTag InAttribute,
+	                       const float InMagnitude,
+	                       UUPActionComponent* InTargetComp,
+	                       AActor* InInstigator,
+	                       const EAttributeModifyType InModificationType) :
+			AttributeTag(InAttribute),
+			TargetComp(InTargetComp),
+			Instigator(InInstigator),
+			Magnitude(InMagnitude),
+			ModifyType(InModificationType) {}
 
-	UPROPERTY(BlueprintReadWrite)
-	TObjectPtr<UUPActionComponent> InstigatorComp;
-
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag AttributeTag;
 
-	UPROPERTY(BlueprintReadWrite)
-	float Magnitude;
+	/* Attribute change Applies to this component */
+	UPROPERTY(BlueprintReadOnly)
+	TObjectPtr<UUPActionComponent> TargetComp;
 
-	UPROPERTY(BlueprintReadWrite)
-	EAttributeModifyType ModifyType;
+	/* The actor causing the attribute change, eg. the damage dealer */
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<AActor> Instigator;
+
+	/* The "Delta" to apply to attribute */
+	UPROPERTY(BlueprintReadOnly)
+	float Magnitude = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly)
+	EAttributeModifyType ModifyType = EAttributeModifyType::AddDelta;
 };
 
-
-// Blueprint accessible delegate - Non-multicast since we create one delegate per binding
+// Blueprint accessible delegate (this is how we "bind" indirectly in blueprint)
 DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnAttributeChangedDynamic, float, NewValue, FAttributeModification, AppliedModification);
-
-// C++ alternative for performance & easier to use in CPP
-DECLARE_DELEGATE_TwoParams(FOnAttributeChangedNonDynamic, float, const FAttributeModification&);
-
-
-/*
- * Wrapper similar to TimerManager to support both Dynamic (BP) and Non-dynamic ("easier"/faster in C++) Delegates 
- */
-USTRUCT()
-struct FAttributeDelegateHandle
-{
-	GENERATED_BODY()
-
-	FAttributeDelegateHandle(const FOnAttributeChangedNonDynamic& InDelegate)
-	{
-		Delegate = InDelegate;
-		OwnerObject = InDelegate.GetUObject();
-		FuncName = InDelegate.TryGetBoundFunctionName();
-	}
-
-	FAttributeDelegateHandle(const FOnAttributeChangedDynamic& InDelegate)
-	{
-		DynamicDelegate = InDelegate;
-		OwnerObject = InDelegate.GetUObject();
-		FuncName = InDelegate.GetFunctionName();
-	}
-
-	FAttributeDelegateHandle() {}
-
-	// "Blueprint" Delegate
-	FOnAttributeChangedDynamic DynamicDelegate;
-
-	// "C++" Delegate
-	FOnAttributeChangedNonDynamic Delegate;
-
-	void Execute(float InValue, const FAttributeModification& AppliedModification)
-	{
-		if (Delegate.IsBound())
-		{
-			Delegate.Execute(InValue, AppliedModification);
-		}
-		else
-		{
-			DynamicDelegate.Execute(InValue, AppliedModification);
-		}
-	}
-	
-	TWeakObjectPtr<const UObject> OwnerObject;
-
-	FName FuncName;
-
-	// Combining owner object + function name to identify the delegate
-	bool operator==(const FAttributeDelegateHandle& Other) const
-	{
-		return (Other.OwnerObject.Get() == OwnerObject.Get() && Other.FuncName == FuncName);
-	}
-};
-
+// The C++ delegate that is actually broadcast, and may itself call the above dynamic delegate by wrapping it in a lamdba
+DECLARE_MULTICAST_DELEGATE_TwoParams(FAttributeChangedSignature, float, const FAttributeModification&);
 
 /* Represents a single "float" Attribute which gives us greater flexibility in how its calculated due to buffs, items and permanent upgrades */
 USTRUCT(BlueprintType)
@@ -120,18 +73,26 @@ struct FUPAttribute
 {
 	GENERATED_BODY()
 
+	FUPAttribute() {}
+
+	FUPAttribute(float InBase) : Base(InBase) {}
+
 	/* The base value, such as 'Strength' that was granted by the RPG class you picked, and modified permanently during gameplay (eg. +1 Str for a Level Up or a +1 permanent boost by consuming an item). This would be 'saved to disk'. */
 	UPROPERTY(EditDefaultsOnly)
 	float Base = 0.0f;
 
 	/* Temporary modifier from buffs/debuffs, equipped items. This would not be 'saved to disk' as items would re-apply themselves on load */
-	UPROPERTY()
+	UPROPERTY(Transient)
 	float Delta = 0.0f;
-	
+
+	/* No use in exposing this to blueprint directly as we have no good access to bind to it */
+	FAttributeChangedSignature OnAttributeChanged;
+
 	/* All game logic should get the value through here */
 	float GetValue() const
 	{
-		return Base + Delta;
+		// always clamp public value to zero, you could opt to make this a bool per attribute
+		return FMath::Max(Base + Delta, 0.0f);
 	}
 };
 
@@ -143,28 +104,54 @@ struct FUPAttributeSet
 	// Nothing happening here...
 };
 
-
+/**
+ * Base set containing Health/HealthMax, useful for world gameplay actors
+ */
 USTRUCT(BlueprintType)
-struct FUPSurvivorAttributeSet : public FUPAttributeSet
+struct FUPHealthAttributeSet : public FUPAttributeSet
 {
 	GENERATED_BODY()
+
+	FUPHealthAttributeSet()
+	{
+		Health = FUPAttribute(100);
+		HealthMax = FUPAttribute(Health.GetValue());
+	}
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Attributes")
 	FUPAttribute Health;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Attributes")
 	FUPAttribute HealthMax;
+};
 
-	/* Base Damage value, all skills and damage use this multiplied by a damage coefficient (a percentage defaulting to 100%) to simplify balancing and scaling during play */
+USTRUCT(BlueprintType)
+struct FUPSurvivorAttributeSet : public FUPHealthAttributeSet
+{
+	GENERATED_BODY()
+
+	FUPSurvivorAttributeSet()
+	{
+		AttackDamage = FUPAttribute(25);
+	}
+
+	/* Base Damage value, all skills and damage use this multiplied by a damage coefficient
+	 * (a percentage defaulting to 100%) to simplify balancing and scaling during play */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Attributes")
 	FUPAttribute AttackDamage;
 };
 
 
-USTRUCT()
-struct FOnAttributeChangedList
+USTRUCT(BlueprintType)
+struct FUPMonsterAttributeSet : public FUPHealthAttributeSet
 {
 	GENERATED_BODY()
 	
-	TArray<FOnAttributeChangedNonDynamic> Delegates;
+	FUPMonsterAttributeSet()
+	{
+		AttackDamage = FUPAttribute(10);
+	}
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Attributes")
+	FUPAttribute AttackDamage;
 };

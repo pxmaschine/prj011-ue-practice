@@ -2,7 +2,7 @@
 
 
 #include "Course/AI/UPBTTask_RangedAttack.h"
-#include "Course/UPAttributeComponent.h"
+#include "Course/UPGameplayFunctionLibrary.h"
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -22,12 +22,7 @@ EBTNodeResult::Type UDEPRECATED_UUPBTTask_RangedAttack::ExecuteTask(UBehaviorTre
 	ACharacter* MyPawn = CastChecked<ACharacter>(OwnerComp.GetAIOwner()->GetPawn());
 
 	const AActor* TargetActor = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject(TargetActorKey.SelectedKeyName));
-	if (TargetActor == nullptr)
-	{
-		return EBTNodeResult::Failed;
-	}
-
-	if (!UUPAttributeComponent::IsActorAlive(TargetActor))
+	if (TargetActor == nullptr || !UUPGameplayFunctionLibrary::IsAlive(TargetActor))
 	{
 		return EBTNodeResult::Failed;
 	}

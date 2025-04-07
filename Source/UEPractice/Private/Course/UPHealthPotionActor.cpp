@@ -2,7 +2,9 @@
 
 
 #include "Course/UPHealthPotionActor.h"
-#include "Course/UPAttributeComponent.h"
+#include "Course/SharedGameplayTags.h"
+#include "Course/UPActionComponent.h"
+#include "Course/UPGameplayFunctionLibrary.h"
 #include "Course/UPPlayerState.h"
 
 
@@ -22,17 +24,27 @@ void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
 		return;
 	}
 
-	UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(InstigatorPawn->GetComponentByClass(UUPAttributeComponent::StaticClass()));
+	UUPActionComponent* ActionComp = UUPActionComponent::GetActionComponent(InstigatorPawn);
 	// Check if not already at max health
-	if (ensure(AttributeComp) && !AttributeComp->IsFullHealth())
+	if (ensure(ActionComp) && !UUPGameplayFunctionLibrary::IsFullHealth(InstigatorPawn))
 	{
 		
 		if (AUPPlayerState* PS = InstigatorPawn->GetPlayerState<AUPPlayerState>())
 		{
-			if (PS->RemoveCredits(CreditCost) && AttributeComp->ApplyHealthChange(this, AttributeComp->GetMaxHealth()))
+			if (PS->RemoveCredits(CreditCost))
 			{
-				// Only activate if healed successfully
-				HideAndCooldownPickUp();
+				const FAttributeModification AttriMod = FAttributeModification(
+					SharedGameplayTags::Attribute_Health,
+					ActionComp->GetAttribute(SharedGameplayTags::Attribute_HealthMax)->GetValue(),
+					ActionComp,
+					this,
+					EAttributeModifyType::AddDelta);
+
+				if (ActionComp->ApplyAttributeChange(AttriMod))
+				{
+					// Only activate if healed successfully
+					HideAndCooldownPickUp();
+				}
 			}
 		}
 	}
@@ -40,9 +52,7 @@ void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
 
 FText AUPHealthPotionActor::GetInteractText_Implementation(APawn* InstigatorPawn)
 {
-	const UUPAttributeComponent* AttributeComp = Cast<UUPAttributeComponent>(InstigatorPawn->GetComponentByClass(UUPAttributeComponent::StaticClass()));
-
-	if (ensure(AttributeComp) && AttributeComp->IsFullHealth())
+	if (UUPGameplayFunctionLibrary::IsFullHealth(InstigatorPawn))
 	{
 		return LOCTEXT("HealthPotion_FullHealthWarning", "Already at full health.");
 	}

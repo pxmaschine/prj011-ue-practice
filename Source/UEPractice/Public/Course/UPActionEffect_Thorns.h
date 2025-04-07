@@ -6,7 +6,7 @@
 #include "Course/UPActionEffect.h"
 #include "UPActionEffect_Thorns.generated.h"
 
-class UUPAttributeComponent;
+struct FAttributeModification;
 
 UCLASS()
 class UEPRACTICE_API UUPActionEffect_Thorns : public UUPActionEffect
@@ -22,9 +22,11 @@ public:
 
 protected:
 	UFUNCTION()
-	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
+	void OnHealthChanged(float NewValue, const FAttributeModification& AttributeModification);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Thorns")
 	float ReflectFraction;
+
+	FDelegateHandle AttriChangedHandle;
 };

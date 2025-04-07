@@ -2,10 +2,10 @@
 
 
 #include "Course/AI/UPAICharacter.h"
-#include "Course/UPAttributeComponent.h"
 #include "Course/UPWorldUserWidget.h"
 #include "Course/UPActionComponent.h"
 #include "Course/UPSignificanceComponent.h"
+#include "Course/SharedGameplayTags.h"
 #include "UEPractice/UEPractice.h"
 
 #include "AIController.h"
@@ -21,8 +21,9 @@
 
 AUPAICharacter::AUPAICharacter()
 {
-	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
 	ActionComponent = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
+	// Set some defaults, ideally we handle this through some data asset instead
+	ActionComponent->SetDefaultAttributeSet(FUPMonsterAttributeSet::StaticStruct());
 
 	AttackSoundComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AttackAudioComp"));
 	AttackSoundComp->SetupAttachment(RootComponent);
@@ -61,7 +62,10 @@ void AUPAICharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	AttributeComponent->OnHealthChanged.AddDynamic(this, &AUPAICharacter::OnHealthChanged);
+	// The "simplest" syntax compared to the other convoluted attempts
+	FUPAttribute* FoundAttribute = ActionComponent->GetAttribute(SharedGameplayTags::Attribute_Health);
+	FoundAttribute->OnAttributeChanged.AddUObject(this, &ThisClass::OnHealthAttributeChanged);
+
 	SigManComp->OnSignificanceChanged.AddDynamic(this, &AUPAICharacter::OnSignificanceChanged);
 
 	// Cheap trick to disable until we need it in the health event
@@ -94,12 +98,15 @@ void AUPAICharacter::MulticastPlayAttackFX_Implementation()
 	PlayAnimMontage(AttackMontage);
 }
 
-void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta)
+void AUPAICharacter::OnHealthAttributeChanged(float NewValue, const FAttributeModification& AttributeModification)
 {
+	const float Delta = AttributeModification.Magnitude;
+	AActor* InstigatorActor = AttributeModification.Instigator.Get();
+	
 	if (Delta < 0.0f)
 	{
 		// Create once, and skip on instant kill
-		if (ActiveHealthBar == nullptr && NewHealth > 0.0)
+		if (ActiveHealthBar == nullptr && NewValue > 0.0)
 		{
 			ActiveHealthBar = CreateWidget<UUPWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
 			if (ActiveHealthBar)
@@ -124,13 +131,16 @@ void AUPAICharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCompon
 
 
 		// Died
-		if (NewHealth <= 0.0f)
+		if (NewValue <= 0.0f)
 		{
 			// Stop behavior tree
 			if (HasAuthority())
 			{
 				const AAIController* AIC = GetController<AAIController>();
 				AIC->GetBrainComponent()->StopLogic("Killed");
+				
+				// Clears active actions, and (de)buffs.
+				ActionComponent->StopAllActions();
 			}
 
 			// Enable ragdoll

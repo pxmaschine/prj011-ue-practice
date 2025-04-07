@@ -7,8 +7,8 @@
 #include "GameFramework/Character.h"
 #include "UPAICharacter.generated.h"
 
+struct FAttributeModification;
 class UNiagaraComponent;
-class UUPAttributeComponent;
 class UUPSignificanceComponent;
 class UUPActionComponent;
 class UUPWorldUserWidget;
@@ -39,8 +39,7 @@ public:
 	void MulticastPlayAttackFX();
 
 protected:
-	UFUNCTION()
-	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
+	void OnHealthAttributeChanged(float NewValue, const FAttributeModification& AttributeModification);
 
 	UFUNCTION()
 	void OnSignificanceChanged(ESignificanceValue Significance);
@@ -67,9 +66,6 @@ protected:
 	/* Index must match the CustomPrimitiveData index used in the Overlay material */
 	UPROPERTY(VisibleAnywhere, Category = "Effects")
 	int32 HitFlash_CustomPrimitiveIndex;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	UUPAttributeComponent* AttributeComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UUPActionComponent* ActionComponent;

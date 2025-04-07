@@ -42,9 +42,8 @@ AUPCharacter::AUPCharacter()
 
 	InteractionComp = CreateDefaultSubobject<UUPInteractionComponent>(TEXT("InteractionComp"));
 
-	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
-
 	ActionComponent = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
+	ActionComponent->SetDefaultAttributeSet(FUPSurvivorAttributeSet::StaticStruct());
 
 	PerceptionStimuliComp = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("PerceptionStimuliComp"));
 
@@ -81,7 +80,7 @@ void AUPCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	AttributeComponent->OnHealthChanged.AddDynamic(this, &AUPCharacter::OnHealthChanged);
+	ActionComponent->GetAttribute(SharedGameplayTags::Attribute_Health)->OnAttributeChanged.AddUObject(this, &ThisClass::OnHealthAttributeChanged);
 
 	// Cheap trick to disable until we need it in the health event
 	CachedOverlayMaxDistance = GetMesh()->OverlayMaterialMaxDrawDistance;
@@ -189,11 +188,10 @@ void AUPCharacter::PrimaryInteract()
 	InteractionComp->PrimaryInteract();
 }
 
-void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewValue,
-	float Delta)
+void AUPCharacter::OnHealthAttributeChanged(float NewValue, const FAttributeModification& AttributeModification)
 {
 	// Damaged
-	if (Delta < 0.0f)
+	if (AttributeModification.Magnitude < 0.0f)
 	{
 		// Materials, including the mesh "OverlayMaterial" can get their data via the component
 		GetMesh()->SetCustomPrimitiveDataFloat(HitFlash_CustomPrimitiveIndex, GetWorld()->TimeSeconds);
@@ -208,15 +206,16 @@ void AUPCharacter::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponen
 			GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
 		}, 1.0f, false);
 
-		// Rage added equal to damage received (Abs to turn into positive rage number)
-		const float RageDelta = FMath::Abs(Delta);
-		AttributeComponent->ApplyRageChange(InstigatorActor, RageDelta);
+		// @TODO: change behavior of RAGE mechanic
+		//// Rage added equal to damage received (Abs to turn into positive rage number)
+		//const float RageDelta = FMath::Abs(Delta);
+		//AttributeComponent->ApplyRageChange(InstigatorActor, RageDelta);
 
 		//UGameplayStatics::PlaySoundAtLocation(this, TakeDamageVOSound, GetActorLocation(), FRotator::ZeroRotator);
 	}
 
 	// Died
-	if (NewValue <= 0.0f && Delta < 0.0f)
+	if (NewValue <= 0.0f && AttributeModification.Magnitude < 0.0f)
 	{
 		//UGameplayStatics::PlaySoundAtLocation(this, DeathVOSound, GetActorLocation(), FRotator::ZeroRotator);
 

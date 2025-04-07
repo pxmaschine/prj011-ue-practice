@@ -6,6 +6,9 @@
 #include "UEPractice/UEPractice.h"
 
 #include "NiagaraComponent.h"
+#include "Course/SharedGameplayTags.h"
+#include "Course/UPActionComponent.h"
+#include "Course/UPAttributeSet.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(UPExplosiveBarrel)
@@ -13,8 +16,8 @@
 // Sets default values
 AUPExplosiveBarrel::AUPExplosiveBarrel()
 {
-	AttributeComponent = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
-	AttributeComponent->OnHealthChanged.AddDynamic(this, &ThisClass::OnHealthChanged);
+	ActionComp = CreateDefaultSubobject<UUPActionComponent>(TEXT("ActionComp"));
+	ActionComp->SetDefaultAttributeSet(FUPHealthAttributeSet::StaticStruct());
 	
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetSimulatePhysics(true);
@@ -42,8 +45,15 @@ AUPExplosiveBarrel::AUPExplosiveBarrel()
 	ExplosionDelayTime = 2.0f;
 }
 
-void AUPExplosiveBarrel::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth,
-	float Delta)
+void AUPExplosiveBarrel::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	FUPAttribute* FoundAttribute = ActionComp->GetAttribute(SharedGameplayTags::Attribute_Health);
+	FoundAttribute->OnAttributeChanged.AddUObject(this, &ThisClass::OnHealthAttributeChanged);
+}
+
+void AUPExplosiveBarrel::OnHealthAttributeChanged(float NewValue, const FAttributeModification& AttributeModification)
 {
 	if (bExploded)
 	{
@@ -70,7 +80,7 @@ void AUPExplosiveBarrel::OnHealthChanged(AActor* InstigatorActor, UUPAttributeCo
 	// Structured Logging Example
 	UE_LOGFMT(LogGame, Log, "OnActorHit in Explosive Barrel");
 	// Warnings as structured logs even show up in the "Message Log" window of UnrealEd
-	UE_LOGFMT(LogGame, Warning, "OnActorHit, OtherActor: {name}, at game time: {timeseconds}", GetNameSafe(InstigatorActor), GetWorld()->TimeSeconds);
+	UE_LOGFMT(LogGame, Warning, "OnActorHit, OtherActor: {name}, at game time: {timeseconds}", GetNameSafe(AttributeModification.Instigator->GetOwner()), GetWorld()->TimeSeconds);
 }
 
 /*

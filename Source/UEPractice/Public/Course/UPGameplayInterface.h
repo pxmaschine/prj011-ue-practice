@@ -31,7 +31,4 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void Interact(APawn* InstigatorPawn);
-
-	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	bool GetActionComponent(UUPActionComponent*& OutActionComp) const;
 };
