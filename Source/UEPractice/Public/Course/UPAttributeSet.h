@@ -132,8 +132,16 @@ struct FUPSurvivorAttributeSet : public FUPHealthAttributeSet
 
 	FUPSurvivorAttributeSet()
 	{
+		Rage = FUPAttribute(0);
+		RageMax = FUPAttribute(100);
 		AttackDamage = FUPAttribute(25);
 	}
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Attributes")
+	FUPAttribute Rage;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Attributes")
+	FUPAttribute RageMax;
 
 	/* Base Damage value, all skills and damage use this multiplied by a damage coefficient
 	 * (a percentage defaulting to 100%) to simplify balancing and scaling during play */

@@ -16,15 +16,9 @@ EBTNodeResult::Type UUPBTTask_Heal::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	
 	const FUPAttribute* HealthMaxAttribute = ActionComp->GetAttribute(SharedGameplayTags::Attribute_HealthMax);
 
-	// @todo: support CLAMPING in the attribute system, now it overheals the BOT beyond original max HP
-	const FAttributeModification AttriMod = FAttributeModification(
-		SharedGameplayTags::Attribute_Health,
-		HealthMaxAttribute->GetValue(),
-		ActionComp,
-		MyPawn,
-		EAttributeModifyType::AddModifier);
-
-	ActionComp->ApplyAttributeChange(AttriMod);
+	ActionComp->ApplyAttributeChange(SharedGameplayTags::Attribute_Health, HealthMaxAttribute->GetValue(),
+		// @todo: support CLAMPING in the attribute system, now it overheals the BOT beyond original max HP
+		MyPawn, EAttributeModifyType::AddModifier);
 
 	return EBTNodeResult::Succeeded;
 }

@@ -62,6 +62,14 @@ bool UUPGameplayFunctionLibrary::IsFullHealth(AActor* InActor)
 	return HealthAttribute->GetValue() >= HealthMaxAttribute->GetValue();
 }
 
+bool UUPGameplayFunctionLibrary::KillActor(AActor* InActor)
+{
+	UUPActionComponent* ActionComp = UUPActionComponent::GetActionComponent(InActor);
+	const FUPAttribute* HealthMaxAttribute = ActionComp->GetAttribute(SharedGameplayTags::Attribute_HealthMax);
+	
+	return ActionComp->ApplyAttributeChange(SharedGameplayTags::Attribute_Health, HealthMaxAttribute->GetValue(), InActor, EAttributeModifyType::AddModifier);
+}
+
 /*
  	if (!GetOwner()->CanBeDamaged() && Delta < 0.0f)
 	{

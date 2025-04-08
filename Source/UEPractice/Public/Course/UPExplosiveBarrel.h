@@ -8,7 +8,6 @@
 
 class UUPActionComponent;
 struct FAttributeModification;
-class UUPAttributeComponent;
 class UStaticMeshComponent;
 class URadialForceComponent;
 class UNiagaraComponent;

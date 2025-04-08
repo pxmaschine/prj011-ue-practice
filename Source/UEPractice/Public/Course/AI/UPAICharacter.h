@@ -13,7 +13,6 @@ class UUPSignificanceComponent;
 class UUPActionComponent;
 class UUPWorldUserWidget;
 class UPawnSensingComponent;
-class UPAttributeComponent;
 class UUserWidget;
 struct FTimerHandle;
 

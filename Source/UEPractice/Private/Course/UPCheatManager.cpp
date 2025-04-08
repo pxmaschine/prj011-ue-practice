@@ -2,9 +2,12 @@
 
 
 #include "Course/UPCheatManager.h"
-#include "Course/UPAttributeComponent.h"
 #include "Course/AI/UPAICharacter.h"
 #include "Course/UPSaveGameSettings.h"
+#include "Course/SharedGameplayTags.h"
+#include "Course/UPAttributeSet.h"
+#include "Course/UPActionComponent.h"
+#include "Course/UPGameplayFunctionLibrary.h"
 
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
@@ -15,20 +18,16 @@ void UUPCheatManager::HealSelf(float Amount)
 
 	if (APawn* MyPawn = MyPC->GetPawn())
 	{
-		UUPAttributeComponent* AttributeComp = MyPawn->FindComponentByClass<UUPAttributeComponent>();
-		AttributeComp->ApplyHealthChange(MyPawn, Amount);
+		UUPActionComponent* ActionComp = UUPActionComponent::GetActionComponent(MyPawn);
+		ActionComp->ApplyAttributeChange(SharedGameplayTags::Attribute_Health, Amount, MyPawn, EAttributeModifyType::AddModifier);
 	}
 }
 
 void UUPCheatManager::KillAll()
 {
-	for (const AUPAICharacter* Bot : TActorRange<AUPAICharacter>(GetWorld()))
+	for (AUPAICharacter* Bot : TActorRange<AUPAICharacter>(GetWorld()))
 	{
-		UUPAttributeComponent* AttributeComp = UUPAttributeComponent::GetAttributes(Bot);
-		if (ensure(AttributeComp) && AttributeComp->IsAlive())
-		{
-			AttributeComp->Kill(GetOuterAPlayerController()->GetPawn());
-		}
+		UUPGameplayFunctionLibrary::KillActor(Bot);
 	}
 }
 

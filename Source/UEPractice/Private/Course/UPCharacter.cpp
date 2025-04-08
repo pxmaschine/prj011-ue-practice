@@ -2,7 +2,6 @@
 
 
 #include "Course/UPCharacter.h"
-#include "Course/UPAttributeComponent.h"
 #include "Course/UPInteractionComponent.h"
 #include "Course/UPActionComponent.h"
 #include "Course/SharedGameplayTags.h"
@@ -206,10 +205,13 @@ void AUPCharacter::OnHealthAttributeChanged(float NewValue, const FAttributeModi
 			GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
 		}, 1.0f, false);
 
-		// @TODO: change behavior of RAGE mechanic
-		//// Rage added equal to damage received (Abs to turn into positive rage number)
-		//const float RageDelta = FMath::Abs(Delta);
-		//AttributeComponent->ApplyRageChange(InstigatorActor, RageDelta);
+		// Rage added equal to damage received (Abs to turn into positive rage number)
+		const float RageDelta = FMath::Abs(AttributeModification.Magnitude);
+		ActionComponent->ApplyAttributeChange(
+			SharedGameplayTags::Attribute_Rage, 
+			RageDelta, 
+			this, 
+			EAttributeModifyType::AddModifier);
 
 		//UGameplayStatics::PlaySoundAtLocation(this, TakeDamageVOSound, GetActorLocation(), FRotator::ZeroRotator);
 	}

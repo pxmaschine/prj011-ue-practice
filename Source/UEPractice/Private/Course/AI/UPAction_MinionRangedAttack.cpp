@@ -12,12 +12,7 @@ void UUPAction_MinionRangedAttack::StartAction_Implementation(AActor* Instigator
 	AUPAICharacter* MyPawn = CastChecked<AUPAICharacter>(GetOwningComponent()->GetOwner());
 
 	const AActor* TargetActor = MyPawn->GetTargetActor();
-	if (TargetActor == nullptr)
-	{
-		return;
-	}
-
-	if (!UUPGameplayFunctionLibrary::IsAlive(TargetActor))
+	if (TargetActor == nullptr || !UUPGameplayFunctionLibrary::IsAlive(TargetActor))
 	{
 		return;
 	}

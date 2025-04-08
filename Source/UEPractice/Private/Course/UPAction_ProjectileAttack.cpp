@@ -9,7 +9,6 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Course/UPCharacter.h"
 #include "GameFramework/Character.h"
-#include "Kismet/GameplayStatics.h"
 
 
 UUPAction_ProjectileAttack::UUPAction_ProjectileAttack()

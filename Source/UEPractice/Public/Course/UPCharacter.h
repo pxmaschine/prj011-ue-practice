@@ -19,7 +19,6 @@ class UInputAction;
 class UUPInteractionComponent;
 class UAnimMontage;
 class AUPProjectileBase;
-class UUPAttributeComponent;
 struct FInputActionValue;
 struct FTimerHandle;
 

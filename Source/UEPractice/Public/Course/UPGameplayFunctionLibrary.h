@@ -24,6 +24,9 @@ public:
 	static bool IsFullHealth(AActor* InActor);
 
 	UFUNCTION(BlueprintCallable, Category=Gameplay)
+	static bool KillActor(AActor* InActor);
+
+	UFUNCTION(BlueprintCallable, Category=Gameplay)
 	static bool ApplyDamage(AActor* DamageCauser, AActor* TargetActor, float DamageCoefficient);
 
 	UFUNCTION(BlueprintCallable, Category=Gameplay)

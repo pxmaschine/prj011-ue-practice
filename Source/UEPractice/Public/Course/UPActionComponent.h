@@ -3,10 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
-#include "Course/UPAttributeSet.h"
 #include "Components/ActorComponent.h"
+#include "GameplayTagContainer.h"
 #include "StructUtils/InstancedStruct.h"
+#include "Course/UPAttributeSet.h"
 #include "UPActionComponent.generated.h"
 
 
@@ -33,8 +33,11 @@ public:
 
 	FUPAttribute* GetAttribute(FGameplayTag InAttributeTag);
 
-	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Attributes, meta = (Keywords = "Add, Set"))
+	//UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Attributes, meta = (Keywords = "Add, Set"))
 	bool ApplyAttributeChange(const FAttributeModification& Modification);
+
+	UFUNCTION(BlueprintCallable, BlueprintAuthorityOnly, Category = Attributes, meta = (Keywords = "Add, Set"))
+	bool ApplyAttributeChange(FGameplayTag InAttributeTag, float InMagnitude, AActor* Instigator, EAttributeModifyType ModType);
 
 	/* Provide a default attribute set type for (base) classes, blueprint can set this via the details panel instead */
 	void SetDefaultAttributeSet(UScriptStruct* InDefaultType);

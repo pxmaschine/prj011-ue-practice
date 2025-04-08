@@ -49,7 +49,7 @@ void AUPPlayerState::AddCredits(int32 Delta)
 	OnCreditsChanged.Broadcast(this, Credits, Delta);
 }
 
-bool AUPPlayerState::RemoveCredits(int32 Delta)
+bool AUPPlayerState::TryRemoveCredits(int32 Delta)
 {
 	// Avoid user-error of adding a subtracting negative amount or zero
 	if (!ensure(Delta > 0.0f))

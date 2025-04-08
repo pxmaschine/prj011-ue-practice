@@ -31,16 +31,13 @@ void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
 		
 		if (AUPPlayerState* PS = InstigatorPawn->GetPlayerState<AUPPlayerState>())
 		{
-			if (PS->RemoveCredits(CreditCost))
+			if (PS->TryRemoveCredits(CreditCost))
 			{
-				const FAttributeModification AttriMod = FAttributeModification(
+				if (ActionComp->ApplyAttributeChange(
 					SharedGameplayTags::Attribute_Health,
 					ActionComp->GetAttribute(SharedGameplayTags::Attribute_HealthMax)->GetValue(),
-					ActionComp,
 					this,
-					EAttributeModifyType::AddModifier);
-
-				if (ActionComp->ApplyAttributeChange(AttriMod))
+					EAttributeModifyType::AddModifier))
 				{
 					// Only activate if healed successfully
 					HideAndCooldownPickUp();

@@ -87,8 +87,13 @@ FUPAttribute* UUPActionComponent::GetAttribute(FGameplayTag InAttributeTag)
 bool UUPActionComponent::ApplyAttributeChange(const FAttributeModification& Modification)
 {
 	FUPAttribute* Attribute = GetAttribute(Modification.AttributeTag);
+	if (Attribute == nullptr)
+	{
+		UE_LOG(LogGame, Warning, TEXT("Attribute (%s) not found on Actor (%s)."), *Modification.AttributeTag.ToString(), *GetNameSafe(GetOwner()));
+		return false;
+	}
 
-	float OriginalValue = Attribute->GetValue();
+	const float OriginalValue = Attribute->GetValue();
 
 	switch (Modification.ModifyType)
 	{
@@ -121,6 +126,14 @@ bool UUPActionComponent::ApplyAttributeChange(const FAttributeModification& Modi
 	
 	// no actual change occured
 	return false;
+}
+
+bool UUPActionComponent::ApplyAttributeChange(FGameplayTag InAttributeTag, float InMagnitude, AActor* Instigator, EAttributeModifyType ModType)
+{
+	const FAttributeModification AttriMod = FAttributeModification(
+		InAttributeTag, InMagnitude, this, Instigator, ModType);
+
+	return ApplyAttributeChange(AttriMod);
 }
 
 void UUPActionComponent::K2_AddAttributeListener(FGameplayTag AttributeTag, FOnAttributeChangedDynamic Event, bool bCallImmediately /*= false*/)

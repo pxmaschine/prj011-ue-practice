@@ -1,7 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Course/UPGameModeBase.h"
-#include "Course/UPAttributeComponent.h"
 #include "Course/UPCharacter.h"
 #include "Course/UPPlayerState.h"
 #include "Course/AI/UPAICharacter.h"
@@ -10,11 +9,11 @@
 #include "Course/UPSaveGameSubsystem.h"
 #include "Course/UPActorPoolingSubsystem.h"
 #include "Course/UPDeveloperSettings.h"
+#include "Course/UPGameplayFunctionLibrary.h"
+#include "Course/UPHUD.h"
 #include "UEPractice/UEPractice.h"
 
 #include "EngineUtils.h"
-#include "Course/UPGameplayFunctionLibrary.h"
-#include "Course/UPHUD.h"
 #include "Engine/AssetManager.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"

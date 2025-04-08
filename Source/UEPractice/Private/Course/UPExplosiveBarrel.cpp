@@ -2,7 +2,6 @@
 
 
 #include "Course/UPExplosiveBarrel.h"
-#include "Course/UPAttributeComponent.h"
 #include "UEPractice/UEPractice.h"
 
 #include "NiagaraComponent.h"
