@@ -47,6 +47,8 @@ protected:
 
 	void OnReduceAnimationWork(class USkeletalMeshComponentBudgeted* InComponent, bool bReduce);
 
+	void OnHitFlashFinshed();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Effects")
 	FName AttackFX_Socket;

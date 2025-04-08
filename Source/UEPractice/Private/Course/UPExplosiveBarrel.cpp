@@ -56,6 +56,9 @@ void AUPExplosiveBarrel::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	GetWorldTimerManager().ClearAllTimersForObject(this);
 
+	FUPAttribute* FoundAttribute = ActionComp->GetAttribute(SharedGameplayTags::Attribute_Health);
+	FoundAttribute->OnAttributeChanged.RemoveAll(this);
+
 	Super::EndPlay(EndPlayReason);
 }
 

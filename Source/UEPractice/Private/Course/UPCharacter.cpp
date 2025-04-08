@@ -91,6 +91,8 @@ void AUPCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	GetWorldTimerManager().ClearTimer(OverlayTimerHandle);
 	GetWorldTimerManager().ClearAllTimersForObject(this);
 
+	ActionComponent->GetAttribute(SharedGameplayTags::Attribute_Health)->OnAttributeChanged.RemoveAll(this);
+
 	Super::EndPlay(EndPlayReason);
 }
 
@@ -207,11 +209,7 @@ void AUPCharacter::OnHealthAttributeChanged(float NewValue, const FAttributeModi
 		GetMesh()->SetOverlayMaterialMaxDrawDistance(CachedOverlayMaxDistance);
 
 		// After 1.0seconds we should be finished with the hitflash (re-use the handle to reset timer if we get hit again)
-		GetWorldTimerManager().SetTimer(OverlayTimerHandle, [this]()
-		{
-			// Cheap trick to skip rendering this all the time unless we are actively hit flashing
-			GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
-		}, 1.0f, false);
+		GetWorldTimerManager().SetTimer(OverlayTimerHandle, this, &AUPCharacter::OnHitFlashFinshed, 1.0f, false);
 
 		// Rage added equal to damage received (Abs to turn into positive rage number)
 		const float RageDelta = FMath::Abs(AttributeModification.Magnitude);
@@ -244,6 +242,12 @@ void AUPCharacter::OnHealthAttributeChanged(float NewValue, const FAttributeModi
 			DisableInput(PC);
 		}
 	}
+}
+
+void AUPCharacter::OnHitFlashFinshed()
+{
+	// Cheap trick to skip rendering this all the time unless we are actively hit flashing
+	GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
 }
 
 void AUPCharacter::FindCrosshairTarget()

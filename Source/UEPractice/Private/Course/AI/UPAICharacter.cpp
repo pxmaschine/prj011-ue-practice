@@ -153,6 +153,9 @@ void AUPAICharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	GetWorldTimerManager().ClearTimer(OverlayTimerHandle);
 	GetWorldTimerManager().ClearAllTimersForObject(this);
 
+	FUPAttribute* FoundAttribute = ActionComponent->GetAttribute(SharedGameplayTags::Attribute_Health);
+	FoundAttribute->OnAttributeChanged.RemoveAll(this);
+
 	// Remove from SigMan
 	{
 		USignificanceManager* SigMan = USignificanceManager::Get(GetWorld());
@@ -232,12 +235,7 @@ void AUPAICharacter::OnHealthAttributeChanged(float NewValue, const FAttributeMo
 		GetMesh()->SetOverlayMaterialMaxDrawDistance(CachedOverlayMaxDistance);
 
 		// After 1.0seconds we should be finished with the hitflash (re-use the handle to reset timer if we get hit again)
-		GetWorldTimerManager().SetTimer(OverlayTimerHandle, [this]()
-		{
-			// Cheap trick to skip rendering this all the time unless we are actively hit flashing
-			GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
-		}, 1.0f, false);
-
+		GetWorldTimerManager().SetTimer(OverlayTimerHandle, this, &AUPAICharacter::OnHitFlashFinshed, 1.0f, false);
 
 		// Died
 		if (NewValue <= 0.0f)
@@ -269,6 +267,12 @@ void AUPAICharacter::OnHealthAttributeChanged(float NewValue, const FAttributeMo
 				InstigatorActor->GetActorLocation(), GetActorLocation());
 		}
 	}
+}
+
+void AUPAICharacter::OnHitFlashFinshed()
+{
+	// Cheap trick to skip rendering this all the time unless we are actively hit flashing
+	GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
 }
 
 void AUPAICharacter::OnReduceAnimationWork(class USkeletalMeshComponentBudgeted* InComponent, bool bReduce)
