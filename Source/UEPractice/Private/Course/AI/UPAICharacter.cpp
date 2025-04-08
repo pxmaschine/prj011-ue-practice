@@ -150,6 +150,9 @@ void AUPAICharacter::BeginPlay()
 
 void AUPAICharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	GetWorldTimerManager().ClearTimer(OverlayTimerHandle);
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
 	// Remove from SigMan
 	{
 		USignificanceManager* SigMan = USignificanceManager::Get(GetWorld());

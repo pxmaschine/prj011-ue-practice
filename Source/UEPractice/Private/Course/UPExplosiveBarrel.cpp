@@ -52,6 +52,13 @@ void AUPExplosiveBarrel::PostInitializeComponents()
 	FoundAttribute->OnAttributeChanged.AddUObject(this, &ThisClass::OnHealthAttributeChanged);
 }
 
+void AUPExplosiveBarrel::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AUPExplosiveBarrel::OnHealthAttributeChanged(float NewValue, const FAttributeModification& AttributeModification)
 {
 	if (bExploded)

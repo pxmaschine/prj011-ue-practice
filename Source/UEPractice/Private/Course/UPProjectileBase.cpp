@@ -58,6 +58,8 @@ void AUPProjectileBase::BeginPlay()
 
 void AUPProjectileBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
 	Super::EndPlay(EndPlayReason);
 }
 

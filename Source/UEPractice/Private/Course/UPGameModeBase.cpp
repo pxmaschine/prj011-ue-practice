@@ -82,6 +82,13 @@ void AUPGameModeBase::StartPlay()
 	}
 }
 
+void AUPGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AUPGameModeBase::OnActorKilled(AActor* VictimActor, AActor* KillerActor)
 {
 	UE_LOGFMT(LogGame, Log, "OnActorKilled: Victim: {victim}, Killer: {killer}", GetNameSafe(VictimActor), GetNameSafe(KillerActor));

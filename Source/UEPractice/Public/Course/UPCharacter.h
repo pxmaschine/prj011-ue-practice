@@ -34,6 +34,8 @@ public:
 public:
 	virtual void PostInitializeComponents() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input

@@ -67,7 +67,9 @@ void UUPSignificanceComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 			SignificanceManager->UnregisterObject(this);
 		}
 	}
-	
+
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+
 	Super::EndPlay(EndPlayReason);
 }
 

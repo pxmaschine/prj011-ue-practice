@@ -40,9 +40,9 @@ void AUPPickUpActor::PostInitializeComponents()
 
 void AUPPickUpActor::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	Super::EndPlay(EndPlayReason);
-
 	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AUPPickUpActor::Interact_Implementation(APawn* InstigatorPawn)

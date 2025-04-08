@@ -62,6 +62,8 @@ public:
 
 	virtual void StartPlay() override;
 
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 public:
 	virtual void OnActorKilled(AActor* VictimActor, AActor* KillerActor);
 

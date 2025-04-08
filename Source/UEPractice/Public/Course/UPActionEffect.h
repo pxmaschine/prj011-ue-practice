@@ -37,6 +37,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effect")
 	float Period;
 
+	// todo: we may have to clean these up with GetWorldTimerManager().ClearAllTimersForObject(this);
 	FTimerHandle DurationHandle;
 	FTimerHandle PeriodHandle;
 };

@@ -86,6 +86,14 @@ void AUPCharacter::PostInitializeComponents()
 	GetMesh()->SetOverlayMaterialMaxDrawDistance(1);
 }
 
+void AUPCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearTimer(OverlayTimerHandle);
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AUPCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
