@@ -16,4 +16,7 @@ class UEPRACTICE_API UUPGameViewportClient : public UGameViewportClient
 
 protected:
 	virtual void Tick(float DeltaTime) override;
+
+protected:
+	TArray<FTransform> ViewpointsArray;
 };
