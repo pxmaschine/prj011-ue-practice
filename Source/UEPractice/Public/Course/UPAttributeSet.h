@@ -104,6 +104,20 @@ struct FUPAttributeSet
 	// Nothing happening here...
 };
 
+USTRUCT(BlueprintType)
+struct FUPDamageAttributeSet : public FUPAttributeSet
+{
+	GENERATED_BODY()
+
+	FUPDamageAttributeSet()
+	{
+		AttackDamage = FUPAttribute(10);
+	}
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Attributes")
+	FUPAttribute AttackDamage;
+};
+
 /**
  * Base set containing Health/HealthMax, useful for world gameplay actors
  */
