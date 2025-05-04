@@ -17,6 +17,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/AudioComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Course/UPGameModeBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -240,6 +241,11 @@ void AUPCharacter::OnHealthAttributeChanged(float NewValue, const FAttributeModi
 			//UGameplayStatics::PlaySound2D(this, DeathUISound);
 
 			DisableInput(PC);
+		}
+
+		if (AUPGameModeBase* GM = GetWorld()->GetAuthGameMode<AUPGameModeBase>())
+		{
+			GM->OnActorKilled(GetOwner(), AttributeModification.Instigator.Get());
 		}
 	}
 }

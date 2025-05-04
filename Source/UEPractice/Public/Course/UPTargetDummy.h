@@ -20,12 +20,12 @@ public:
 protected:
 	virtual void PostInitializeComponents() override;
 
-	UPROPERTY(VisibleAnywhere)
-	UUPAttributeComponent* AttributeComp;
+	//UPROPERTY(VisibleAnywhere)
+	//UUPAttributeComponent* AttributeComp;
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> SkelMeshComp;
 
-	UFUNCTION()
-	void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
+	//UFUNCTION()
+	//void OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta);
 };

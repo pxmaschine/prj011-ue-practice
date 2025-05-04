@@ -20,6 +20,7 @@
 #include "SkeletalMeshComponentBudgeted.h"
 #include "IAnimationBudgetAllocator.h"
 #include "AnimationBudgetAllocator/Private/AnimationBudgetAllocatorModule.h"
+#include "Course/UPGameModeBase.h"
 
 
 AUPAICharacter::AUPAICharacter(const FObjectInitializer& ObjectInitializer)
@@ -260,6 +261,11 @@ void AUPAICharacter::OnHealthAttributeChanged(float NewValue, const FAttributeMo
 
 			// Set lifespan
 			SetLifeSpan(10.0f);
+
+			if (AUPGameModeBase* GM = GetWorld()->GetAuthGameMode<AUPGameModeBase>())
+			{
+				GM->OnActorKilled(GetOwner(), AttributeModification.Instigator.Get());
+			}
 		}
 		else
 		{

@@ -9,20 +9,20 @@ AUPTargetDummy::AUPTargetDummy()
 	SkelMeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MeshComp"));
 	RootComponent = SkelMeshComp;
 
-	AttributeComp = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
+	//AttributeComp = CreateDefaultSubobject<UUPAttributeComponent>(TEXT("AttributeComp"));
 }
 
 void AUPTargetDummy::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	AttributeComp->OnHealthChanged.AddDynamic(this, &AUPTargetDummy::OnHealthChanged);
+	//AttributeComp->OnHealthChanged.AddDynamic(this, &AUPTargetDummy::OnHealthChanged);
 }
 
-void AUPTargetDummy::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta)
-{
-	if (Delta < 0.0f)
-	{
-		SkelMeshComp->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
-	}
-}
+//void AUPTargetDummy::OnHealthChanged(AActor* InstigatorActor, UUPAttributeComponent* OwningComp, float NewHealth, float Delta)
+//{
+//	if (Delta < 0.0f)
+//	{
+//		SkelMeshComp->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
+//	}
+//}
