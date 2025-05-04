@@ -7,8 +7,20 @@
 #include "UPSignificanceManager.generated.h"
 
 
-struct FExtendedManagedObject : USignificanceManager::FManagedObjectInfo
+struct FExtendedManagedObjectInfo : USignificanceManager::FManagedObjectInfo
 {
+	FExtendedManagedObjectInfo(
+		UObject* InObject, 
+		FName InTag, 
+		USignificanceManager::FManagedObjectSignificanceFunction InSignificanceFunction, 
+		USignificanceManager::EPostSignificanceType InPostSignificanceType = USignificanceManager::EPostSignificanceType::None, 
+		USignificanceManager::FManagedObjectPostSignificanceFunction InPostSignificanceFunction = nullptr
+	)
+		: FManagedObjectInfo(InObject, InTag, InSignificanceFunction, InPostSignificanceType, InPostSignificanceFunction)
+	{
+		LOD = 0;
+	}
+
 public:
 	int32 LOD;
 };
@@ -28,6 +40,8 @@ public:
 
 protected:
 	TArray<FManagedObjectInfo*> ChangedLODs;
-	
+
+	mutable FCriticalSection RegisteredTagsMutex;
 	TArray<FName> RegisteredTags;
+	TMultiMap<UObject*, FName> RegistrationMap;  // Tracks which tags each object registered
 };

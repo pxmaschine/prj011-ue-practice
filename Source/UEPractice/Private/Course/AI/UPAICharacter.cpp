@@ -133,11 +133,11 @@ void AUPAICharacter::BeginPlay()
 			USkeletalMeshComponentBudgeted* BudgetMesh = Cast<USkeletalMeshComponentBudgeted>(GetMesh());
 			BudgetMesh->SetComponentSignificance(Significance);
 		};
-		
 
 		// Additional flag in the budgetter to allow us to 'toggle' and turn off certain animation features custom to the game, this could mean detaching components on our skeletal mesh
 		// it's entirely game dependent on what we could throttle here
 		USkeletalMeshComponentBudgeted* BudgetMesh = Cast<USkeletalMeshComponentBudgeted>(GetMesh());
+		check(BudgetMesh);
 		BudgetMesh->OnReduceWork().BindUObject(this, &AUPAICharacter::OnReduceAnimationWork);
 
 		// If not using Significance Manager already, we could let it calculate automatically instead
