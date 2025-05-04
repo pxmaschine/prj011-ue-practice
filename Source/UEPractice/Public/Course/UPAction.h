@@ -35,6 +35,8 @@ class UEPRACTICE_API UUPAction : public UObject
 	GENERATED_BODY()
 
 public:
+	virtual void BeginDestroy() override;
+
 	virtual UWorld* GetWorld() const override;
 
 	virtual bool IsSupportedForNetworking() const override

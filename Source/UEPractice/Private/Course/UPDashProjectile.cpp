@@ -26,6 +26,13 @@ void AUPDashProjectile::BeginPlay()
 	GetWorldTimerManager().SetTimer(TimerHandle_DelayedDetonate, this, &AUPDashProjectile::Explode, DetonateDelay);
 }
 
+void AUPDashProjectile::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	Super::EndPlay(EndPlayReason);
+}
+
 void AUPDashProjectile::Explode_Implementation()
 {
 	// Clear timer if the Explode was already called through another source like OnActorHit

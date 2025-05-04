@@ -32,10 +32,9 @@ void UUPAction_MinionMeleeAttack::StartAction_Implementation(AActor* Instigator)
 
 	// Stop once the animation has finished
 	FTimerHandle AnimCompleteHandle;
-	GetWorld()->GetTimerManager().SetTimer(AnimCompleteHandle, [this, Instigator]()
-	{
-		StopAction(Instigator);
-	}, Duration,false);
+	FTimerDelegate Delegate;
+	Delegate.BindUObject(this, &ThisClass::StopAction, Instigator);
+	GetWorld()->GetTimerManager().SetTimer(AnimCompleteHandle, Delegate, Duration,false);
 }
 
 void UUPAction_MinionMeleeAttack::StopAction_Implementation(AActor* Instigator)

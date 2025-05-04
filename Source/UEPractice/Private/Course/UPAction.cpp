@@ -56,6 +56,16 @@ void UUPAction::StopAction_Implementation(AActor* Instigator)
 	GetOwningComponent()->OnActionStopped.Broadcast(GetOwningComponent(), this);
 }
 
+void UUPAction::BeginDestroy()
+{
+	UObject::BeginDestroy();
+
+	if (const UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearAllTimersForObject(this);
+	}
+}
+
 UWorld* UUPAction::GetWorld() const
 {
 	// Outer is set when creating action via NewObject<T>
