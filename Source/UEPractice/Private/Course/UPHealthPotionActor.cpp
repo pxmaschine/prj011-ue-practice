@@ -33,9 +33,13 @@ void AUPHealthPotionActor::Interact_Implementation(APawn* InstigatorPawn)
 		{
 			if (PS->TryRemoveCredits(CreditCost))
 			{
+				const FUPAttribute* HealthAttrib = ActionComp->GetAttribute(SharedGameplayTags::Attribute_Health);
+				const FUPAttribute* HealthMaxAttrib = ActionComp->GetAttribute(SharedGameplayTags::Attribute_HealthMax);
+				const float DeltaHealth = FMath::Max(0.0f, HealthMaxAttrib->GetValue() - HealthAttrib->GetValue());
+
 				if (ActionComp->ApplyAttributeChange(
 					SharedGameplayTags::Attribute_Health,
-					ActionComp->GetAttribute(SharedGameplayTags::Attribute_HealthMax)->GetValue(),
+					DeltaHealth,
 					this,
 					EAttributeModifyType::AddModifier))
 				{
