@@ -245,7 +245,7 @@ void AUPCharacter::OnHealthAttributeChanged(float NewValue, const FAttributeModi
 
 		if (AUPGameModeBase* GM = GetWorld()->GetAuthGameMode<AUPGameModeBase>())
 		{
-			GM->OnActorKilled(GetOwner(), AttributeModification.Instigator.Get());
+			GM->OnActorKilled(this, AttributeModification.Instigator.Get());
 		}
 	}
 }
