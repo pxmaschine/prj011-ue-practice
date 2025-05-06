@@ -2,6 +2,11 @@
 
 
 #include "Game/GAICharacter.h"
+#include <Game/GGameModeBase.h>
+#include <UEPractice/UEPractice.h>
+
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 AGAICharacter::AGAICharacter()
@@ -17,6 +22,24 @@ AGAICharacter::AGAICharacter()
 
 	// Ensures we receive a controlled when spawned in the level by our gamemode
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+}
+
+void AGAICharacter::Kill()
+{
+	// Enable ragdoll
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	GetMesh()->SetCollisionProfileName(Collision::Ragdoll_ProfileName);
+
+	// Disable colliders & movement
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCharacterMovement()->DisableMovement();
+
+	SetLifeSpan(10.0f);
+
+	if (AGGameModeBase* GM = GetWorld()->GetAuthGameMode<AGGameModeBase>())
+	{
+		GM->OnEnemyKilled(this);
+	}
 }
 
 // Called when the game starts or when spawned

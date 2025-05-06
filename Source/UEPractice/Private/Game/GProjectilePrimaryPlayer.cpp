@@ -3,6 +3,7 @@
 
 #include "Game/GProjectilePrimaryPlayer.h"
 #include "Components/SphereComponent.h"
+#include <Game/GAICharacter.h>
 
 
 AGProjectilePrimaryPlayer::AGProjectilePrimaryPlayer()
@@ -10,6 +11,7 @@ AGProjectilePrimaryPlayer::AGProjectilePrimaryPlayer()
 	SphereComp->SetSphereRadius(20.0f);
 
 	InitialLifeSpan = 8.0f;
+	ImpulseStrength = 30000.f;
 }
 
 void AGProjectilePrimaryPlayer::PostInitializeComponents()
@@ -24,6 +26,20 @@ void AGProjectilePrimaryPlayer::OnActorOverlap(UPrimitiveComponent* OverlappedCo
 	if (!OtherActor || OtherActor == GetInstigator())
 	{
 		return;
+	}
+
+	if (AGAICharacter* AI = Cast<AGAICharacter>(OtherActor))
+	{
+		AI->Kill();
+
+		// Direction = Target - Origin
+		FVector Direction = SweepResult.TraceEnd - SweepResult.TraceStart;
+		Direction.Normalize();
+
+		UPrimitiveComponent* HitComp = SweepResult.GetComponent();
+		HitComp->AddImpulseAtLocation(Direction * ImpulseStrength, SweepResult.ImpactPoint, SweepResult.BoneName);
+
+		Explode();
 	}
 
 	//// Parry Ability (GameplayTag Example)

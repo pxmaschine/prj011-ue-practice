@@ -26,6 +26,11 @@ void AGGameModeBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
+void AGGameModeBase::OnEnemyKilled(AActor* EnemyActor)
+{
+	ActiveEnemies.Remove(EnemyActor);
+}
+
 void AGGameModeBase::StartSpawningEnemies()
 {
 	if (TimerHandle_SpawnEnemy.IsValid())

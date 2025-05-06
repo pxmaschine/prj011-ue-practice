@@ -3,6 +3,8 @@
 
 #include "Game/GPlayerCharacter.h"
 #include <Game/GGameplayFunctionLibrary.h>
+#include <Course/UPActorPoolingSubsystem.h>
+#include <UEPractice/UEPractice.h>
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -12,8 +14,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include <NiagaraFunctionLibrary.h>
-#include <UEPractice/UEPractice.h>
-#include <Course/UPActorPoolingSubsystem.h>
+#include "Components/AudioComponent.h"
 
 // Sets default values
 AGPlayerCharacter::AGPlayerCharacter()
@@ -35,6 +36,12 @@ AGPlayerCharacter::AGPlayerCharacter()
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComp"));
 	CameraComp->SetupAttachment(SpringArmComp);
 
+	AttackSoundsComp = CreateDefaultSubobject<UAudioComponent>(TEXT("AttackSoundsComp"));
+	AttackSoundsComp->SetupAttachment(RootComponent);
+	AttackSoundsComp->bAutoActivate = false;
+	// Don't follow player unless actively playing a sound
+	AttackSoundsComp->bAutoManageAttachment = true;
+
 	UCharacterMovementComponent* CharMoveComp = GetCharacterMovement();
 	CharMoveComp->bOrientRotationToMovement = false;
 	bUseControllerRotationYaw = true;
@@ -50,6 +57,8 @@ AGPlayerCharacter::AGPlayerCharacter()
 	GetCapsuleComponent()->SetGenerateOverlapEvents(false);
 
 	RotationSpeed = 10.0f;
+
+	ProjectileSocketName = "ProjectileSocket";
 }
 
 // Called when the game starts or when spawned
@@ -252,6 +261,9 @@ void AGPlayerCharacter::AttackDelay_Elapsed()
 
 void AGPlayerCharacter::PlayAttackSound(USoundBase* InSound)
 {
+	// This may interrupt previously playing sounds, so you'd want to test for this
+	AttackSoundsComp->SetSound(InSound);
+	AttackSoundsComp->Play();
 }
 
 //void AGPlayerCharacter::LookMouse(const FInputActionValue& Value)

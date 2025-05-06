@@ -25,6 +25,8 @@ public:
 public:
 	auto GetActiveEnemies() const -> const TArray<AActor*>& { return ActiveEnemies; }
 
+	void OnEnemyKilled(AActor* EnemyActor);
+
 protected:
 	void StartSpawningEnemies();
 

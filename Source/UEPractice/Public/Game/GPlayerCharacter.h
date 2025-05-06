@@ -56,6 +56,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = Components)
 	UCameraComponent* CameraComp;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Components)
+	TObjectPtr<UAudioComponent> AttackSoundsComp;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	UInputMappingContext* DefaultMappingContext;
 
