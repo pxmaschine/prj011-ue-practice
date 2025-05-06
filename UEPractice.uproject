@@ -83,10 +83,6 @@
 			"Enabled": false
 		},
 		{
-			"Name": "ChaosCloth",
-			"Enabled": false
-		},
-		{
 			"Name": "Fab",
 			"Enabled": false
 		},
