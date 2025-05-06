@@ -11,6 +11,9 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include <NiagaraFunctionLibrary.h>
+#include <UEPractice/UEPractice.h>
+#include <Course/UPActorPoolingSubsystem.h>
 
 // Sets default values
 AGPlayerCharacter::AGPlayerCharacter()
@@ -117,6 +120,8 @@ void AGPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	// General
 	InputComp->BindAction(Input_Move, ETriggerEvent::Triggered, this, &AGPlayerCharacter::Move);
 
+	InputComp->BindAction(Input_PrimaryAttack, ETriggerEvent::Triggered, this, &AGPlayerCharacter::PrimaryAttack);
+
 	//// MKB
 	//InputComp->BindAction(Input_LookMouse, ETriggerEvent::Triggered, this, &AGPlayerCharacter::LookMouse);
 }
@@ -156,6 +161,97 @@ void AGPlayerCharacter::Move(const FInputActionValue& Value)
 
 	AddMovementInput(FVector::ForwardVector, InputValue.Y);
 	AddMovementInput(FVector::RightVector, InputValue.X);
+}
+
+void AGPlayerCharacter::PrimaryAttack()
+{
+	PlayAnimMontage(AttackAnim);
+
+	// Auto-released particle pooling
+	UNiagaraFunctionLibrary::SpawnSystemAttached(CastVFX, GetMesh(), ProjectileSocketName, FVector::ZeroVector, FRotator::ZeroRotator,
+		EAttachLocation::SnapToTarget, true, true, ENCPoolMethod::AutoRelease);
+
+	//UGameplayStatics::SpawnSoundAttached(CastingSound, Character->GetMesh());
+	// Alternative to spawning fresh instances for short-lived attacks every time (via SpawnSoundAttached above)
+	// we use a single audio component on the player, which uses AutoManageAttachment to detach itself when not active
+	PlayAttackSound(CastingSound);
+
+	// Only on server
+	if (HasAuthority())
+	{
+		FTimerHandle TimerHandle_AttackDelay;
+		FTimerDelegate Delegate;
+		Delegate.BindUObject(this, &AGPlayerCharacter::AttackDelay_Elapsed);
+
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, Delegate, AttackAnimDelay, false);
+	}
+}
+
+void AGPlayerCharacter::AttackDelay_Elapsed()
+{
+	// Blueprint has not been properly configured yet if this fails
+	if (ensureAlways(ProjectileClass))
+	{
+		const FVector HandLocation = GetMesh()->GetSocketLocation(ProjectileSocketName);
+
+		// We trace against the environment first to find whats under the player crosshair.
+		// We use the hit location to adjust the projectile launch direction so it will hit what is under the crosshair rather than shoot straight forward from the player hands.
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		SpawnParams.Instigator = this;
+
+		FCollisionShape Shape;
+		Shape.SetSphere(SweepRadius);
+
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+
+		FVector TraceDirection = GetControlRotation().Vector();
+
+		// Add sweep radius onto start to avoid the sphere clipping into floor/walls the camera is directly against.
+		const FVector TraceStart = GetPawnViewLocation() + (TraceDirection * SweepRadius);
+		// endpoint far into the look-at distance (not too far, still adjust somewhat towards crosshair on a miss)
+		const FVector TraceEnd = TraceStart + (TraceDirection * SweepDistanceFallback);
+		FVector AdjustedTraceEnd = TraceEnd;
+
+		TArray<FHitResult> Hits;
+		// Enemies are using Overlap response to Projectiles, we cant look for single Blocking hits and instead look for all overlaps and filter after
+		if (GetWorld()->SweepMultiByChannel(Hits, TraceStart, TraceEnd, FQuat::Identity, COLLISION_PROJECTILE, Shape, Params))
+		{
+			// Overwrite trace end with impact point in world
+			// First entry must exist and first entry will be first overlap or block
+			// Could filter further, eg. ignoring friendly players between us and the enemy
+			AdjustedTraceEnd = Hits[0].ImpactPoint;
+		}
+
+		// Removes debug code from shipping builds		
+#if !UE_BUILD_SHIPPING
+		//const float DrawDuration = 5.0f;
+		// Start
+		//DrawDebugPoint(GetWorld(), TraceStart, 8, FColor::Green, false, DrawDuration);
+		// End - possibly adjusted based on hit
+		//DrawDebugPoint(GetWorld(), AdjustedTraceEnd, 8, FColor::Green, false, DrawDuration);
+		//DrawDebugLine(GetWorld(), TraceStart, AdjustedTraceEnd, FColor::Green, false, DrawDuration);
+		// End - Original
+		//DrawDebugPoint(GetWorld(), TraceEnd, 8, FColor::Red, false, DrawDuration);
+		//DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, DrawDuration);
+#endif
+
+		// find new direction/rotation from Hand pointing to impact point in world.
+
+		FRotator ProjRotation = (AdjustedTraceEnd - HandLocation).Rotation();
+		FTransform SpawnTM = FTransform(ProjRotation, HandLocation);
+
+		//GetWorld()->SpawnActor<AActor>(ProjectileClass, SpawnTM, SpawnParams);
+
+		// re-use a pooled actor instead of always spawning new Actors
+		UUPActorPoolingSubsystem::AcquireFromPool(this, ProjectileClass, SpawnTM, SpawnParams);
+	}
+}
+
+void AGPlayerCharacter::PlayAttackSound(USoundBase* InSound)
+{
 }
 
 //void AGPlayerCharacter::LookMouse(const FInputActionValue& Value)

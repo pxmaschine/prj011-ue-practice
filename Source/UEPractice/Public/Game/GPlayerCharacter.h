@@ -11,6 +11,8 @@ struct FInputActionValue;
 class UInputAction;
 class UCameraComponent;
 class USpringArmComponent;
+class UNiagaraSystem;
+class USoundBase;
 
 UCLASS()
 class UEPRACTICE_API AGPlayerCharacter : public ACharacter
@@ -41,11 +43,17 @@ protected:
 
 	//void LookMouse(const FInputActionValue& InputValue);
 
+	void PrimaryAttack();
+
+	void AttackDelay_Elapsed();
+
+	void PlayAttackSound(USoundBase* InSound);
+
 protected:
-	UPROPERTY(VisibleAnywhere, Category=Components)
+	UPROPERTY(VisibleAnywhere, Category = Components)
 	USpringArmComponent* SpringArmComp;
 
-	UPROPERTY(VisibleAnywhere, Category=Components)
+	UPROPERTY(VisibleAnywhere, Category = Components)
 	UCameraComponent* CameraComp;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
@@ -57,6 +65,36 @@ protected:
 	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
 	//UInputAction* Input_LookMouse;
 
-	UPROPERTY(EditAnywhere, Category=Movement)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UInputAction* Input_PrimaryAttack;
+
+	UPROPERTY(EditAnywhere, Category = Movement)
 	float RotationSpeed;
+
+	/* Sphere radius of the sweep to find desired target under crosshair. Adjusts final projectile direction */
+	UPROPERTY(EditAnywhere, Category = Targeting)
+	float SweepRadius;
+
+	/* Fallback distance when sweep finds no collision under crosshair. Adjusts final projectile direction */
+	UPROPERTY(EditAnywhere, Category = Targeting)
+	float SweepDistanceFallback;
+
+	UPROPERTY(EditAnywhere, Category = Attack)
+	TSubclassOf<AActor> ProjectileClass;
+
+	UPROPERTY(VisibleAnywhere, Category = Effects)
+	FName ProjectileSocketName;
+
+	UPROPERTY(EditDefaultsOnly, Category = Attack)
+	float AttackAnimDelay;
+
+	UPROPERTY(EditAnywhere, Category = Attack)
+	UAnimMontage* AttackAnim;
+
+	UPROPERTY(EditAnywhere, Category = Attack)
+	UNiagaraSystem* CastVFX;
+
+	/* Sound Effect to play (Can be Wave or Cue) */
+	UPROPERTY(EditAnywhere, Category = Attack)
+	TObjectPtr<USoundBase> CastingSound;
 };
