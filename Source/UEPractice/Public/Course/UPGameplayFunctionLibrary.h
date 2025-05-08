@@ -30,7 +30,7 @@ public:
 	static bool ApplyDamage(AActor* DamageCauser, AActor* TargetActor, float DamageCoefficient);
 
 	UFUNCTION(BlueprintCallable, Category=Gameplay)
-	static bool ApplyDirectionalDamage(AActor* DamageCauser, AActor* TargetActor, float DamageAmount, const FHitResult& HitResult);
+	static bool ApplyDirectionalDamage(AActor* DamageCauser, AActor* TargetActor, float DamageAmount, const FHitResult& HitResult, float ImpulseStrength = 30000.0);
 /*
 	static bool ApplyRadialDamage(AActor* DamageCauser, FVector Origin, float DamageRadius, float DamageCoefficient);
 */

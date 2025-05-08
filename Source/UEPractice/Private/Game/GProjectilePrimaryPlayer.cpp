@@ -2,8 +2,11 @@
 
 
 #include "Game/GProjectilePrimaryPlayer.h"
-#include "Components/SphereComponent.h"
 #include <Game/GAICharacter.h>
+#include <Course/UPGameplayFunctionLibrary.h>
+#include <Course/UPProjectileMovementComponent.h>
+
+#include "Components/SphereComponent.h"
 
 
 AGProjectilePrimaryPlayer::AGProjectilePrimaryPlayer()
@@ -12,6 +15,16 @@ AGProjectilePrimaryPlayer::AGProjectilePrimaryPlayer()
 
 	InitialLifeSpan = 8.0f;
 	ImpulseStrength = 30000.f;
+
+	DamageCoefficient = 100.0f;
+	HomingAcceleration = 5000.0f;
+}
+
+void AGProjectilePrimaryPlayer::SetTarget(AActor* TargetActor)
+{
+	MovementComp->HomingTargetComponent = TargetActor->GetRootComponent();
+	MovementComp->HomingAccelerationMagnitude = HomingAcceleration;
+	MovementComp->bIsHomingProjectile = true;
 }
 
 void AGProjectilePrimaryPlayer::PostInitializeComponents()
@@ -28,19 +41,19 @@ void AGProjectilePrimaryPlayer::OnActorOverlap(UPrimitiveComponent* OverlappedCo
 		return;
 	}
 
-	if (AGAICharacter* AI = Cast<AGAICharacter>(OtherActor))
-	{
-		AI->Kill();
+	//if (AGAICharacter* AI = Cast<AGAICharacter>(OtherActor))
+	//{
+	//	AI->Kill();
 
-		// Direction = Target - Origin
-		FVector Direction = SweepResult.TraceEnd - SweepResult.TraceStart;
-		Direction.Normalize();
+	//	// Direction = Target - Origin
+	//	FVector Direction = SweepResult.TraceEnd - SweepResult.TraceStart;
+	//	Direction.Normalize();
 
-		UPrimitiveComponent* HitComp = SweepResult.GetComponent();
-		HitComp->AddImpulseAtLocation(Direction * ImpulseStrength, SweepResult.ImpactPoint, SweepResult.BoneName);
+	//	UPrimitiveComponent* HitComp = SweepResult.GetComponent();
+	//	HitComp->AddImpulseAtLocation(Direction * ImpulseStrength, SweepResult.ImpactPoint, SweepResult.BoneName);
 
-		Explode();
-	}
+	//	Explode();
+	//}
 
 	//// Parry Ability (GameplayTag Example)
 	//UUPActionComponent* OtherActionComp = OtherActor->FindComponentByClass<UUPActionComponent>();
@@ -53,15 +66,15 @@ void AGProjectilePrimaryPlayer::OnActorOverlap(UPrimitiveComponent* OverlappedCo
 	//	return;
 	//}
 
-	//// Apply Damage & Impulse
-	//if (UUPGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageCoefficient, SweepResult))
-	//{
-	//	// We only explode if the target can be damaged, it ignores anything it Overlaps that it cannot Damage
-	//	Explode();
+	// Apply Damage & Impulse
+	if (UUPGameplayFunctionLibrary::ApplyDirectionalDamage(GetInstigator(), OtherActor, DamageCoefficient, SweepResult, ImpulseStrength))
+	{
+		// We only explode if the target can be damaged, it ignores anything it Overlaps that it cannot Damage
+		Explode();
 
-	//	if (OtherActionComp && BurningActionClass && HasAuthority())
-	//	{
-	//		OtherActionComp->AddAction(GetInstigator(), BurningActionClass);
-	//	}
-	//}
+		//if (OtherActionComp && BurningActionClass && HasAuthority())
+		//{
+		//	OtherActionComp->AddAction(GetInstigator(), BurningActionClass);
+		//}
+	}
 }

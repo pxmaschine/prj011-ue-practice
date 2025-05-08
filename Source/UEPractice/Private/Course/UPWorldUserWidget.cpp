@@ -45,6 +45,7 @@ void UUPWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 
 	if (bIsOnScreen)
 	{
+		WidgetPosition += ScreenOffset;
 		ParentOverlay->SetRenderTranslation(WidgetPosition);
 	}
 

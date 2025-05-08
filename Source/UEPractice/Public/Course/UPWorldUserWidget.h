@@ -19,17 +19,20 @@ public:
 	static void AddToRootCanvasPanel(UUserWidget* InNewWidget);
 
 protected:
-	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
-
 	virtual void NativeConstruct() override;
+	
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 public:
 	UPROPERTY(BlueprintReadOnly, Transient, Category = "UI", meta = (ExposeOnSpawn=true))
 	AActor* AttachedActor;
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "UI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	FVector WorldOffset;
+
+	UPROPERTY(Transient, BlueprintReadWrite)
+	FVector2D ScreenOffset{ 0.0, 0.0 };
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UOverlay> ParentOverlay;

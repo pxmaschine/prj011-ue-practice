@@ -7,6 +7,8 @@
 #include "GProjectilePrimaryPlayer.generated.h"
 
 
+class HomingTargetComponent;
+
 UCLASS()
 class UEPRACTICE_API AGProjectilePrimaryPlayer : public AUPProjectileBase
 {
@@ -14,6 +16,10 @@ class UEPRACTICE_API AGProjectilePrimaryPlayer : public AUPProjectileBase
 	
 public:
 	AGProjectilePrimaryPlayer();
+
+public:
+	UFUNCTION(BlueprintCallable)
+	void SetTarget(AActor* TargetActor);
 
 protected:
 	virtual void PostInitializeComponents() override;
@@ -24,4 +30,10 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = Effects)
 	float ImpulseStrength;
+
+	UPROPERTY(EditDefaultsOnly, Category = Damage, meta=(Units="Percent"))
+	float DamageCoefficient;
+
+	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+	float HomingAcceleration;
 };

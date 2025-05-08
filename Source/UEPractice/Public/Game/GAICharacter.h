@@ -6,6 +6,10 @@
 #include "GameFramework/Character.h"
 #include "GAICharacter.generated.h"
 
+class UUPActionComponent;
+struct FAttributeModification;
+class UGDamagePopupWidget;
+
 UCLASS()
 class UEPRACTICE_API AGAICharacter : public ACharacter
 {
@@ -16,9 +20,22 @@ public:
 	AGAICharacter();
 
 public:
-	void Kill();
+	virtual void PostInitializeComponents() override;
 
-protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+protected:
+	void Kill();
+
+	void OnHealthAttributeChanged(float NewValue, const FAttributeModification& AttributeModification);
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components)
+	UUPActionComponent* ActionComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+	TSubclassOf<UGDamagePopupWidget> DamagePopupWidgetClass;
 };

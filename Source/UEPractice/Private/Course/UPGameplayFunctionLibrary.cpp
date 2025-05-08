@@ -138,7 +138,7 @@ bool UUPGameplayFunctionLibrary::ApplyDamage(AActor* DamageCauser, AActor* Targe
 	return VictimComp->ApplyAttributeChange(AttriMod);
 }
 
-bool UUPGameplayFunctionLibrary::ApplyDirectionalDamage(AActor* DamageCauser, AActor* TargetActor, float DamageCoefficient, const FHitResult& HitResult)
+bool UUPGameplayFunctionLibrary::ApplyDirectionalDamage(AActor* DamageCauser, AActor* TargetActor, float DamageCoefficient, const FHitResult& HitResult, float ImpulseStrength)
 {
 	if (ApplyDamage(DamageCauser, TargetActor, DamageCoefficient))
 	{
@@ -149,8 +149,7 @@ bool UUPGameplayFunctionLibrary::ApplyDirectionalDamage(AActor* DamageCauser, AA
 			FVector Direction = HitResult.TraceEnd - HitResult.TraceStart;
 			Direction.Normalize();
 
-			// @todo: allow configuration for impulse strength
-			HitComp->AddImpulseAtLocation(Direction * 30000.f, HitResult.ImpactPoint, HitResult.BoneName);
+			HitComp->AddImpulseAtLocation(Direction * ImpulseStrength, HitResult.ImpactPoint, HitResult.BoneName);
 		}
 		return true;
 	}
