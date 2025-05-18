@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Course/UPAnimNotifyState_Melee.h"
+#include "Game/GAnimNotifyState_Melee.h"
+#include "Game/GAnimInstance.h"
 
-#include "Course/UPAnimInstance.h"
 #include "Engine/OverlapResult.h"
 
 #if !UE_BUILD_SHIPPING
@@ -11,7 +11,7 @@ namespace DevelopmentOnly
 {
 	static bool GDrawDebugMelee = false;
 	static FAutoConsoleVariableRef CVarDrawDebug_MeleeNotifies(
-		TEXT("up.DrawDebugMelee"),
+		TEXT("game.DrawDebugMelee"),
 		GDrawDebugMelee,
 		TEXT("Enable debug rendering on the melee system.\n"),
 		ECVF_Cheat
@@ -19,18 +19,18 @@ namespace DevelopmentOnly
 }
 #endif
 
-UUPAnimNotifyState_Melee::UUPAnimNotifyState_Melee()
+
+UGAnimNotifyState_Melee::UGAnimNotifyState_Melee()
 {
 	Radius = 128.0f;
 	TraceChannel = ECC_Pawn;
 }
 
-void UUPAnimNotifyState_Melee::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
-	float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
+void UGAnimNotifyState_Melee::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float FrameDeltaTime, const FAnimNotifyEventReference& EventReference)
 {
 	// We could run async requests here continuously any time we have new results to fetch, could stop request after the first successful 'hit'
 
- 	if (!MeshComp->GetOwner()->HasAuthority())
+	if (!MeshComp->GetOwner() || !MeshComp->GetOwner()->HasAuthority())
 	{
 		// We can skip both overlaps and callbacks for clients
 		// unless we want to do some kind of empty callback anyway on clients
@@ -68,7 +68,9 @@ void UUPAnimNotifyState_Melee::NotifyTick(USkeletalMeshComponent* MeshComp, UAni
 	// Report to be handled by anyone listening (should be the Action that triggered the animation)
 	if (Overlaps.Num() > 0)
 	{
-		UUPAnimInstance* AnimInst = CastChecked<UUPAnimInstance>(MeshComp->GetAnimInstance());
-		AnimInst->OnMeleeOverlap.Broadcast(Overlaps);
+		if (UGAnimInstance* AnimInst = Cast<UGAnimInstance>(MeshComp->GetAnimInstance()))
+		{
+			AnimInst->OnMeleeOverlap.Broadcast(Overlaps);
+		}
 	}
 }

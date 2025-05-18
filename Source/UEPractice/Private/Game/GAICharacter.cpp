@@ -31,6 +31,10 @@ AGAICharacter::AGAICharacter()
 
 	// Ensures we receive a controlled when spawned in the level by our gamemode
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	bUseControllerRotationYaw = false;
 }
 
 void AGAICharacter::PostInitializeComponents()
