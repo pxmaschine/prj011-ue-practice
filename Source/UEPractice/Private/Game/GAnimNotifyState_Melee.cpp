@@ -9,10 +9,10 @@
 #if !UE_BUILD_SHIPPING
 namespace DevelopmentOnly
 {
-	static bool GDrawDebugMelee = false;
+	static bool GGameDrawDebugMelee = false;
 	static FAutoConsoleVariableRef CVarDrawDebug_MeleeNotifies(
 		TEXT("game.DrawDebugMelee"),
-		GDrawDebugMelee,
+		GGameDrawDebugMelee,
 		TEXT("Enable debug rendering on the melee system.\n"),
 		ECVF_Cheat
 		);
@@ -54,7 +54,7 @@ void UGAnimNotifyState_Melee::NotifyTick(USkeletalMeshComponent* MeshComp, UAnim
 	World->OverlapMultiByChannel(Overlaps, StartLoc, FQuat::Identity, TraceChannel, Shape, QueryParams);
 
 #if !UE_BUILD_SHIPPING
-	if (DevelopmentOnly::GDrawDebugMelee)
+	if (DevelopmentOnly::GGameDrawDebugMelee)
 	{
 		DrawDebugSphere(World, StartLoc, Radius, 32.f, FColor::Cyan, false, 0.0f);
 		

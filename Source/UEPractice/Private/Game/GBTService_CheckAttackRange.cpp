@@ -9,10 +9,10 @@
 #if !UE_BUILD_SHIPPING
 namespace DevelopmentOnly
 {
-	static bool GDrawDebugAttackRange = false;
+	static bool GGameDrawDebugAttackRange = false;
 	static FAutoConsoleVariableRef CVarDrawDebug_AttackRangeService(
 		TEXT("game.DrawDebugAttackRange"),
-		GDrawDebugAttackRange,
+		GGameDrawDebugAttackRange,
 		TEXT("Enable debug rendering of the attack range services.\n"),
 		ECVF_Cheat
 		);
@@ -46,7 +46,7 @@ void UGBTService_CheckAttackRange::TickNode(UBehaviorTreeComponent& OwnerComp, u
 		BlackBoardComp->SetValueAsBool(AttackRangeKey.SelectedKeyName, bWithinRange);
 
 #if !UE_BUILD_SHIPPING
-		if (DevelopmentOnly::GDrawDebugAttackRange)
+		if (DevelopmentOnly::GGameDrawDebugAttackRange)
 		{
 			DrawDebugCircle(GetWorld(), Center, AttackRange, 32.0f, DebugColor, false, DeltaSeconds,
 				0, 4, FVector(0,1,0), FVector::ForwardVector);
