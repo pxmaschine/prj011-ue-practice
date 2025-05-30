@@ -10,7 +10,7 @@
 namespace DevelopmentOnly
 {
 	static bool GGameDrawDebugAttackRange = false;
-	static FAutoConsoleVariableRef CVarDrawDebug_AttackRangeService(
+	static FAutoConsoleVariableRef CVarGameDrawDebug_AttackRangeService(
 		TEXT("game.DrawDebugAttackRange"),
 		GGameDrawDebugAttackRange,
 		TEXT("Enable debug rendering of the attack range services.\n"),

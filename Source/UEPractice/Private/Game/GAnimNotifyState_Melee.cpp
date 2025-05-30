@@ -10,7 +10,7 @@
 namespace DevelopmentOnly
 {
 	static bool GGameDrawDebugMelee = false;
-	static FAutoConsoleVariableRef CVarDrawDebug_MeleeNotifies(
+	static FAutoConsoleVariableRef CVarGameDrawDebug_MeleeNotifies(
 		TEXT("game.DrawDebugMelee"),
 		GGameDrawDebugMelee,
 		TEXT("Enable debug rendering on the melee system.\n"),
